@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://nice-cliff-0dd73e00f.5.azurestaticapps.net"],
+    allow_origins=["https://nice-forest-0cdf73d0f.5.azurestaticapps.net"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
