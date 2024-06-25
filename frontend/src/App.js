@@ -5,6 +5,7 @@ import Button from '@mui/material/Button';
 import SendIcon from '@mui/icons-material/Send';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { styled } from '@mui/material/styles';
+import { v4 as uuidv4 } from 'uuid';
 
 const App = () => {
   const [messages, setMessages] = useState([
@@ -12,6 +13,18 @@ const App = () => {
   ]);
   const [userMessage, setUserMessage] = useState('');
   const messagesEndRef = useRef(null);
+  const [sessionId, setSessionId] = useState('');
+
+  useEffect(() => {
+    const storedSessionId = sessionStorage.getItem('sessionId');
+    if (storedSessionId) {
+      setSessionId(storedSessionId);
+    } else {
+      const newSessionId = uuidv4();
+      sessionStorage.setItem('sessionId', newSessionId);
+      setSessionId(newSessionId);
+    }
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -32,8 +45,10 @@ const App = () => {
     try {
       const response = await axios.post('https://chatappdemobackend.azurewebsites.net/chat', newMessage, {
         headers: {
-          'Content-Type': 'application/json'
-        }
+          'Content-Type': 'application/json',
+          'Session-ID': sessionId
+        },
+        withCredentials: true
       });
       setMessages(response.data.messages);
       setUserMessage(''); 
