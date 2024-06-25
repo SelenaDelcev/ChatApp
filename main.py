@@ -5,6 +5,7 @@ import openai
 import os
 import logging
 from typing import Dict, List
+from fastapi.responses import JSONResponse
 
 # Initialize the FastAPI app
 app = FastAPI()
@@ -28,6 +29,15 @@ class Message(BaseModel):
     content: str
     
 messages: Dict[str, List[Dict[str, str]]] = {}
+
+@app.options("/chat")
+async def preflight_handler():
+    return JSONResponse(content={}, headers={
+        "Access-Control-Allow-Origin": "https://nice-forest-0cdf73d0f.5.azurestaticapps.net",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Session-ID",
+        "Access-Control-Allow-Credentials": "true"
+    })
 
 @app.post('/chat')
 async def chat_with_ai(message: Message):
