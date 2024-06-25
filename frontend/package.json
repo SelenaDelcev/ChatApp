@@ -2,7 +2,7 @@
   "name": "chat-tripi",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://nice-cliff-0dd73e00f.5.azurestaticapps.net",
+  "homepage": "https://nice-forest-0cdf73d0f.5.azurestaticapps.net",
   "dependencies": {
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.5",
