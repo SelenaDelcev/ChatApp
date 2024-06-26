@@ -104,13 +104,17 @@ async def chat_with_ai(request: Request, message: Message):
         def event_generator():
             full_response = ""
             for res in response:
-                chunk = res.choices[0].delta.get("content", "")
-                full_response += chunk
-                # Replace Markdown bold with HTML bold
-                assistant_message_content = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', full_response)
-                # Replace Markdown links with HTML links
-                assistant_message_content = re.sub(r'\[(.*?)\]\((.*?)\)', r'<a href="\2">\1</a>', assistant_message_content)
-                yield f"data: {assistant_message_content + '▌'}\n\n"
+                try:
+                    chunk = res.choices[0].delta.get("content", "")
+                    full_response += chunk
+                    # Replace Markdown bold with HTML bold
+                    assistant_message_content = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', full_response)
+                    # Replace Markdown links with HTML links
+                    assistant_message_content = re.sub(r'\[(.*?)\]\((.*?)\)', r'<a href="\2">\1</a>', assistant_message_content)
+                    yield f"data: {assistant_message_content + '▌'}\n\n"
+                except Exception as e:
+                    logger.error(f"Error processing chunk: {str(e)}")
+                    yield f"data: {full_response}\n\n"
             yield f"data: {assistant_message_content}\n\n"
 
         return StreamingResponse(event_generator(), media_type="text/event-stream")
