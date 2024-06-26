@@ -46,6 +46,27 @@ const App = () => {
         },
         withCredentials: true
       });
+      
+      const eventSource = new EventSource(`https://chatappdemobackend.azurewebsites.net/chat/stream?session_id=${sessionId}`);
+      
+      eventSource.onmessage = (event) => {
+        const newMessage = { role: 'assistant', content: event.data };
+        setMessages((prevMessages) => {
+          const lastMessageIndex = prevMessages.length - 1;
+          const updatedMessages = [...prevMessages];
+          if (updatedMessages[lastMessageIndex].role === 'assistant') {
+            updatedMessages[lastMessageIndex].content = event.data;
+          } else {
+            updatedMessages.push(newMessage);
+          }
+          return updatedMessages;
+        });
+      };
+
+      eventSource.onerror = (error) => {
+        console.error('EventSource failed:', error);
+        eventSource.close();
+      };
       const filteredMessages = response.data.messages.filter(msg => msg.role !== 'system');
       setMessages(filteredMessages);
       setUserMessage(''); 

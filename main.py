@@ -5,6 +5,7 @@ import openai
 import os
 import logging
 from typing import Dict, List
+from starlette.responses import StreamingResponse
 import re
 
 # Initialize the FastAPI app
@@ -95,26 +96,41 @@ async def chat_with_ai(request: Request, message: Message):
             model="gpt-4o",
             temperature=0.0,
             messages=openai_messages,
+            stream=True
         )
 
         logger.info(f"OpenAI response: {response}")
 
-        # Extract the assistant's message content
-        if response.choices:
-            assistant_message_content = response.choices[0].message.content
-            # Replace Markdown bold with HTML bold
-            assistant_message_content = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', assistant_message_content)
-            # Replace Markdown links with HTML links
-            assistant_message_content = re.sub(r'\[(.*?)\]\((.*?)\)', r'<a href="\2">\1</a>', assistant_message_content)
-            messages[session_id].append({"role": "assistant", "content": assistant_message_content})
-            logger.info(f"Assistant response: {assistant_message_content}")
-        else:
-            raise ValueError("Unexpected response format: 'choices' list is empty")
+        def event_generator():
+            full_response = ""
+            for res in response:
+                chunk = res.choices[0].delta.get("content", "")
+                full_response += chunk
+                # Replace Markdown bold with HTML bold
+                assistant_message_content = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', full_response)
+                # Replace Markdown links with HTML links
+                assistant_message_content = re.sub(r'\[(.*?)\]\((.*?)\)', r'<a href="\2">\1</a>', assistant_message_content)
+                yield f"data: {assistant_message_content + '▌'}\n\n"
+            yield f"data: {assistant_message_content}\n\n"
 
-        return {"messages": messages[session_id]}
+        return StreamingResponse(event_generator(), media_type="text/event-stream")
+    
     except openai.OpenAIError as e:
         logger.error(f"OpenAI API error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"OpenAI API error: {str(e)}")
     except Exception as e:
         logger.error(f"Internal server error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+    
+@app.get('/chat/stream')
+async def chat_stream(session_id: str):
+    if session_id not in messages:
+        raise HTTPException(status_code=400, detail="Invalid session ID")
+    
+    def event_generator():
+        while True:
+            if len(messages[session_id]) > 0:
+                message = messages[session_id].pop(0)
+                yield f"data: {message['content']}\n\n"
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
