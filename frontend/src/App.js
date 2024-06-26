@@ -57,6 +57,7 @@ const App = () => {
         setMessages((prevMessages) => {
           const updatedMessages = [...prevMessages];
           const lastMessageIndex = updatedMessages.length - 1;
+          updatedMessages = updatedMessages.filter(msg => msg.role !== 'system');
           if (lastMessageIndex >= 0 && updatedMessages[lastMessageIndex].role === 'assistant') {
             updatedMessages[lastMessageIndex].content = event.data;
           } else {
@@ -70,8 +71,6 @@ const App = () => {
         console.error('EventSource failed:', error);
         eventSource.close();
       };
-      const filteredMessages = response.data.messages.filter(msg => msg.role !== 'system');
-      setMessages(filteredMessages);
       setUserMessage(''); 
     } catch (error) {
       console.error('Network or Server Error:', error);
