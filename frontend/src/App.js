@@ -4,13 +4,11 @@ import './App.css';
 import Button from '@mui/material/Button';
 import SendIcon from '@mui/icons-material/Send';
 import { v4 as uuidv4 } from 'uuid';
-
 const App = () => {
   const [messages, setMessages] = useState([]);
   const [userMessage, setUserMessage] = useState('');
   const messagesEndRef = useRef(null);
   const [sessionId, setSessionId] = useState('');
-
   useEffect(() => {
     const storedSessionId = sessionStorage.getItem('sessionId');
     if (storedSessionId) {
@@ -21,28 +19,21 @@ const App = () => {
       setSessionId(newSessionId);
     }
   }, []);
-
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
-
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     const newMessage = {
       role: 'user',
       content: userMessage
     };
 
-    setMessages((prevMessages) => [...prevMessages, newMessage]);
-    setUserMessage('');
-
     try {
-      await axios.post('https://chatappdemobackend.azurewebsites.net/chat', newMessage, {
+      const response = await axios.post('https://chatappdemobackend.azurewebsites.net/chat', newMessage, {
         headers: {
           'Content-Type': 'application/json',
           'Session-ID': sessionId
@@ -50,17 +41,35 @@ const App = () => {
         withCredentials: true
       });
 
+      setMessages((prevMessages) => [...prevMessages, newMessage]);
+      setUserMessage('');
+
+      console.log("Response from server:", response);
+
       const eventSource = new EventSource(`https://chatappdemobackend.azurewebsites.net/chat/stream?session_id=${sessionId}`);
 
       eventSource.onmessage = (event) => {
+        console.log("Event received:", event);
         const newMessage = { role: 'assistant', content: event.data };
-        setMessages((prevMessages) => [...prevMessages, newMessage]);
+        setMessages((prevMessages) => {
+          const updatedMessages = [...prevMessages];
+          const lastMessageIndex = updatedMessages.length - 1;
+          if (lastMessageIndex >= 0 && updatedMessages[lastMessageIndex].role === 'assistant') {
+            updatedMessages[lastMessageIndex].content = event.data;
+          } else {
+            updatedMessages.push(newMessage);
+          }
+          return updatedMessages;
+        });
       };
 
       eventSource.onerror = (error) => {
         console.error('EventSource failed:', error);
         eventSource.close();
       };
+      const filteredMessages = response.data.messages.filter(msg => msg.role !== 'system');
+      setMessages(filteredMessages);
+      setUserMessage(''); 
     } catch (error) {
       console.error('Network or Server Error:', error);
       if (error.response) {
