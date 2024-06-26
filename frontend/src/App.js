@@ -46,6 +46,8 @@ const App = () => {
         },
         withCredentials: true
       });
+
+      console.log("Response from server:", response);
       
       const eventSource = new EventSource(`https://chatappdemobackend.azurewebsites.net/chat/stream?session_id=${sessionId}`);
       
