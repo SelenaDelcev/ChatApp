@@ -68,12 +68,7 @@ const App = () => {
         const chunk = decoder.decode(value, { stream: true });
 
         assistantMessage.content += chunk.replace("data: ", "").replace("▌", "");
-        // Trigger re-render
-        setMessages((prevMessages) => {
-          const updatedMessages = [...prevMessages];
-          updatedMessages[updatedMessages.length - 1] = { ...assistantMessage };
-          return updatedMessages;
-        });
+        setMessages((prevMessages) => [...prevMessages]);
       }
     } catch (error) {
       console.error('Network or Server Error:', error);
