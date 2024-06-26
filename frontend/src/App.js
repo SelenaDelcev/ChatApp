@@ -65,16 +65,16 @@ const App = () => {
 
   const getMessageContent = (message) => {
     if (typeof message.content === 'object') {
-      return message.content.content;
+      return { __html: message.content.content };
     }
-    return message.content;
+    return { __html: message.content };
   };
 
   return (
     <div className="App">
       <div className="chat-container">
         <div className="messages">
-          {messages && Array.isArray(messages) && messages.map((message, index) => (
+          {messages.map((message, index) => (
             <div key={index} className={`message ${message.role}`}>
               <p dangerouslySetInnerHTML={getMessageContent(message)} />
             </div>
