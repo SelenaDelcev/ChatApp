@@ -4,11 +4,13 @@ import './App.css';
 import Button from '@mui/material/Button';
 import SendIcon from '@mui/icons-material/Send';
 import { v4 as uuidv4 } from 'uuid';
+
 const App = () => {
   const [messages, setMessages] = useState([]);
   const [userMessage, setUserMessage] = useState('');
   const messagesEndRef = useRef(null);
   const [sessionId, setSessionId] = useState('');
+
   useEffect(() => {
     const storedSessionId = sessionStorage.getItem('sessionId');
     if (storedSessionId) {
@@ -19,21 +21,28 @@ const App = () => {
       setSessionId(newSessionId);
     }
   }, []);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
+
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     const newMessage = {
       role: 'user',
       content: userMessage
     };
 
+    setMessages((prevMessages) => [...prevMessages, newMessage]);
+    setUserMessage('');
+
     try {
-      const response = await axios.post('https://chatappdemobackend.azurewebsites.net/chat', newMessage, {
+      await axios.post('https://chatappdemobackend.azurewebsites.net/chat', newMessage, {
         headers: {
           'Content-Type': 'application/json',
           'Session-ID': sessionId
@@ -41,32 +50,26 @@ const App = () => {
         withCredentials: true
       });
 
-      setMessages((prevMessages) => [...prevMessages, newMessage]);
-      setUserMessage('');
+      const response = await fetch(`https://chatappdemobackend.azurewebsites.net/chat/stream?session_id=${sessionId}`, {
+        headers: {
+          'Session-ID': sessionId
+        }
+      });
 
-      console.log("Response from server:", response);
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let assistantMessage = { role: 'assistant', content: '' };
 
-      const eventSource = new EventSource(`https://chatappdemobackend.azurewebsites.net/chat/stream?session_id=${sessionId}`);
+      setMessages((prevMessages) => [...prevMessages, assistantMessage]);
 
-      eventSource.onmessage = (event) => {
-        console.log("Event received:", event);
-        setMessages((prevMessages) => {
-          const updatedMessages = [...prevMessages];
-          const lastMessageIndex = updatedMessages.length - 1;
-          if (lastMessageIndex >= 0 && updatedMessages[lastMessageIndex].role === 'assistant') {
-            updatedMessages[lastMessageIndex].content += event.data.replace("data: ", "").replace("▌", "");
-          } else {
-            updatedMessages.push({ role: 'assistant', content: event.data.replace("data: ", "").replace("▌", "") });
-          }
-          return updatedMessages;
-        });
-      };
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
 
-      eventSource.onerror = (error) => {
-        console.error('EventSource failed:', error);
-        eventSource.close();
-      };
-      setUserMessage(''); 
+        assistantMessage.content += chunk.replace("data: ", "").replace("▌", "");
+        setMessages((prevMessages) => [...prevMessages]);
+      }
     } catch (error) {
       console.error('Network or Server Error:', error);
       if (error.response) {
@@ -82,9 +85,6 @@ const App = () => {
   };
 
   const getMessageContent = (message) => {
-    if (typeof message.content === 'object') {
-      return { __html: message.content.content };
-    }
     return { __html: message.content };
   };
 
