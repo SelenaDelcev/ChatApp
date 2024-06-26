@@ -44,7 +44,7 @@ async def chat_with_ai(request: Request, message: Message):
     if session_id not in messages:
        messages[session_id] = [{"role": "system", "content": system_prompt}]
     try:
-        openai.api_key = os.getenv("OPENAI_API_KEY")
+        client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
         logger.info(f"Received message: {message.content}")
 
@@ -57,7 +57,7 @@ async def chat_with_ai(request: Request, message: Message):
         # The prepared messages
         logger.info(f"Prepared OpenAI messages: {openai_messages}")
 
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model="gpt-4",
             temperature=0.0,
             messages=openai_messages,
