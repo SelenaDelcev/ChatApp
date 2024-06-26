@@ -55,9 +55,9 @@ const App = () => {
           const updatedMessages = [...prevMessages];
           const lastMessageIndex = updatedMessages.length - 1;
           if (lastMessageIndex >= 0 && updatedMessages[lastMessageIndex].role === 'assistant') {
-            updatedMessages[lastMessageIndex].content = event.data;
+            updatedMessages[lastMessageIndex].content += event.data.replace("data: ", "").replace("▌", "");
           } else {
-            updatedMessages.push(newMessage);
+            updatedMessages.push({ role: 'assistant', content: event.data.replace("data: ", "").replace("▌", "") });
           }
           return updatedMessages;
         });
@@ -67,8 +67,6 @@ const App = () => {
         console.error('EventSource failed:', error);
         eventSource.close();
       };
-      const filteredMessages = response.data.messages.filter(msg => msg.role !== 'system');
-      setMessages(filteredMessages);
       setUserMessage(''); 
     } catch (error) {
       console.error('Network or Server Error:', error);
