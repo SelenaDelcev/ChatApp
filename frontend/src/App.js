@@ -76,7 +76,7 @@ const App = () => {
         <div className="messages">
           {messages.map((message, index) => (
             <div key={index} className={`message ${message.role}`}>
-              <p>{getMessageContent(message)}</p>
+              <p dangerouslySetInnerHTML={getMessageContent(message)} />
             </div>
           ))}
           <div ref={messagesEndRef} />
