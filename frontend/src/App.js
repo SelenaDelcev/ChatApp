@@ -74,7 +74,7 @@ const App = () => {
     <div className="App">
       <div className="chat-container">
         <div className="messages">
-          {messages.map((message, index) => (
+          {messages && Array.isArray(messages) && messages.map((message, index) => (
             <div key={index} className={`message ${message.role}`}>
               <p dangerouslySetInnerHTML={getMessageContent(message)} />
             </div>
