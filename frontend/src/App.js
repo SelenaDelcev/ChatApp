@@ -50,7 +50,6 @@ const App = () => {
 
       eventSource.onmessage = (event) => {
         console.log("Event received:", event);
-        const newMessage = { role: 'assistant', content: event.data };
         setMessages((prevMessages) => {
           const updatedMessages = [...prevMessages];
           const lastMessageIndex = updatedMessages.length - 1;
