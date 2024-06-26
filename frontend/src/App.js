@@ -57,7 +57,6 @@ const App = () => {
         setMessages((prevMessages) => {
           const updatedMessages = [...prevMessages];
           const lastMessageIndex = updatedMessages.length - 1;
-          updatedMessages = updatedMessages.filter(msg => msg.role !== 'system');
           if (lastMessageIndex >= 0 && updatedMessages[lastMessageIndex].role === 'assistant') {
             updatedMessages[lastMessageIndex].content = event.data;
           } else {
