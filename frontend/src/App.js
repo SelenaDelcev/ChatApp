@@ -42,7 +42,7 @@ const App = () => {
     setUserMessage('');
 
     try {
-      await axios.post('https://chatappdemobackend.azurewebsites.net/chat', newMessage, {
+      const response = await axios.post('https://chatappdemobackend.azurewebsites.net/chat', newMessage, {
         headers: {
           'Content-Type': 'application/json',
           'Session-ID': sessionId
@@ -53,18 +53,8 @@ const App = () => {
       const eventSource = new EventSource(`https://chatappdemobackend.azurewebsites.net/chat/stream?session_id=${sessionId}`);
 
       eventSource.onmessage = (event) => {
-        console.log("Event received:", event);
         const newMessage = { role: 'assistant', content: event.data };
-        setMessages((prevMessages) => {
-          const updatedMessages = prevMessages.filter(msg => msg.role !== 'system');
-          const lastMessageIndex = updatedMessages.length - 1;
-          if (lastMessageIndex >= 0 && updatedMessages[lastMessageIndex].role === 'assistant') {
-            updatedMessages[lastMessageIndex].content += event.data;
-          } else {
-            updatedMessages.push(newMessage);
-          }
-          return updatedMessages;
-        });
+        setMessages((prevMessages) => [...prevMessages, newMessage]);
       };
 
       eventSource.onerror = (error) => {
