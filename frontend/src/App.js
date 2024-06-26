@@ -39,7 +39,7 @@ const App = () => {
     };
 
     try {
-      await axios.post('https://chatappdemobackend.azurewebsites.net/chat', newMessage, {
+      const response = await axios.post('https://chatappdemobackend.azurewebsites.net/chat', newMessage, {
         headers: {
           'Content-Type': 'application/json',
           'Session-ID': sessionId
@@ -47,16 +47,22 @@ const App = () => {
         withCredentials: true
       });
 
-      setMessages((prevMessages) => [...prevMessages, newMessage]);
-      setUserMessage('');
-
+      console.log("Response from server:", response);
+      
       const eventSource = new EventSource(`https://chatappdemobackend.azurewebsites.net/chat/stream?session_id=${sessionId}`);
       
       eventSource.onmessage = (event) => {
+        console.log("Event received:", event);
         const newMessage = { role: 'assistant', content: event.data };
         setMessages((prevMessages) => {
-          const updatedMessages = [...prevMessages, newMessage];
-          return updatedMessages.filter(msg => msg.role !== 'system');
+          const updatedMessages = [...prevMessages];
+          const lastMessageIndex = updatedMessages.length - 1;
+          if (lastMessageIndex >= 0 && updatedMessages[lastMessageIndex].role === 'assistant') {
+            updatedMessages[lastMessageIndex].content = event.data;
+          } else {
+            updatedMessages.push(newMessage);
+          }
+          return updatedMessages;
         });
       };
 
@@ -64,6 +70,9 @@ const App = () => {
         console.error('EventSource failed:', error);
         eventSource.close();
       };
+      const filteredMessages = response.data.messages.filter(msg => msg.role !== 'system');
+      setMessages(filteredMessages);
+      setUserMessage(''); 
     } catch (error) {
       console.error('Network or Server Error:', error);
       if (error.response) {
@@ -111,5 +120,4 @@ const App = () => {
     </div>
   );
 };
-
 export default App;
