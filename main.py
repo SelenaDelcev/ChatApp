@@ -71,7 +71,7 @@ async def chat_with_ai(request: Request, message: Message):
             assistant_message_content = ""
             for res in response:
                 try:
-                    chunk = res['choices'][0]['delta'].get('content', '')
+                    chunk = res.choices[0].delta.content
                     full_response += chunk
                     # Replace Markdown bold with HTML bold
                     assistant_message_content = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', full_response)
