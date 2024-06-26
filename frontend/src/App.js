@@ -50,7 +50,8 @@ const App = () => {
         },
         withCredentials: true
       });
-      setMessages(response.data.messages);
+      const filteredMessages = response.data.messages.filter(msg => msg.role !== 'system');
+      setMessages(filteredMessages);
       setUserMessage(''); 
     } catch (error) {
       console.error('Network or Server Error:', error);
@@ -65,27 +66,6 @@ const App = () => {
       }
     }
   };
-
-  const handleFileUpload = (e) => {
-    console.log('File uploaded:', e.target.files[0]);
-    const file = e.target.files[0];
-    if (file) {
-      const newMessages = [...messages, { role: 'user', content: `Uploaded file: ${file.name}` }];
-      setMessages(newMessages);
-    }
-  };
-
-  const VisuallyHiddenInput = styled('input')({
-      clip: 'rect(0 0 0 0)',
-      clipPath: 'inset(50%)',
-      height: 1,
-      overflow: 'hidden',
-      position: 'absolute',
-      bottom: 0,
-      left: 0,
-      whiteSpace: 'nowrap',
-      width: 1,
-  });
 
   const getMessageContent = (message) => {
     if (typeof message.content === 'object') {
@@ -114,16 +94,6 @@ const App = () => {
           />
           <Button type="submit" variant="contained" endIcon={<SendIcon />}>
             Send
-          </Button>
-          <Button
-            component="label"
-            role={undefined}
-            variant="contained"
-            tabIndex={-1}
-            startIcon={<CloudUploadIcon />}
-          >
-            Upload file
-            <VisuallyHiddenInput type="file" onChange={handleFileUpload}/>
           </Button>
         </form>
       </div>

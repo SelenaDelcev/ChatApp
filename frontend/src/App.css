@@ -37,12 +37,6 @@
   text-align: left;
 }
 
-.message.system {
-  font-style: italic;
-  color: #999;
-  text-align: center;
-}
-
 .message-input {
   display: flex;
   justify-content: space-between;
