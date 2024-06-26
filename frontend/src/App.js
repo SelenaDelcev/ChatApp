@@ -6,9 +6,7 @@ import SendIcon from '@mui/icons-material/Send';
 import { v4 as uuidv4 } from 'uuid';
 
 const App = () => {
-  const [messages, setMessages] = useState([
-    { role: 'system', content: 'You are a helpful assistant' }
-  ]);
+  const [messages, setMessages] = useState();
   const [userMessage, setUserMessage] = useState('');
   const messagesEndRef = useRef(null);
   const [sessionId, setSessionId] = useState('');

@@ -100,7 +100,7 @@ async def chat_with_ai(request: Request, message: Message):
 
         # Extract the assistant's message content
         if response.choices:
-            assistant_message_content = response.choices[0].message.content
+            assistant_message_content = response.choices[0].message.content.replace("**", "<strong>").replace("**", "</strong>")
             messages[session_id].append({"role": "assistant", "content": assistant_message_content})
             logger.info(f"Assistant response: {assistant_message_content}")
         else:
