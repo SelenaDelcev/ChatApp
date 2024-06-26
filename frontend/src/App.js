@@ -3,8 +3,6 @@ import axios from 'axios';
 import './App.css';
 import Button from '@mui/material/Button';
 import SendIcon from '@mui/icons-material/Send';
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import { styled } from '@mui/material/styles';
 import { v4 as uuidv4 } from 'uuid';
 
 const App = () => {
