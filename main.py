@@ -85,7 +85,7 @@ async def chat_with_ai(request: Request, message: Message):
         # The prepared messages
         logger.info(f"Prepared OpenAI messages: {openai_messages}")
         
-        response = await client.chat.completions.create(
+        response = client.chat.completions.create(
             model="gpt-4o",
             temperature=0.0,
             messages=openai_messages,
