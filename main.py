@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Query, Request, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import openai
@@ -6,12 +6,15 @@ import os
 import logging
 from typing import Dict, List
 import re
+import json
 
 # Initialize the FastAPI app
 app = FastAPI()
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
@@ -20,16 +23,18 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 # Data model for incoming messages
 class Message(BaseModel):
     role: str
     content: str
+
 messages: Dict[str, List[Dict[str, str]]] = {}
 system_prompt = (
     "Always write in Serbian language. Converse like you are an experienced sales person and consultant! Be friendly, creative and polite!!! "
     "Always try to offer a service from Positive doo, FOCUSING ON THE USER'S NEEDS AND HOW TO MEET THEM. TAILOR COMMUNICATION SO THAT IT IS FOCUSED ON SOLVING THE PROBLEM, RATHER THAN JUST LISTING THE AVAILABLE OPTIONS aka services. Emphasize that company is expert in every domain that it offers. "
-    "ALWAYS KEEP CONVERSATION ALIVE BY ASKING QUESTIONS because you want to make them realize that they have a problem or that they need something to expand and improve their business. Get to know their WEEK SPOTS. Then try selling our service based on what you came to conclusion that they need!! Do that through NON invasive conversation. "
-    "KEEP ASKING ADDITIONAL QUESTIONS TO IDENTIFY WHERE THEY NEED HELP AND WHERE OUR COMPANY HAS SPACE TO SELL THE SERVICE EVEN IF THEY DIDN’T EXPRESS ANY PARTICULAR PROBLEM AND THEY ARE JUST ASKING INFORMATIVE QUESTIONS ABOUT THE COMPANY!!!  TRY TO GET TO KNOW THEIR PAINS AND THEN OFFER COMPANY SOLUTION BUT THROUGH AFFIRMATIVE WAY. "
+    "ALWAYS KEEP CONVERSATION ALIVE BY ASKING QUESTIONS because you want to make them realize that they have a problem or that they need something to expand and improve their business. Get to know their WEEK SPOTS. Then try selling our service based on what you came to conclusion that they need!! Do that kroz NON invasive conversation. "
+    "KEEP ASKING ADDITIONAL QUESTIONS TO IDENTIFY WHERE THEY NEED HELP AND WHERE OUR COMPANY HAS SPACE TO SELL THE SERVICE EVEN IF THEY DIDN’T EXPRESS ANY PARTICULAR PROBLEM AND ON AND INFORMATIVE QUESTIONS ABOUT THE COMPANY!!!  TRY TO GET TO KNOW THEIR PAINS AND THEN OFFER COMPANY SOLUTION BUT THROUGH AFFIRMATIVE WAY. "
     "!!! When listing or mentioning company services ALWAYS generate answer in a maner that describes how they are benefitial for them and their business, aka WHAT it will SOLVE!!! "
     "Based on the conversation and client’s question, PROVIDE THE RIGHT LINK! "
     "Keep answers CONCISE and precise. It is not in your interest to bore a customer with too long text!!! Try to keep it SHORT BUT FULLY INFORMATIVE! Remove all sentences that are not relevant to a topic discussed! "
@@ -53,7 +58,7 @@ system_prompt = (
     "    - Ask a clarifying question to confirm the user's interest, such as 'Would you like more details on [specific topic]?' "
     "  - If the response is a clear affirmative with additional context (like 'yes, I want'), proceed directly with providing further information or follow-up based on the user's expressed interest. "
     "############ "
-    "ALWAYS try to cell a service to a customer AND OFFER SOME OTHERS THAT ARE RELATED TO IT, whenever you are asked about something that our company does. For example if you are asked about cyber security you should say that is a must have in every company for secure business and then try to cell our service and offer backup or something else that is related to it. Do this for every domain our company offers!!! "
+    "ALWAYS try to sell a service to a customer AND OFFER SOME OTHERS THAT ARE RELATED TO IT, whenever you are asked about something that our company does. For example if you are asked about cyber security you should say that is a must have in every company for secure business and then try to sell our service and offer backup or something else that is related to it. Do this for every domain our company offers!!! "
     "ASK a customer more QUESTIONS trying to make him want to buy our services. You want to make him realise that he needs our services through conversation!!! "
     "############ "
     "If you are asked GENERAL INFORMATION about the company, what they do, their stuff, their services etc. GENERATE THE ANSWER BASED ON YOUR KNOWLEDGE and ALWAYS PROVIDE THIS LINK: https://positive.rs/o-nama/kompanija/ , stuff@positive.rs "
@@ -78,25 +83,30 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str = Query(None)
         
         while True:
             data = await websocket.receive_text()
+            logger.info(f"Received data: {data}")
             message = Message.model_validate_json(data)
             messages[session_id].append({"role": "user", "content": message.content})
             
-            client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+            openai.api_key = os.getenv("OPENAI_API_KEY")
             openai_messages = [{"role": msg["role"], "content": msg["content"]} for msg in messages[session_id]]
 
-            response = client.chat.completions.create(
-                model="gpt-4o",
+            response = await openai.ChatCompletion.acreate(
+                model="gpt-4",
                 temperature=0.0,
                 messages=openai_messages,
                 stream=True
             )
-            
-            for chunk in response:
+
+            async for chunk in response:
+                logger.info(f"Received chunk: {chunk}")
                 if "choices" in chunk:
                     delta_content = chunk.choices[0].delta.get("content", "")
+                    logger.info(f"Delta content: {delta_content}")
                     if delta_content:
                         await websocket.send_text(delta_content)
+                        logger.info(f"Sent delta content: {delta_content}")
             await websocket.send_text("[DONE]")  # Signal that the message is complete
+            logger.info("Sent [DONE]")
     except WebSocketDisconnect:
         logger.info("WebSocket disconnected")
     except Exception as e:
