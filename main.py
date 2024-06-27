@@ -89,6 +89,7 @@ async def chat_with_ai(request: Request, message: Message):
             model="gpt-4o",
             temperature=0.0,
             messages=openai_messages,
+            stream=True,
         ):
             try:
                 full_response += (response.choices[0].delta.content or "")
