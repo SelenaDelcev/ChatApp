@@ -45,19 +45,20 @@
   display: flex;
   justify-content: space-between;
   padding: 10px;
-  border-top: 1px solid #000;
   background-color: #454654; 
+  border-top: 1px solid #000;
+  border-radius: 0 0 5px 5px;
 }
 
 input[type="text"] {
   flex: 1;
   padding: 10px;
-  border: 1px solid #000;
+  border: none;
   border-radius: 5px 0 0 5px;
-  margin-right: -1px;
   background-color: #454654;
-  color: white; 
-  font-family: 'Roboto', Arial, sans-serif; 
+  color: white;
+  font-family: 'Roboto', Arial, sans-serif;
+  border: 1px solid #000;
 }
 
 input[type="text"]::placeholder {
@@ -66,7 +67,7 @@ input[type="text"]::placeholder {
 
 button {
   padding: 10px;
-  border: none;
+  border: 1px solid #000;
   border-radius: 0 5px 5px 0;
   background-color: #454654;
   color: #b3b3b3;
@@ -74,7 +75,6 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid #000;
   border-left: none;
 }
 
@@ -90,7 +90,7 @@ button:enabled:hover {
 }
 
 button:disabled {
-  background-color:#454654;
+  background-color: #454654;
   color: #b3b3b3; 
 }
 
