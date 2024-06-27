@@ -24,7 +24,7 @@ const App = () => {
 
   useEffect(() => {
     if (sessionId) {
-      const websocket = new WebSocket(`wss://chatappdemobackend.azurewebsites.net/ws`);
+      const websocket = new WebSocket(`wss://chatappdemobackend.azurewebsites.net/ws?session_id=${sessionId}`);
       websocket.onopen = () => {
         console.log('WebSocket connection opened');
         websocketRef.current = websocket;

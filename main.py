@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, Query, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import openai
@@ -63,104 +63,25 @@ system_prompt = (
     "If you are asked about antiviruses as a service, suggest Sophos because it is Positive's partner."
     "https://positive.rs/"
 )
-@app.post('/chat')
-async def chat_with_ai(request: Request, message: Message):
-    session_id = request.headers.get("Session-ID")
-    if not session_id:
-        raise HTTPException(status_code=400, detail="Session ID not provided")
-    if session_id not in messages:
-       messages[session_id] = [{"role": "system", "content": system_prompt}]
-    try:
-        client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-        logger.info(f"Received message: {message.content}")
-        messages[session_id].append({"role": "user", "content": message.content})
-        logger.info(f"Messages: {messages[session_id]}")
-        openai_messages = [{"role": msg["role"], "content": msg["content"]} for msg in messages[session_id]]
-        # The prepared messages
-        logger.info(f"Prepared OpenAI messages: {openai_messages}")
-        response = client.chat.completions.create(
-            model="gpt-4o",
-            temperature=0.0,
-            messages=openai_messages,
-        )
-        logger.info(f"OpenAI response: {response}")
-
-        # Extract the assistant's message content
-        if response.choices:
-            assistant_message_content = response.choices[0].message.content
-            # Replace Markdown bold with HTML bold
-            assistant_message_content = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', assistant_message_content)
-            # Replace Markdown links with HTML links
-            assistant_message_content = re.sub(r'\[(.*?)\]\((.*?)\)', r'<a href="\2">\1</a>', assistant_message_content)
-            messages[session_id].append({"role": "assistant", "content": assistant_message_content})
-            logger.info(f"Assistant response: {assistant_message_content}")
-        else:
-            raise ValueError("Unexpected response format: 'choices' list is empty")
-        return {"messages": messages[session_id]}
-    except openai.OpenAIError as e:
-        logger.error(f"OpenAI API error: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"OpenAI API error: {str(e)}")
-    except Exception as e:
-        logger.error(f"Internal server error: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
-    
-@app.post('/chat')
-async def chat_with_ai(request: Request, message: Message):
-    session_id = request.headers.get("Session-ID")
-    if not session_id:
-        raise HTTPException(status_code=400, detail="Session ID not provided")
-    if session_id not in messages:
-       messages[session_id] = [{"role": "system", "content": system_prompt}]
-    try:
-        client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-        logger.info(f"Received message: {message.content}")
-        messages[session_id].append({"role": "user", "content": message.content})
-        logger.info(f"Messages: {messages[session_id]}")
-        openai_messages = [{"role": msg["role"], "content": msg["content"]} for msg in messages[session_id]]
-        # The prepared messages
-        logger.info(f"Prepared OpenAI messages: {openai_messages}")
-        response = client.chat.completions.create(
-            model="gpt-4",
-            temperature=0.0,
-            messages=openai_messages,
-        )
-        logger.info(f"OpenAI response: {response}")
-
-        # Extract the assistant's message content
-        if response.choices:
-            assistant_message_content = response.choices[0].message.content
-            # Replace Markdown bold with HTML bold
-            assistant_message_content = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', assistant_message_content)
-            # Replace Markdown links with HTML links
-            assistant_message_content = re.sub(r'\[(.*?)\]\((.*?)\)', r'<a href="\2">\1</a>', assistant_message_content)
-            messages[session_id].append({"role": "assistant", "content": assistant_message_content})
-            logger.info(f"Assistant response: {assistant_message_content}")
-        else:
-            raise ValueError("Unexpected response format: 'choices' list is empty")
-        return {"messages": messages[session_id]}
-    except openai.OpenAIError as e:
-        logger.error(f"OpenAI API error: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"OpenAI API error: {str(e)}")
-    except Exception as e:
-        logger.error(f"Internal server error: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 @app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
+async def websocket_endpoint(websocket: WebSocket, session_id: str = Query(None)):
     await websocket.accept()
     try:
+        if not session_id:
+            await websocket.send_text("Session ID not provided")
+            await websocket.close()
+            return
+        
+        if session_id not in messages:
+            messages[session_id] = [{"role": "system", "content": system_prompt}]
+        
         while True:
             data = await websocket.receive_text()
-            message = Message.parse_raw(data)
-            session_id = websocket.headers.get("Session-ID")
-            if not session_id:
-                await websocket.send_text("Session ID not provided")
-                continue
-            if session_id not in messages:
-                messages[session_id] = [{"role": "system", "content": system_prompt}]
+            message = Message.model_validate_json(data)
+            messages[session_id].append({"role": "user", "content": message.content})
             
             client = openai.ChatCompletion()
-            messages[session_id].append({"role": "user", "content": message.content})
             openai_messages = [{"role": msg["role"], "content": msg["content"]} for msg in messages[session_id]]
 
             async for response in client.create(
@@ -179,3 +100,4 @@ async def websocket_endpoint(websocket: WebSocket):
     except Exception as e:
         logger.error(f"Error: {str(e)}")
         await websocket.send_text(f"Error: {str(e)}")
+        await websocket.close()
