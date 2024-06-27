@@ -45,9 +45,9 @@
   display: flex;
   justify-content: space-between;
   padding: 10px;
-  background-color: #454654; 
-  border-top: 1px solid #000;
+  background-color: #343541; 
   border-radius: 0 0 5px 5px;
+  border-right: none;
 }
 
 input[type="text"] {
@@ -59,10 +59,6 @@ input[type="text"] {
   color: white;
   font-family: 'Roboto', Arial, sans-serif;
   border: 1px solid #000;
-}
-
-input[type="text"]::placeholder {
-  color: white; 
 }
 
 button {
