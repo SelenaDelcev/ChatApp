@@ -88,7 +88,11 @@ async def chat_with_ai(request: Request, message: Message):
             model="gpt-4o",
             temperature=0.0,
             messages=openai_messages,
+            stream=True
         )
+        for chunk in response:
+            logger.info(f"Chunk: {chunk}")
+            logger.info(chunk.choices[0].delta.content)
         logger.info(f"OpenAI response: {response}")
         # Extract the assistant's message content
         if response.choices:
