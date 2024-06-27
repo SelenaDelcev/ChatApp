@@ -89,9 +89,9 @@ const App = () => {
             value={userMessage}
             onChange={(e) => setUserMessage(e.target.value)}
           />
-          <Button type="submit" variant="contained" endIcon={<SendIcon />}>
-            Send
-          </Button>
+          <button type="submit" disabled={!userMessage.trim()}>
+            <SendIcon />
+          </button>
         </form>
       </div>
     </div>

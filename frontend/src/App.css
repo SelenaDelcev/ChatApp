@@ -2,7 +2,6 @@
 
 .App {
   font-family: 'Roboto', Arial, sans-serif;
-  font-family: Arial, sans-serif;
   max-width: 600px;
   margin: 0 auto;
   display: flex;
@@ -14,9 +13,9 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  border: 1px solid #343541;
+  border: 1px solid #ccc;
   border-radius: 5px;
-  background-color: #343541;
+  background-color: #f9f9f9;
 }
 
 .messages {
@@ -30,15 +29,14 @@
   padding: 10px;
   margin-bottom: 10px;
   border-radius: 5px;
+  background-color: rgba(255, 255, 255, 0.2); 
 }
 
 .message.user {
-  background-color: #b6ceff;
   text-align: right;
 }
 
 .message.assistant {
-  background-color: #ffa3ab;
   text-align: left;
 }
 
@@ -46,27 +44,54 @@
   display: flex;
   justify-content: space-between;
   padding: 10px;
-  border-top: 1px solid #454654;
-  background-color: #454654;
+  border-top: 1px solid #000;
+  background-color: #454654; 
 }
 
 input[type="text"] {
   flex: 1;
   padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  margin-right: 10px;
+  border: 1px solid #000;
+  border-radius: 5px 0 0 5px;
+  margin-right: -1px;
+  background-color: #454654;
+  color: white; 
+  font-family: 'Roboto', Arial, sans-serif; 
+}
+
+input[type="text"]::placeholder {
+  color: white; 
 }
 
 button {
-  padding: 10px 15px;
+  padding: 10px;
   border: none;
-  border-radius: 5px;
-  background-color: #007bff;
-  color: white;
-  cursor: pointer;
+  border-radius: 0 5px 5px 0;
+  background-color: #454654;
+  color: #b3b3b3;
+  cursor: not-allowed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-button:hover {
-  background-color: #0056b3;
+button:enabled {
+  cursor: pointer; 
+  background-color: #454654;
+  color: white;
+}
+
+button:enabled:hover {
+  background-color: black; 
+  color: white;
+}
+
+button:disabled {
+  background-color:#454654;
+  color: #b3b3b3; 
+}
+
+button:disabled:hover {
+  background-color: #454654;
+  color: #b3b3b3;
 }
