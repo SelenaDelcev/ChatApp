@@ -91,7 +91,7 @@ async def chat_with_ai(request: Request, message: Message):
             messages=openai_messages,
             stream=True
         )
-        async for chunk in response:
+        for chunk in response:
             logger.info(f"Chunk: {chunk}")
             if hasattr(chunk, 'choices') and len(chunk.choices) > 0:
                 logger.info(chunk.choices[0].delta.content)
