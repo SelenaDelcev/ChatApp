@@ -85,7 +85,7 @@ const App = () => {
         <form onSubmit={handleSubmit} className="message-input">
           <input
             type="text"
-            placeholder="Type your message..."
+            placeholder="Kako vam mogu pomoći?"
             value={userMessage}
             onChange={(e) => setUserMessage(e.target.value)}
           />
