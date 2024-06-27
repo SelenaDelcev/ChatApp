@@ -87,10 +87,10 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str = Query(None)
             message = Message.model_validate_json(data)
             messages[session_id].append({"role": "user", "content": message.content})
             
-            openai.api_key = os.getenv("OPENAI_API_KEY")
+            client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
             openai_messages = [{"role": msg["role"], "content": msg["content"]} for msg in messages[session_id]]
 
-            response = await openai.ChatCompletion.acreate(
+            response = await client.chat.completions.create(
                 model="gpt-4",
                 temperature=0.0,
                 messages=openai_messages,
