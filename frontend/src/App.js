@@ -38,56 +38,17 @@ const App = () => {
       content: userMessage
     };
 
-    setMessages((prevMessages) => [...prevMessages, newMessage]);
-    setUserMessage('');
-
     try {
-      // Post the user message to the /chat endpoint
-      await axios.post('https://chatappdemobackend.azurewebsites.net/chat', newMessage, {
+      const response = await axios.post('https://chatappdemobackend.azurewebsites.net/chat', newMessage, {
         headers: {
           'Content-Type': 'application/json',
           'Session-ID': sessionId
         },
         withCredentials: true
       });
-
-      // Fetch the stream from the /chat/stream endpoint
-      const response = await fetch(`https://chatappdemobackend.azurewebsites.net/chat/stream?session_id=${sessionId}`, {
-        headers: {
-          'Session-ID': sessionId
-        }
-      });
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let assistantMessage = { role: 'assistant', content: '' };
-
-      // Add an empty assistant message to be updated with the stream
-      setMessages((prevMessages) => [...prevMessages, assistantMessage]);
-
-      let fullResponse = '';
-      const updateAssistantMessage = () => {
-        setMessages((prevMessages) => {
-          const updatedMessages = [...prevMessages];
-          updatedMessages[updatedMessages.length - 1] = { ...assistantMessage, content: fullResponse + '▌' };
-          return updatedMessages;
-        });
-      };
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        const chunk = decoder.decode(value, { stream: true });
-        fullResponse += chunk.replace("data: ", "");
-        updateAssistantMessage();
-      }
-
-      // Final update to remove the typing indicator
-      setMessages((prevMessages) => {
-        const updatedMessages = [...prevMessages];
-        updatedMessages[updatedMessages.length - 1] = { ...assistantMessage, content: fullResponse };
-        return updatedMessages;
-      });
+      const filteredMessages = response.data.messages.filter(msg => msg.role !== 'system');
+      setMessages(filteredMessages);
+      setUserMessage(''); 
     } catch (error) {
       console.error('Network or Server Error:', error);
       if (error.response) {
@@ -103,6 +64,9 @@ const App = () => {
   };
 
   const getMessageContent = (message) => {
+    if (typeof message.content === 'object') {
+      return { __html: message.content.content };
+    }
     return { __html: message.content };
   };
 
@@ -132,5 +96,4 @@ const App = () => {
     </div>
   );
 };
-
 export default App;
