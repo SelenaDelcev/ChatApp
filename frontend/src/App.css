@@ -26,11 +26,23 @@
 }
 
 .message {
+  display: flex;
+  align-items: center;
   padding: 10px;
   margin-bottom: 10px;
   border-radius: 5px;
   background-color: #343541;
   color: #fff;
+}
+
+.message-content {
+  display: flex;
+  align-items: center;
+}
+
+.message-icon {
+  margin-right: 10px;
+  font-size: 24px;
 }
 
 .message.user {

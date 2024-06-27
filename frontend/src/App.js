@@ -4,6 +4,8 @@ import './App.css';
 import Button from '@mui/material/Button';
 import SendIcon from '@mui/icons-material/Send';
 import { v4 as uuidv4 } from 'uuid';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faUser, faRobot } from '@fortawesome/free-solid-svg-icons';
 
 const App = () => {
   const [messages, setMessages] = useState([]);
@@ -65,10 +67,13 @@ const App = () => {
   };
 
   const getMessageContent = (message) => {
-    if (typeof message.content === 'object') {
-      return { __html: message.content.content };
-    }
-    return { __html: message.content };
+    const icon = message.role === 'user' ? faUser : faRobot;
+    return (
+      <div className="message-content">
+        <FontAwesomeIcon icon={icon} className="message-icon" />
+        <p dangerouslySetInnerHTML={getMessageContentHTML(message)} />
+      </div>
+    );
   };
 
   return (
