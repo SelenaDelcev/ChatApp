@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
 import './App.css';
 import Button from '@mui/material/Button';
 import SendIcon from '@mui/icons-material/Send';
@@ -10,6 +9,7 @@ const App = () => {
   const [userMessage, setUserMessage] = useState('');
   const messagesEndRef = useRef(null);
   const [sessionId, setSessionId] = useState('');
+  const websocketRef = useRef(null);
 
   useEffect(() => {
     const storedSessionId = sessionStorage.getItem('sessionId');
@@ -22,6 +22,36 @@ const App = () => {
     }
   }, []);
 
+  useEffect(() => {
+    if (sessionId) {
+      const websocket = new WebSocket(`wss://chatappdemobackend.azurewebsites.net/ws`);
+      websocket.onopen = () => {
+        console.log('WebSocket connection opened');
+        websocketRef.current = websocket;
+      };
+
+      websocket.onmessage = (event) => {
+        const data = event.data;
+        if (data === "[DONE]") {
+          return;
+        }
+        setMessages(prevMessages => [...prevMessages, { role: 'assistant', content: data }]);
+      };
+
+      websocket.onclose = () => {
+        console.log('WebSocket connection closed');
+      };
+
+      websocket.onerror = (error) => {
+        console.error('WebSocket error:', error);
+      };
+
+      return () => {
+        websocket.close();
+      };
+    }
+  }, [sessionId]);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -30,37 +60,21 @@ const App = () => {
     scrollToBottom();
   }, [messages]);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
+    if (!websocketRef.current) {
+      console.error('WebSocket is not connected');
+      return;
+    }
 
     const newMessage = {
-      role: 'user',
+      role: sessionId,
       content: userMessage
     };
 
-    try {
-      const response = await axios.post('https://chatappdemobackend.azurewebsites.net/chat', newMessage, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Session-ID': sessionId
-        },
-        withCredentials: true
-      });
-      const filteredMessages = response.data.messages.filter(msg => msg.role !== 'system');
-      setMessages(filteredMessages);
-      setUserMessage(''); 
-    } catch (error) {
-      console.error('Network or Server Error:', error);
-      if (error.response) {
-        console.error('Error Response Data:', error.response.data);
-        console.error('Error Response Status:', error.response.status);
-        console.error('Error Response Headers:', error.response.headers);
-      } else if (error.request) {
-        console.error('No response received:', error.request);
-      } else {
-        console.error('Error Message:', error.message);
-      }
-    }
+    setMessages(prevMessages => [...prevMessages, { role: 'user', content: userMessage }]);
+    setUserMessage('');
+    websocketRef.current.send(JSON.stringify(newMessage));
   };
 
   const getMessageContent = (message) => {
@@ -96,4 +110,5 @@ const App = () => {
     </div>
   );
 };
+
 export default App;
