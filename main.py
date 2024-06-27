@@ -84,14 +84,16 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str = Query(None)
             client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
             openai_messages = [{"role": msg["role"], "content": msg["content"]} for msg in messages[session_id]]
 
-            async for response in client.chat.completions.create(
-                model="gpt-4",
+            response = client.chat.completions.create(
+                model="gpt-4o",
                 temperature=0.0,
                 messages=openai_messages,
                 stream=True
-            ):
-                if "choices" in response:
-                    delta_content = response.choices[0].delta.get("content", "")
+            )
+            
+            for chunk in response:
+                if "choices" in chunk:
+                    delta_content = chunk.choices[0].delta.get("content", "")
                     if delta_content:
                         await websocket.send_text(delta_content)
             await websocket.send_text("[DONE]")  # Signal that the message is complete
