@@ -84,18 +84,11 @@ async def chat_with_ai(request: Request, message: Message):
         openai_messages = [{"role": msg["role"], "content": msg["content"]} for msg in messages[session_id]]
         # The prepared messages
         logger.info(f"Prepared OpenAI messages: {openai_messages}")
-        full_response = ""
-        for response in client.chat.completions.create(
+        response = client.chat.completions.create(
             model="gpt-4o",
             temperature=0.0,
             messages=openai_messages,
-            stream=True,
-        ):
-            try:
-                full_response += (response.choices[0].delta.content or "")
-                logger.info(f"Full response: {full_response}")
-            except:
-                pass
+        )
         logger.info(f"OpenAI response: {response}")
         # Extract the assistant's message content
         if response.choices:
