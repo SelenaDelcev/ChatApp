@@ -84,15 +84,19 @@ async def chat_with_ai(request: Request, message: Message):
         openai_messages = [{"role": msg["role"], "content": msg["content"]} for msg in messages[session_id]]
         # The prepared messages
         logger.info(f"Prepared OpenAI messages: {openai_messages}")
-        response = client.chat.completions.create(
+        
+        response = await client.chat.completions.create(
             model="gpt-4o",
             temperature=0.0,
             messages=openai_messages,
             stream=True
         )
-        for chunk in response:
+        async for chunk in response:
             logger.info(f"Chunk: {chunk}")
-            logger.info(chunk.choices[0].delta.content)
+            if hasattr(chunk, 'choices') and len(chunk.choices) > 0:
+                logger.info(chunk.choices[0].delta.content)
+            else:
+                logger.warning("Chunk does not have 'choices' attribute or it's empty")
         logger.info(f"OpenAI response: {response}")
         # Extract the assistant's message content
         if response.choices:
