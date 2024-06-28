@@ -3,6 +3,7 @@ import axios from 'axios';
 import './App.css';
 import Button from '@mui/material/Button';
 import SendIcon from '@mui/icons-material/Send';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { v4 as uuidv4 } from 'uuid';
 
 const App = () => {
@@ -29,6 +30,14 @@ const App = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  const handleClearChat = () => {
+    setMessages([]);
+    sessionStorage.removeItem('sessionId');
+    const newSessionId = uuidv4();
+    sessionStorage.setItem('sessionId', newSessionId);
+    setSessionId(newSessionId);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -92,6 +101,13 @@ const App = () => {
           <Button type="submit" disabled={!userMessage.trim()}>
             <SendIcon />
           </Button>
+          {messages.length > 0 && (
+          <div className="clear-chat">
+            <Button type="button" onClick={handleClearChat} color="secondary" variant="contained">
+              <DeleteIcon /> Obriši
+            </Button>
+          </div>
+        )}
         </form>
       </div>
     </div>
