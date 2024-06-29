@@ -6,7 +6,6 @@ import os
 import logging
 from typing import Dict, List
 import re
-import json
 from myfunc.retrievers import HybridQueryProcessor
 from openai import OpenAI, RateLimitError, APIConnectionError, APIError
 
@@ -17,47 +16,6 @@ def get_openai_client():
 def get_hybrid_query_processor():
     return HybridQueryProcessor()
 
-def positive_calendly():
-    calendly_url = "https://outlook.office365.com/book/Chatbot@positive.rs/"
-    return calendly_url
-
-
-def get_structured_decision_from_model(user_query):
-
-    client = OpenAI()
-    system_query = """You are a helpful assistant capable of using various tools to answer questions. Your responses should be in a structured JSON format, indicating which tool to use. 
-            The tools are:         
-            - Hybrid:  This tool performs a hybrid search process using Pinecone database to find the relevant company data. Always use this tool if the question is related to the company 'Positive d.o.o.', any kind of business/work-related solutions or specific people (e.g. employees, management, etc.)         
-            - Calendly:   This tool calls Calendly calendar for meeting appointments. ALWAYS use this tool if the question contains word Calendly or 'zakazi sastanak', 'zelim da zakazem sastanak', 'hocu da zakazem' etc. , WHENEVER USER ASKS TO SCHEDULE A MEETING."""
-
-    response = client.chat.completions.create(
-        model="gpt-4o",
-        temperature=0,
-        response_format={"type": "json_object"},
-        messages=[
-        {"role": "system", "content": {system_query}},
-        {"role": "user", "content": f"Please provide the response in JSON format: {user_query}"}
-    ],
-    )
-    json_string = response.choices[0].message.content
-    # Parse the JSON string into a Python dictionary
-    data_dict = json.loads(json_string)
-    # Access the 'tool' value
-    return data_dict['tool'] if 'tool' in data_dict else list(data_dict.values())[0]
-
-def rag_tool_answer(prompt):
-    context = " "
-    rag_tool = get_structured_decision_from_model(prompt)
-
-    if  rag_tool == "Hybrid":
-        processor = HybridQueryProcessor(namespace="embedding-za-sajt")
-        context, scores = processor.process_query_results(prompt)
-        
-    elif rag_tool == "Calendly":
-        # Schedule Calendly meeting
-        context = positive_calendly()
-
-    return context
 
 # Initialize the FastAPI app
 app = FastAPI()
@@ -124,8 +82,10 @@ system_prompt = (
 async def chat_with_ai(
     request: Request,
     message: Message,
-    client: openai.OpenAI = Depends(get_openai_client)    
+    client: openai.OpenAI = Depends(get_openai_client),
+    processor: HybridQueryProcessor = Depends(get_hybrid_query_processor)
 ):
+   # async def chat_with_ai(request: Request, message: Message):#
     session_id = request.headers.get("Session-ID")
     if not session_id:
         raise HTTPException(status_code=400, detail="Session ID not provided")
@@ -133,14 +93,10 @@ async def chat_with_ai(
        messages[session_id] = [{"role": "system", "content": system_prompt}]
     try:
         logger.info(f"Received message: {message.content}")
-       # tool choice
-
-        result = rag_tool_answer(message.content)
-        if result == "https://outlook.office365.com/book/Chatbot@positive.rs/":
-            return {"calendly_url": result}
+        context, scores = processor.process_query_results(message.content)
         
         # Prepare the query with context, but do not save or show it
-        prepared_message_content = f"Using the following context:\n\n {result}\n\n answer the question:\n\n {message.content}"
+        prepared_message_content = f"{context}\n\n{message.content}"
         
         # Save the original user message
         messages[session_id].append({"role": "user", "content": message.content})
