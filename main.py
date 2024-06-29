@@ -17,6 +17,11 @@ def get_openai_client():
 def get_hybrid_query_processor():
     return HybridQueryProcessor()
 
+def positive_calendly():
+    calendly_url = "https://outlook.office365.com/book/Chatbot@positive.rs/"
+    return calendly_url
+
+
 def get_structured_decision_from_model(user_query):
 
     client = OpenAI()
@@ -48,9 +53,9 @@ def rag_tool_answer(prompt):
         processor = HybridQueryProcessor(namespace="embedding-za-sajt")
         context, scores = processor.process_query_results(prompt)
         
-    # elif rag_tool == "Calendly":
-    #     # Schedule Calendly meeting
-    #     context = positive_calendly()
+    elif rag_tool == "Calendly":
+        # Schedule Calendly meeting
+        context = positive_calendly()
 
     return context
 
@@ -134,6 +139,9 @@ async def chat_with_ai(
         
         # Prepare the query with context, but do not save or show it
         context = rag_tool_answer(message.content)
+        if context == "https://outlook.office365.com/book/Chatbot@positive.rs/":
+            return {"calendly_url": context }
+        
         prepared_message_content = f"{context}\n\n{message.content}"
         
         # Save the original user message
