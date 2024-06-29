@@ -30,7 +30,7 @@ def get_structured_decision_from_model(user_query):
         temperature=0,
         response_format={"type": "json_object"},
         messages=[
-        {"role": "system", "content": {system_query}},
+        {"role": "system", "content": system_query},
         {"role": "user", "content": f"Please provide the response in JSON format: {user_query}"}
     ],
     )
@@ -41,7 +41,7 @@ def get_structured_decision_from_model(user_query):
     return data_dict['tool'] if 'tool' in data_dict else list(data_dict.values())[0]
 
 def rag_tool_answer(prompt):
-    context = ["Talk about IT"]
+    context = ""
     rag_tool = get_structured_decision_from_model(prompt)
 
     if  rag_tool == "Hybrid":
