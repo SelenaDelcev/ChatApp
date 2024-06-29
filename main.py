@@ -6,14 +6,8 @@ import os
 import logging
 from typing import Dict, List
 import re
-import json
-import uvicorn
-
 from myfunc.retrievers import HybridQueryProcessor
-from myfunc.embeddings import rag_tool_answer
 from openai import OpenAI, RateLimitError, APIConnectionError, APIError
-from fastapi import HTTPException
-
 
 # These functions will handle the initialization of your classes and can be reused across different endpoints.
 def get_openai_client():
@@ -91,6 +85,7 @@ async def chat_with_ai(
     client: openai.OpenAI = Depends(get_openai_client),
     processor: HybridQueryProcessor = Depends(get_hybrid_query_processor)
 ):
+   # async def chat_with_ai(request: Request, message: Message):#
     session_id = request.headers.get("Session-ID")
     if not session_id:
         raise HTTPException(status_code=400, detail="Session ID not provided")
