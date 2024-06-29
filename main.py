@@ -130,10 +130,10 @@ async def chat_with_ai(
        messages[session_id] = [{"role": "system", "content": system_prompt}]
     try:
         logger.info(f"Received message: {message.content}")
-        context, scores = processor.process_query_results(message.content)
+        #context, scores = processor.process_query_results(message.content)
         
         # Prepare the query with context, but do not save or show it
-        #context = rag_tool_answer(message.content)
+        context = rag_tool_answer(message.content)
         prepared_message_content = f"{context}\n\n{message.content}"
         
         # Save the original user message
