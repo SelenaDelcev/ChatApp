@@ -14,27 +14,6 @@ from myfunc.embeddings import rag_tool_answer
 from openai import OpenAI, RateLimitError, APIConnectionError, APIError
 from fastapi import HTTPException
 
-# Fastapi version for handling Openai errors
-def check_openai_errors(main_function):
-    try:
-        main_function()
-    except RateLimitError as e:
-        if 'insufficient_quota' in str(e):
-            logging.warning("Potrošili ste sve tokene, kontaktirajte Positive za dalja uputstva")
-            raise HTTPException(status_code=429, detail="Potrošili ste sve tokene, kontaktirajte Positive za dalja uputstva")
-        else:
-            logging.warning(f"Greška: {str(e)}")
-            raise HTTPException(status_code=429, detail=f"Greška: {str(e)}")
-    except APIConnectionError as e:
-        logging.warning(f"Ne mogu da se povežem sa OpenAI API-jem: {e}")
-        raise HTTPException(status_code=502, detail=f"Ne mogu da se povežem sa OpenAI API-jem: {e} pokušajte malo kasnije.")
-    except APIError as e:
-        logging.warning(f"Greška u API-ju: {e}")
-        raise HTTPException(status_code=500, detail=f"Greška u API-ju: {e} pokušajte malo kasnije.")
-    except Exception as e:
-        logging.warning(f"Greška: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Greška: {str(e)} pokušajte malo kasnije.")
-
 
 # These functions will handle the initialization of your classes and can be reused across different endpoints.
 def get_openai_client():
@@ -151,15 +130,22 @@ async def chat_with_ai(
         else:
             raise ValueError("Unexpected response format: 'choices' list is empty")
         return {"messages": messages[session_id]}
+    except RateLimitError as e:
+        if 'insufficient_quota' in str(e):
+            logger.error("Potrošili ste sve tokene, kontaktirajte Positive za dalja uputstva")
+            raise HTTPException(status_code=429, detail="Potrošili ste sve tokene, kontaktirajte Positive za dalja uputstva")
+        else:
+            logger.error(f"Rate limit error: {str(e)}")
+            raise HTTPException(status_code=429, detail=f"Rate limit error: {str(e)}")
+    except APIConnectionError as e:
+        logger.error(f"Ne mogu da se povežem sa OpenAI API-jem: {e}")
+        raise HTTPException(status_code=502, detail=f"Ne mogu da se povežem sa OpenAI API-jem: {e} pokušajte malo kasnije.")
+    except APIError as e:
+        logger.error(f"Greška u API-ju: {e}")
+        raise HTTPException(status_code=500, detail=f"Greška u API-ju: {e} pokušajte malo kasnije.")
     except openai.OpenAIError as e:
         logger.error(f"OpenAI API error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"OpenAI API error: {str(e)}")
     except Exception as e:
         logger.error(f"Internal server error: {str(e)}")
-
-
-def main():
-    uvicorn.run(app, host="0.0.0.0", port=8000)
-
-if __name__ == "__main__":
-    check_openai_errors(main)
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
