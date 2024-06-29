@@ -18,8 +18,8 @@ def get_hybrid_query_processor():
     return HybridQueryProcessor()
 
 def positive_calendly():
-    calendly_url = "https://outlook.office365.com/book/Chatbot@positive.rs/"
-    return calendly_url
+    calendly_url = "outlook.office365.com/book/Chatbot@positive.rs/"
+    return f"Nema problema, evo linka {calendly_url}"
 
 
 def get_structured_decision_from_model(user_query):
