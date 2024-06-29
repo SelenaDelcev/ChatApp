@@ -16,6 +16,42 @@ def get_openai_client():
 def get_hybrid_query_processor():
     return HybridQueryProcessor()
 
+def get_structured_decision_from_model(user_query):
+
+    client = OpenAI()
+    system_query = """You are a helpful assistant capable of using various tools to answer questions. Your responses should be in a structured JSON format, indicating which tool to use. 
+            The tools are:         
+            - Hybrid:  This tool performs a hybrid search process using Pinecone database to find the relevant company data. Always use this tool if the question is related to the company 'Positive d.o.o.', any kind of business/work-related solutions or specific people (e.g. employees, management, etc.)         
+            - Calendly:   This tool calls Calendly calendar for meeting appointments. ALWAYS use this tool if the question contains word Calendly or 'zakazi sastanak', 'zelim da zakazem sastanak', 'hocu da zakazem' etc. , WHENEVER USER ASKS TO SCHEDULE A MEETING."""
+
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        temperature=0,
+        response_format={"type": "json_object"},
+        messages=[
+        {"role": "system", "content": {system_query}},
+        {"role": "user", "content": f"Please provide the response in JSON format: {user_query}"}
+    ],
+    )
+    json_string = response.choices[0].message.content
+    # Parse the JSON string into a Python dictionary
+    data_dict = json.loads(json_string)
+    # Access the 'tool' value
+    return data_dict['tool'] if 'tool' in data_dict else list(data_dict.values())[0]
+
+def rag_tool_answer(prompt):
+    context = "Talk about IT"
+    rag_tool = get_structured_decision_from_model(prompt)
+
+    if  rag_tool == "Hybrid":
+        processor = HybridQueryProcessor(namespace="embedding-za-sajt")
+        context, scores = processor.process_query_results(prompt)
+        
+    # elif rag_tool == "Calendly":
+    #     # Schedule Calendly meeting
+    #     context = positive_calendly()
+
+    return context
 
 # Initialize the FastAPI app
 app = FastAPI()
@@ -82,7 +118,7 @@ system_prompt = (
 async def chat_with_ai(
     request: Request,
     message: Message,
-    client: openai.OpenAI = Depends(get_openai_client),
+    client: OpenAI = Depends(get_openai_client),
     processor: HybridQueryProcessor = Depends(get_hybrid_query_processor)
 ):
    # async def chat_with_ai(request: Request, message: Message):#
@@ -93,9 +129,10 @@ async def chat_with_ai(
        messages[session_id] = [{"role": "system", "content": system_prompt}]
     try:
         logger.info(f"Received message: {message.content}")
-        context, scores = processor.process_query_results(message.content)
+        # context, scores = processor.process_query_results(message.content)
         
         # Prepare the query with context, but do not save or show it
+        context = rag_tool_answer(message.content)
         prepared_message_content = f"{context}\n\n{message.content}"
         
         # Save the original user message
