@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import openai
@@ -7,6 +7,42 @@ import logging
 from typing import Dict, List
 import re
 import json
+import uvicorn
+
+from myfunc.retrievers import HybridQueryProcessor
+from myfunc.embeddings import rag_tool_answer
+from openai import OpenAI, RateLimitError, APIConnectionError, APIError
+from fastapi import HTTPException
+
+# Fastapi version for handling Openai errors
+def check_openai_errors(main_function):
+    try:
+        main_function()
+    except RateLimitError as e:
+        if 'insufficient_quota' in str(e):
+            logging.warning("Potrošili ste sve tokene, kontaktirajte Positive za dalja uputstva")
+            raise HTTPException(status_code=429, detail="Potrošili ste sve tokene, kontaktirajte Positive za dalja uputstva")
+        else:
+            logging.warning(f"Greška: {str(e)}")
+            raise HTTPException(status_code=429, detail=f"Greška: {str(e)}")
+    except APIConnectionError as e:
+        logging.warning(f"Ne mogu da se povežem sa OpenAI API-jem: {e}")
+        raise HTTPException(status_code=502, detail=f"Ne mogu da se povežem sa OpenAI API-jem: {e} pokušajte malo kasnije.")
+    except APIError as e:
+        logging.warning(f"Greška u API-ju: {e}")
+        raise HTTPException(status_code=500, detail=f"Greška u API-ju: {e} pokušajte malo kasnije.")
+    except Exception as e:
+        logging.warning(f"Greška: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Greška: {str(e)} pokušajte malo kasnije.")
+
+
+# These functions will handle the initialization of your classes and can be reused across different endpoints.
+def get_openai_client():
+    return OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+def get_hybrid_query_processor():
+    return HybridQueryProcessor()
+
 
 # Initialize the FastAPI app
 app = FastAPI()
@@ -70,19 +106,32 @@ system_prompt = (
 )
 
 @app.post('/chat')
-async def chat_with_ai(request: Request, message: Message):
+async def chat_with_ai(
+    request: Request,
+    message: Message,
+    client: openai.OpenAI = Depends(get_openai_client),
+    processor: HybridQueryProcessor = Depends(get_hybrid_query_processor)
+):
     session_id = request.headers.get("Session-ID")
     if not session_id:
         raise HTTPException(status_code=400, detail="Session ID not provided")
     if session_id not in messages:
        messages[session_id] = [{"role": "system", "content": system_prompt}]
     try:
-        client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         logger.info(f"Received message: {message.content}")
+        context, scores = processor.process_query_results(message.content)
+        
+        # Prepare the query with context, but do not save or show it
+        prepared_message_content = f"{context}\n\n{message.content}"
+        
+        # Save the original user message
         messages[session_id].append({"role": "user", "content": message.content})
         logger.info(f"Messages: {messages[session_id]}")
+        
         openai_messages = [{"role": msg["role"], "content": msg["content"]} for msg in messages[session_id]]
-        # The prepared messages
+        # Add the prepared message content with context to the OpenAI messages
+        openai_messages.append({"role": "user", "content": prepared_message_content})
+        
         logger.info(f"Prepared OpenAI messages: {openai_messages}")
         response = client.chat.completions.create(
             model="gpt-4o",
@@ -107,3 +156,10 @@ async def chat_with_ai(request: Request, message: Message):
         raise HTTPException(status_code=500, detail=f"OpenAI API error: {str(e)}")
     except Exception as e:
         logger.error(f"Internal server error: {str(e)}")
+
+
+def main():
+    uvicorn.run(app, host="0.0.0.0", port=8000)
+
+if __name__ == "__main__":
+    check_openai_errors(main)
