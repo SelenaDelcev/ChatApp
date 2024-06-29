@@ -9,7 +9,6 @@ import { v4 as uuidv4 } from 'uuid';
 const App = () => {
   const [messages, setMessages] = useState([]);
   const [userMessage, setUserMessage] = useState('');
-  const [calendlyUrl, setCalendlyUrl] = useState(''); // State for Calendly URL
   const messagesEndRef = useRef(null);
   const [sessionId, setSessionId] = useState('');
 
@@ -38,7 +37,6 @@ const App = () => {
     const newSessionId = uuidv4();
     sessionStorage.setItem('sessionId', newSessionId);
     setSessionId(newSessionId);
-    setCalendlyUrl(''); // Clear Calendly URL
   };
 
   const handleSubmit = async (e) => {
@@ -58,15 +56,9 @@ const App = () => {
         withCredentials: true
       });
 
-      // Check if response contains Calendly URL
-      if (response.data.calendly_url) {
-        setCalendlyUrl(response.data.calendly_url);
-      } else {
-        const filteredMessages = response.data.messages.filter(msg => msg.role !== 'system');
-        setMessages(filteredMessages);
-      }
-      
-      setUserMessage('');
+      const filteredMessages = response.data.messages.filter(msg => msg.role !== 'system');
+      setMessages(filteredMessages);
+      setUserMessage(''); 
     } catch (error) {
       console.error('Network or Server Error:', error);
       if (error.response) {
@@ -99,37 +91,24 @@ const App = () => {
           ))}
           <div ref={messagesEndRef} />
         </div>
-        {calendlyUrl && (
-          <div className="calendly-container">
-            <iframe
-              src={calendlyUrl}
-              style={{ width: '100%', height: '600px', border: 'none' }}
-              frameBorder="0"
-              scrolling="yes"
-              title="Calendly Scheduling"
-            ></iframe>
+        <form onSubmit={handleSubmit} className="message-input">
+          <input
+            type="text"
+            placeholder="Kako vam mogu pomoći?"
+            value={userMessage}
+            onChange={(e) => setUserMessage(e.target.value)}
+          />
+          <Button type="submit" disabled={!userMessage.trim()}>
+            <SendIcon />
+          </Button>
+          {messages.length > 0 && (
+          <div className="clear-chat">
+            <Button type="button" onClick={handleClearChat} color="secondary" variant="contained">
+              <DeleteIcon /> Obriši
+            </Button>
           </div>
         )}
-        {!calendlyUrl && (
-          <form onSubmit={handleSubmit} className="message-input">
-            <input
-              type="text"
-              placeholder="Kako vam mogu pomoći?"
-              value={userMessage}
-              onChange={(e) => setUserMessage(e.target.value)}
-            />
-            <Button type="submit" disabled={!userMessage.trim()}>
-              <SendIcon />
-            </Button>
-            {messages.length > 0 && (
-              <div className="clear-chat">
-                <Button type="button" onClick={handleClearChat} color="secondary" variant="contained">
-                  <DeleteIcon /> Obriši
-                </Button>
-              </div>
-            )}
-          </form>
-        )}
+        </form>
       </div>
     </div>
   );
