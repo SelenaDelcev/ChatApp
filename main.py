@@ -41,7 +41,7 @@ def get_structured_decision_from_model(user_query):
     return data_dict['tool'] if 'tool' in data_dict else list(data_dict.values())[0]
 
 def rag_tool_answer(prompt):
-    context = "Talk about IT"
+    context = ["Talk about IT"]
     rag_tool = get_structured_decision_from_model(prompt)
 
     if  rag_tool == "Hybrid":
@@ -130,7 +130,7 @@ async def chat_with_ai(
        messages[session_id] = [{"role": "system", "content": system_prompt}]
     try:
         logger.info(f"Received message: {message.content}")
-        #context, scores = processor.process_query_results(message.content)
+        context, scores = processor.process_query_results(message.content)
         
         # Prepare the query with context, but do not save or show it
         context = rag_tool_answer(message.content)
