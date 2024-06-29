@@ -8,7 +8,7 @@ from typing import Dict, List
 import re
 from myfunc.retrievers import HybridQueryProcessor
 from openai import OpenAI, RateLimitError, APIConnectionError, APIError
-
+from myfunc.embeddings import rag_tool_answer
 # These functions will handle the initialization of your classes and can be reused across different endpoints.
 def get_openai_client():
     return OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -82,10 +82,8 @@ system_prompt = (
 async def chat_with_ai(
     request: Request,
     message: Message,
-    client: openai.OpenAI = Depends(get_openai_client),
-    processor: HybridQueryProcessor = Depends(get_hybrid_query_processor)
+    client: openai.OpenAI = Depends(get_openai_client)    
 ):
-   # async def chat_with_ai(request: Request, message: Message):#
     session_id = request.headers.get("Session-ID")
     if not session_id:
         raise HTTPException(status_code=400, detail="Session ID not provided")
@@ -93,38 +91,39 @@ async def chat_with_ai(
        messages[session_id] = [{"role": "system", "content": system_prompt}]
     try:
         logger.info(f"Received message: {message.content}")
-        context, scores = processor.process_query_results(message.content)
-        
-        # Prepare the query with context, but do not save or show it
-        prepared_message_content = f"{context}\n\n{message.content}"
-        
-        # Save the original user message
-        messages[session_id].append({"role": "user", "content": message.content})
-        logger.info(f"Messages: {messages[session_id]}")
-        
-        openai_messages = [{"role": msg["role"], "content": msg["content"]} for msg in messages[session_id]]
-        # Add the prepared message content with context to the OpenAI messages
-        openai_messages.append({"role": "user", "content": prepared_message_content})
-        
-        logger.info(f"Prepared OpenAI messages: {openai_messages}")
-        response = client.chat.completions.create(
-            model="gpt-4o",
-            temperature=0.0,
-            messages=openai_messages,
-        )
-        logger.info(f"OpenAI response: {response}")
-        # Extract the assistant's message content
-        if response.choices:
-            assistant_message_content = response.choices[0].message.content
-            # Replace Markdown bold with HTML bold
-            assistant_message_content = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', assistant_message_content)
-            # Replace Markdown links with HTML links
-            assistant_message_content = re.sub(r'\[(.*?)\]\((.*?)\)', r'<a href="\2">\1</a>', assistant_message_content)
-            messages[session_id].append({"role": "assistant", "content": assistant_message_content})
-            logger.info(f"Assistant response: {assistant_message_content}")
-        else:
-            raise ValueError("Unexpected response format: 'choices' list is empty")
-        return {"messages": messages[session_id]}
+       # tool choice
+        result = rag_tool_answer(message.content, "")
+        if result!="CALENDLY":
+            # Prepare the query with context, but do not save or show it
+            prepared_message_content = f"Using the following context:\n\n {result}\n\n answer the question:\n\n {message.content}"
+            
+            # Save the original user message
+            messages[session_id].append({"role": "user", "content": message.content})
+            logger.info(f"Messages: {messages[session_id]}")
+            
+            openai_messages = [{"role": msg["role"], "content": msg["content"]} for msg in messages[session_id]]
+            # Add the prepared message content with context to the OpenAI messages
+            openai_messages.append({"role": "user", "content": prepared_message_content})
+            
+            logger.info(f"Prepared OpenAI messages: {openai_messages}")
+            response = client.chat.completions.create(
+                model="gpt-4o",
+                temperature=0.0,
+                messages=openai_messages,
+            )
+            logger.info(f"OpenAI response: {response}")
+            # Extract the assistant's message content
+            if response.choices:
+                assistant_message_content = response.choices[0].message.content
+                # Replace Markdown bold with HTML bold
+                assistant_message_content = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', assistant_message_content)
+                # Replace Markdown links with HTML links
+                assistant_message_content = re.sub(r'\[(.*?)\]\((.*?)\)', r'<a href="\2">\1</a>', assistant_message_content)
+                messages[session_id].append({"role": "assistant", "content": assistant_message_content})
+                logger.info(f"Assistant response: {assistant_message_content}")
+            else:
+                raise ValueError("Unexpected response format: 'choices' list is empty")
+            return {"messages": messages[session_id]}
     except RateLimitError as e:
         if 'insufficient_quota' in str(e):
             logger.error("Potrošili ste sve tokene, kontaktirajte Positive za dalja uputstva")
