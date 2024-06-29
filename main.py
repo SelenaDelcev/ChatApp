@@ -134,7 +134,8 @@ async def chat_with_ai(
     try:
         logger.info(f"Received message: {message.content}")
        # tool choice
-        result = rag_tool_answer(message.content, "")
+
+        result = rag_tool_answer(message.content)
         if result == "https://outlook.office365.com/book/Chatbot@positive.rs/":
             return {"calendly_url": result}
         
