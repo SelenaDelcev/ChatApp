@@ -47,7 +47,6 @@
   padding: 10px;
   background-color: #343541; 
   border-radius: 20px;
-  border: 1px solid #000;
 }
 
 .message-input input[type="text"] {
@@ -62,12 +61,13 @@
 }
 
 .message-input button {
-  padding: 10px;
+  width: 50px;
+  padding: 8px; 
   border: none;
   border-radius: 0 20px 20px 0;
   background-color: #454654;
   color: #b3b3b3;
-  cursor: not-allowed;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
