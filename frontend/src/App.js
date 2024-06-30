@@ -192,6 +192,7 @@ const App = () => {
                 key={action.name}
                 icon={action.icon}
                 tooltipTitle={action.name}
+                onClick={action.onClick}
               />
             ))}
           </SpeedDial>

@@ -17,7 +17,6 @@
   border-radius: 5px;
   background-color: #343541;
   overflow: hidden;
-  position: relative;
 }
 
 .messages {
@@ -92,12 +91,12 @@
 }
 
 .message-input .send-button.recording {
-  background-color: #343541;
+  background-color: #454654;
   color: #ed3c47ed;
 }
 
 .message-input .send-button:hover {
-  background-color: #343541;
+  background-color: #454654;
   color: white;
 }
 
@@ -146,7 +145,6 @@ button:disabled:hover {
   margin: 0;
   padding: 0; 
   background-color: #454654;
-  color: black;
   border-radius: 50%;
   box-shadow: none; 
   display: flex;
@@ -160,18 +158,13 @@ button:disabled:hover {
   color: white;
 }
 
-.speed-dial .MuiSpeedDialIcon-root {
-  background-color: black;
-  color: #b3b3b3;
-  font-size: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .speed-dial:hover .MuiSpeedDial-actions {
   display: flex;
   flex-direction: column;
+  background-color: black;
+  color: #b3b3b3;
+  align-items: center;
+  justify-content: center;
 }
 
 .switches-container {
@@ -190,6 +183,7 @@ button:disabled:hover {
 }
 
 .switch-label span {
+  font-size: 14px;
   color: white;
 }
 
