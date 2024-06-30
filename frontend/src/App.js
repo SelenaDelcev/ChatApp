@@ -115,7 +115,7 @@ const App = () => {
   };
 
   const actions = [
-    { icon: <DeleteIcon />, name: 'Obriši', onClick:{handleClearChat}},
+    { icon: <DeleteIcon />, name: 'Obriši', onClick: handleClearChat },
     { icon: <AttachFileSharpIcon />, name: 'Dodaj prilog' },
     { icon: <SaveAltSharpIcon />, name: 'Sačuvaj' },
   ];
