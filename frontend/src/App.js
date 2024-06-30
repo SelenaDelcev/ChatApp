@@ -12,12 +12,6 @@ import AttachFileSharpIcon from '@mui/icons-material/AttachFileSharp';
 import SaveAltSharpIcon from '@mui/icons-material/SaveAltSharp';
 import { v4 as uuidv4 } from 'uuid';
 
-const actions = [
-  { icon: <DeleteIcon />, name: 'Delete' },
-  { icon: <AttachFileSharpIcon />, name: 'Attachment' },
-  { icon: <SaveAltSharpIcon />, name: 'Save' },
-];
-
 const App = () => {
   const [messages, setMessages] = useState([]);
   const [userMessage, setUserMessage] = useState('');
@@ -91,6 +85,12 @@ const App = () => {
     }
     return { __html: message.content };
   };
+
+  const actions = [
+    { icon: <DeleteIcon />, name: 'Delete', onClick: handleClearChat },
+    { icon: <AttachFileSharpIcon />, name: 'Attachment' },
+    { icon: <SaveAltSharpIcon />, name: 'Save' },
+  ];
 
   return (
     <div className="App">
