@@ -103,33 +103,29 @@ const App = () => {
     <div className="App">
       <div className="chat-container">
         <div className="switches-container">
-          <div className="switch-label">
-            <FormControlLabel
-              control={<Switch checked={suggestionsEnabled} onChange={() => setSuggestionsEnabled(!suggestionsEnabled)} />}
-              label={
-                <>
-                  <TipsAndUpdatesIcon style={{ marginRight: '8px' }} />
-                  Predlozi pitanja/odgovora
-                  <Tooltip title="Omogućite predloge pitanja i odgovora">
-                    <HelpIcon className="help-icon" />
-                  </Tooltip>
-                </>
-              }
+        <div className="switch-label">
+            <Switch
+              size="small"
+              checked={suggestionsEnabled}
+              onChange={() => setSuggestionsEnabled(!suggestionsEnabled)}
             />
+            <TipsAndUpdatesIcon className="switch-icon" />
+            <span>Predlozi pitanja/odgovora</span>
+            <Tooltip title="Predlozi pitanja/odgovora za asistenta">
+              <HelpIcon className="help-icon" />
+            </Tooltip>
           </div>
           <div className="switch-label">
-            <FormControlLabel
-              control={<Switch checked={listenEnabled} onChange={() => setListenEnabled(!listenEnabled)} />}
-              label={
-                <>
-                  <VolumeUpIcon style={{ marginRight: '8px' }} />
-                  Slušaj odgovor
-                  <Tooltip title="Omogućite slušanje odgovora">
-                    <HelpIcon className="help-icon" />
-                  </Tooltip>
-                </>
-              }
+            <Switch
+              size="small"
+              checked={listenEnabled}
+              onChange={() => setListenEnabled(!listenEnabled)}
             />
+            <VolumeUpIcon className="switch-icon" />
+            <span>Slušaj odgovor</span>
+            <Tooltip title="Slušaj odgovor asistenta">
+              <HelpIcon className="help-icon" />
+            </Tooltip>
           </div>
         </div>
         <div className="messages">
