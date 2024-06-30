@@ -14,6 +14,7 @@ import Tooltip from '@mui/material/Tooltip';
 import HelpIcon from '@mui/icons-material/Help';
 import TipsAndUpdatesIcon from '@mui/icons-material/TipsAndUpdates';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
+import KeyboardVoiceIcon from '@mui/icons-material/KeyboardVoice';
 import { alpha, styled } from '@mui/material/styles';
 import { pink } from '@mui/material/colors';
 import { v4 as uuidv4 } from 'uuid';
@@ -33,6 +34,7 @@ const PinkSwitch = styled(Switch)(({ theme }) => ({
 const App = () => {
   const [messages, setMessages] = useState([]);
   const [userMessage, setUserMessage] = useState('');
+  const [isRecording, setIsRecording] = useState(false);
   const messagesEndRef = useRef(null);
   const [sessionId, setSessionId] = useState('');
   const [suggestionsEnabled, setSuggestionsEnabled] = useState(false);
@@ -57,6 +59,10 @@ const App = () => {
     scrollToBottom();
   }, [messages]);
 
+  const handleVoiceClick = () => {
+    setIsRecording(!isRecording);
+  };
+
   const handleClearChat = () => {
     setMessages([]);
     sessionStorage.removeItem('sessionId');
@@ -73,6 +79,9 @@ const App = () => {
       content: userMessage
     };
 
+    setMessages([...messages, newMessage]);
+    setUserMessage('');
+
     try {
       const response = await axios.post('https://chatappdemobackend.azurewebsites.net/chat', newMessage, {
         headers: {
@@ -83,8 +92,7 @@ const App = () => {
       });
 
       const filteredMessages = response.data.messages.filter(msg => msg.role !== 'system');
-      setMessages(filteredMessages);
-      setUserMessage(''); 
+      setMessages([...filteredMessages]); 
     } catch (error) {
       console.error('Network or Server Error:', error);
       if (error.response) {
@@ -158,9 +166,20 @@ const App = () => {
                 value={userMessage}
                 onChange={(e) => setUserMessage(e.target.value)}
               />
-              <Button type="submit" disabled={!userMessage.trim()} className="send-button">
-                <SendIcon />
-              </Button>
+              {userMessage.trim() ? (
+                <Button type="submit" className="send-button">
+                  <SendIcon />
+                </Button>
+              ) : (
+                <Tooltip title="Kliknite da započnete snimanje">
+                  <Button
+                    className={`send-button ${isRecording ? 'recording' : ''}`}
+                    onClick={handleVoiceClick}
+                  >
+                    <KeyboardVoiceIcon />
+                  </Button>
+                </Tooltip>
+              )}
             </div>
           </form>
           <SpeedDial
