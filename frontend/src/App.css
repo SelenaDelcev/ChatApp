@@ -41,7 +41,7 @@
   text-align: left;
 }
 
-.message-input {
+.input-row {
   display: flex;
   align-items: center;
   padding: 10px;
@@ -49,59 +49,40 @@
   border-radius: 20px;
 }
 
-.input-container {
+.message-input {
+  flex: 1;
   display: flex;
   align-items: center;
-  width: 100%;
 }
 
-.speed-dial {
-  margin-right: 10px;
+.message-input .input-container {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  border-radius: 20px;
+  overflow: hidden;
+  background-color: #454654;
 }
 
-.input-field {
+.message-input input[type="text"] {
   flex: 1;
   padding: 10px;
   border: none;
-  border-radius: 20px;
   background-color: #454654;
   color: white;
   font-family: 'Roboto', Arial, sans-serif;
-  margin-left: 10px;
 }
 
-.send-button {
-  width: 40px;
-  height: 40px;
-  padding: 6px; 
+.message-input .send-button {
+  width: 45px;
+  height: 45px;
+  padding: 6px;
   border: none;
-  border-radius: 50%;
   background-color: #454654;
   color: #b3b3b3;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.send-button:enabled {
-  cursor: pointer; 
-  background-color: #454654;
-  color: white;
-}
-
-.send-button:enabled:hover {
-  background-color: black; 
-  color: white;
-}
-
-.send-button:disabled {
-  background-color: #454654;
-  color: #b3b3b3; 
-}
-
-.send-button:disabled:hover {
-  background-color: #454654;
-  color: #b3b3b3;
 }
 
 input[type="text"]::placeholder {
@@ -112,12 +93,50 @@ input[type="text"]:focus {
   outline: none;
 }
 
-.speed-dial-action {
-  background-color: #343541 !important;
-  color: white !important;
+button:enabled {
+  cursor: pointer; 
+  background-color: #454654;
+  color: white;
 }
 
-.speed-dial-action:hover {
-  background-color: #454654 !important;
+button:enabled:hover {
+  background-color: black; 
+  color: white;
 }
 
+button:disabled {
+  background-color: #454654;
+  color: #b3b3b3; 
+}
+
+button:disabled:hover {
+  background-color: #454654;
+  color: #b3b3b3;
+}
+
+.speed-dial-wrapper {
+  position: relative;
+  padding-bottom: 60px; 
+}
+
+.speed-dial {
+  width: 45px;
+  height: 45px;
+  margin-left: 8px;
+  background-color: #454654;
+}
+
+.speed-dial .MuiSpeedDial-fab {
+  width: 100%;
+  height: 100%;
+  background-color: #454654;
+}
+
+.speed-dial .MuiSpeedDial-fab:hover {
+  background-color: black; 
+  color: white;
+}
+
+.speed-dial .MuiSpeedDialIcon-root {
+  color: #b3b3b3;
+}

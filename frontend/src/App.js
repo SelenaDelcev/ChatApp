@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import './App.css';
-import Box from '@mui/material/Box';
 import SpeedDial from '@mui/material/SpeedDial';
 import SpeedDialIcon from '@mui/material/SpeedDialIcon';
 import SpeedDialAction from '@mui/material/SpeedDialAction';
@@ -103,38 +102,44 @@ const App = () => {
           ))}
           <div ref={messagesEndRef} />
         </div>
-        <form onSubmit={handleSubmit} className="message-input">
-          <Box className="input-container">
-            <SpeedDial
-              ariaLabel="SpeedDial basic"
-              className="speed-dial"
-              icon={<SpeedDialIcon />}
-            >
-              {actions.map((action) => (
-                <SpeedDialAction
-                  key={action.name}
-                  icon={action.icon}
-                  tooltipTitle={action.name}
-                  onClick={action.onClick}
-                  className="speed-dial-action"
-                />
-              ))}
-            </SpeedDial>
-            <input
-              type="text"
-              placeholder="Kako vam mogu pomoći?"
-              value={userMessage}
-              onChange={(e) => setUserMessage(e.target.value)}
-              className="input-field"
-            />
-            <Button type="submit" disabled={!userMessage.trim()} className="send-button">
-              <SendIcon />
-            </Button>
-          </Box>
-        </form>
+        <div className="input-row">
+          <form onSubmit={handleSubmit} className="message-input">
+            <div className="input-container">
+              <input
+                type="text"
+                placeholder="Kako vam mogu pomoći?"
+                value={userMessage}
+                onChange={(e) => setUserMessage(e.target.value)}
+              />
+              <Button type="submit" disabled={!userMessage.trim()} className="send-button">
+                <SendIcon />
+              </Button>
+            </div>
+            {messages.length > 0 && (
+              <div className="clear-chat">
+                <Button type="button" onClick={handleClearChat} color="secondary" variant="contained">
+                  <DeleteIcon /> Obriši
+                </Button>
+              </div>
+            )}
+          </form>
+          <SpeedDial
+            ariaLabel="SpeedDial basic example"
+            className="speed-dial"
+            icon={<SpeedDialIcon />}
+          >
+            {actions.map((action) => (
+              <SpeedDialAction
+                key={action.name}
+                icon={action.icon}
+                tooltipTitle={action.name}
+              />
+            ))}
+          </SpeedDial>
+        </div>
       </div>
     </div>
   );
-};
+}
 
 export default App;
