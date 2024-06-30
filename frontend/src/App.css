@@ -49,28 +49,58 @@
   border-radius: 20px;
 }
 
-.message-input input[type="text"] {
+.input-container {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.speed-dial {
+  margin-right: 10px;
+}
+
+.input-field {
   flex: 1;
   padding: 10px;
   border: none;
-  border-radius: 20px 0 0 20px;
+  border-radius: 20px;
   background-color: #454654;
   color: white;
   font-family: 'Roboto', Arial, sans-serif;
-  border-right: none;
+  margin-left: 10px;
 }
 
-.message-input button {
-  width: 45px;
+.send-button {
+  width: 40px;
   padding: 6px; 
   border: none;
   border-radius: 0 20px 20px 0;
   background-color: #454654;
   color: #b3b3b3;
-  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.send-button:enabled {
+  cursor: pointer; 
+  background-color: #454654;
+  color: white;
+}
+
+.send-button:enabled:hover {
+  background-color: black; 
+  color: white;
+}
+
+.send-button:disabled {
+  background-color: #454654;
+  color: #b3b3b3; 
+}
+
+.send-button:disabled:hover {
+  background-color: #454654;
+  color: #b3b3b3;
 }
 
 input[type="text"]::placeholder {
@@ -81,23 +111,12 @@ input[type="text"]:focus {
   outline: none;
 }
 
-button:enabled {
-  cursor: pointer; 
-  background-color: #454654;
-  color: white;
+.speed-dial-action {
+  background-color: #343541 !important;
+  color: white !important;
 }
 
-button:enabled:hover {
-  background-color: black; 
-  color: white;
+.speed-dial-action:hover {
+  background-color: #454654 !important;
 }
 
-button:disabled {
-  background-color: #454654;
-  color: #b3b3b3; 
-}
-
-button:disabled:hover {
-  background-color: #454654;
-  color: #b3b3b3;
-}

@@ -104,10 +104,10 @@ const App = () => {
           <div ref={messagesEndRef} />
         </div>
         <form onSubmit={handleSubmit} className="message-input">
-          <Box sx={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+          <Box className="input-container">
             <SpeedDial
-              ariaLabel="SpeedDial basic example"
-              sx={{ position: 'absolute', left: 0 }}
+              ariaLabel="SpeedDial basic"
+              className="speed-dial"
               icon={<SpeedDialIcon />}
             >
               {actions.map((action) => (
@@ -115,6 +115,8 @@ const App = () => {
                   key={action.name}
                   icon={action.icon}
                   tooltipTitle={action.name}
+                  onClick={action.onClick}
+                  className="speed-dial-action"
                 />
               ))}
             </SpeedDial>
@@ -123,9 +125,9 @@ const App = () => {
               placeholder="Kako vam mogu pomoći?"
               value={userMessage}
               onChange={(e) => setUserMessage(e.target.value)}
-              style={{ marginLeft: '56px' }}
+              className="input-field"
             />
-            <Button type="submit" disabled={!userMessage.trim()}>
+            <Button type="submit" disabled={!userMessage.trim()} className="send-button">
               <SendIcon />
             </Button>
           </Box>
