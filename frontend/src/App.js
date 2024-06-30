@@ -10,7 +10,6 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import AttachFileSharpIcon from '@mui/icons-material/AttachFileSharp';
 import SaveAltSharpIcon from '@mui/icons-material/SaveAltSharp';
 import Switch from '@mui/material/Switch';
-import FormControlLabel from '@mui/material/FormControlLabel';
 import Tooltip from '@mui/material/Tooltip';
 import HelpIcon from '@mui/icons-material/Help';
 import TipsAndUpdatesIcon from '@mui/icons-material/TipsAndUpdates';
