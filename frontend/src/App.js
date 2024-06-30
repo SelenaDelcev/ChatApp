@@ -20,13 +20,13 @@ import { v4 as uuidv4 } from 'uuid';
 
 const PinkSwitch = styled(Switch)(({ theme }) => ({
   '& .MuiSwitch-switchBase.Mui-checked': {
-    color: pink[600],
+    color: pink[500],
     '&:hover': {
-      backgroundColor: alpha(pink[600], theme.palette.action.hoverOpacity),
+      backgroundColor: alpha(pink[500], theme.palette.action.hoverOpacity),
     },
   },
   '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-    backgroundColor: pink[600],
+    backgroundColor: pink[500],
   },
 }));
 

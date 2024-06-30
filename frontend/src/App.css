@@ -79,6 +79,8 @@
   height: 45px;
   padding: 6px;
   border: none;
+  -moz-border-radius:50%;
+  -webkit-border-radius:50%;
   border-radius: 50%; 
   background-color: #454654;
   color: #b3b3b3;
@@ -108,7 +110,7 @@ button:enabled {
 }
 
 button:enabled:hover {
-  background-color: linear-gradient(145deg, #ed1c24, #ffcdd2);; 
+  background-color: black;
   color: white;
 }
 
@@ -130,7 +132,7 @@ button:disabled:hover {
 .speed-dial {
   width: 45px;
   height: 45px;
-  margin-left: 10px;
+  margin-left: 8px;
 }
 
 .speed-dial .MuiSpeedDial-fab {
@@ -148,7 +150,7 @@ button:disabled:hover {
 }
 
 .speed-dial .MuiSpeedDial-fab:hover {
-  background-color: linear-gradient(145deg, #ed1c24, #ffcdd2);; 
+  background-color: black;
   color: white;
   border-radius: 50%;
 }
@@ -245,7 +247,6 @@ button:disabled:hover {
   .speed-dial {
     width: 35px;
     height: 35px; 
-    margin-left: 15px; 
   }
 
   .speed-dial .MuiSpeedDial-fab {
@@ -257,17 +258,17 @@ button:disabled:hover {
     font-size: 20px;
   }
 
+  .input-row {
+    padding: 5px; 
+  }
+
   .message-input .send-button {
     width: 35px;
     height: 35px;
   }
 
-  .input-row {
-    padding: 5px; 
-  }
-
   .message-input .input-container {
-    margin-right: 5px; 
+    margin-right: 15px; 
   }
 
   .message-input input[type="text"] {
