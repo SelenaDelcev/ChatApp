@@ -46,7 +46,7 @@
   justify-content: space-between;
   padding: 10px;
   background-color: #343541; 
-  border-radius: 0 0 5px 5px;
+  border-radius: 20px;
   border-right: none;
 }
 
@@ -54,7 +54,7 @@ input[type="text"] {
   flex: 1;
   padding: 10px;
   border: none;
-  border-radius: 5px 0 0 5px;
+  border-radius: 20px;
   background-color: #454654;
   color: white;
   font-family: 'Roboto', Arial, sans-serif;
@@ -72,15 +72,17 @@ input[type="text"]:focus {
 
 button {
   padding: 10px;
-  border: 1px solid #000;
-  border-radius: 0 5px 5px 0;
+  border-top: 1px solid #000;
+  border-right: 1px solid #000;
+  border-bottom: 1px solid #000;
+  border-left: none;
+  border-radius: 20px;
   background-color: #454654;
   color: #b3b3b3;
   cursor: not-allowed;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-left: none;
 }
 
 button:enabled {
