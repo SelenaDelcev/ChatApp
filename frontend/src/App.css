@@ -43,23 +43,34 @@
 
 .message-input {
   display: flex;
-  justify-content: space-between;
+  align-items: center;
   padding: 10px;
   background-color: #343541; 
   border-radius: 20px;
-  border-right: none;
+  border: 1px solid #000;
 }
 
-input[type="text"] {
+.message-input input[type="text"] {
   flex: 1;
   padding: 10px;
   border: none;
-  border-radius: 20px;
+  border-radius: 20px 0 0 20px;
   background-color: #454654;
   color: white;
   font-family: 'Roboto', Arial, sans-serif;
-  border: 1px solid #000;
   border-right: none;
+}
+
+.message-input button {
+  padding: 10px;
+  border: none;
+  border-radius: 0 20px 20px 0;
+  background-color: #454654;
+  color: #b3b3b3;
+  cursor: not-allowed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 input[type="text"]::placeholder {
@@ -68,21 +79,6 @@ input[type="text"]::placeholder {
 
 input[type="text"]:focus {
   outline: none;
-}
-
-button {
-  padding: 10px;
-  border-top: 1px solid #000;
-  border-right: 1px solid #000;
-  border-bottom: 1px solid #000;
-  border-left: none;
-  border-radius: 20px;
-  background-color: #454654;
-  color: #b3b3b3;
-  cursor: not-allowed;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 button:enabled {
