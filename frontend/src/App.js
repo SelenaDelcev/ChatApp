@@ -144,7 +144,7 @@ const App = () => {
             />
             <VolumeUpIcon className="switch-icon" fontSize="small"/>
             <span>Slušaj odgovor</span>
-            <Tooltip title="Slušaj odgovor asistenta">
+            <Tooltip title="Slušajte odgovor asistenta">
               <HelpIcon className="help-icon" fontSize="small"/>
             </Tooltip>
           </div>
