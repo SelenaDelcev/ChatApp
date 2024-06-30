@@ -86,9 +86,9 @@ const App = () => {
   };
 
   const actions = [
-    { icon: <DeleteIcon />, name: 'Delete', onClick: handleClearChat },
-    { icon: <AttachFileSharpIcon />, name: 'Attachment' },
-    { icon: <SaveAltSharpIcon />, name: 'Save' },
+    { icon: <DeleteIcon />, name: 'Obriši', onClick: handleClearChat },
+    { icon: <AttachFileSharpIcon />, name: 'Dodaj prilog' },
+    { icon: <SaveAltSharpIcon />, name: 'Sačuvaj' },
   ];
 
   return (
