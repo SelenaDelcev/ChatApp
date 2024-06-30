@@ -1,10 +1,21 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import './App.css';
+import SpeedDial from '@mui/material/SpeedDial';
+import SpeedDialIcon from '@mui/material/SpeedDialIcon';
+import SpeedDialAction from '@mui/material/SpeedDialAction';
 import Button from '@mui/material/Button';
 import SendIcon from '@mui/icons-material/Send';
 import DeleteIcon from '@mui/icons-material/Delete';
+import AttachFileSharpIcon from '@mui/icons-material/AttachFileSharp';
+import SaveAltSharpIcon from '@mui/icons-material/SaveAltSharp';
 import { v4 as uuidv4 } from 'uuid';
+
+const actions = [
+  { icon: <DeleteIcon />, name: 'Delete' },
+  { icon: <AttachFileSharpIcon />, name: 'Attachment' },
+  { icon: <SaveAltSharpIcon />, name: 'Save' },
+];
 
 const App = () => {
   const [messages, setMessages] = useState([]);
@@ -92,22 +103,31 @@ const App = () => {
           <div ref={messagesEndRef} />
         </div>
         <form onSubmit={handleSubmit} className="message-input">
-          <input
-            type="text"
-            placeholder="Kako vam mogu pomoći?"
-            value={userMessage}
-            onChange={(e) => setUserMessage(e.target.value)}
-          />
-          <Button type="submit" disabled={!userMessage.trim()}>
-            <SendIcon />
-          </Button>
-          {messages.length > 0 && (
-          <div className="clear-chat">
-            <Button type="button" onClick={handleClearChat} color="secondary" variant="contained">
-              <DeleteIcon /> Obriši
+          <Box sx={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+            <SpeedDial
+              ariaLabel="SpeedDial basic example"
+              sx={{ position: 'absolute', left: 0 }}
+              icon={<SpeedDialIcon />}
+            >
+              {actions.map((action) => (
+                <SpeedDialAction
+                  key={action.name}
+                  icon={action.icon}
+                  tooltipTitle={action.name}
+                />
+              ))}
+            </SpeedDial>
+            <input
+              type="text"
+              placeholder="Kako vam mogu pomoći?"
+              value={userMessage}
+              onChange={(e) => setUserMessage(e.target.value)}
+              style={{ marginLeft: '56px' }}
+            />
+            <Button type="submit" disabled={!userMessage.trim()}>
+              <SendIcon />
             </Button>
-          </div>
-        )}
+          </Box>
         </form>
       </div>
     </div>
