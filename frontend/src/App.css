@@ -132,9 +132,14 @@ button:disabled:hover {
   width: 45px;
   height: 45px;
   margin: 0;
+  padding: 0;
   background-color: #454654;
   border-radius: 50%;
   box-shadow: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
 }
 
 .speed-dial .MuiSpeedDial-fab:hover {
@@ -153,4 +158,29 @@ button:disabled:hover {
 .speed-dial .MuiSpeedDial-actions {
   display: flex;
   flex-direction: column;
+}
+
+.switches-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 10px;
+  background-color: #343541;
+  border-bottom: 1px solid #454654;
+}
+
+.switches-container .MuiFormControlLabel-root {
+  color: white;
+  margin-bottom: 10px;
+}
+
+.switch-label {
+  display: flex;
+  align-items: center;
+}
+
+.help-icon {
+  margin-left: 5px;
+  color: #b3b3b3;
+  cursor: pointer;
 }

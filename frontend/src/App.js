@@ -9,6 +9,12 @@ import SendIcon from '@mui/icons-material/Send';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AttachFileSharpIcon from '@mui/icons-material/AttachFileSharp';
 import SaveAltSharpIcon from '@mui/icons-material/SaveAltSharp';
+import Switch from '@mui/material/Switch';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Tooltip from '@mui/material/Tooltip';
+import HelpIcon from '@mui/icons-material/Help';
+import TipsAndUpdatesIcon from '@mui/icons-material/TipsAndUpdates';
+import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import { v4 as uuidv4 } from 'uuid';
 
 const App = () => {
@@ -16,6 +22,8 @@ const App = () => {
   const [userMessage, setUserMessage] = useState('');
   const messagesEndRef = useRef(null);
   const [sessionId, setSessionId] = useState('');
+  const [suggestionsEnabled, setSuggestionsEnabled] = useState(false);
+  const [listenEnabled, setListenEnabled] = useState(false);
 
   useEffect(() => {
     const storedSessionId = sessionStorage.getItem('sessionId');
@@ -86,7 +94,7 @@ const App = () => {
   };
 
   const actions = [
-    { icon: <DeleteIcon />, name: 'Obriši', onClick: handleClearChat },
+    { icon: <DeleteIcon />, name: 'Obriši', onClick:{handleClearChat}},
     { icon: <AttachFileSharpIcon />, name: 'Dodaj prilog' },
     { icon: <SaveAltSharpIcon />, name: 'Sačuvaj' },
   ];
@@ -94,6 +102,36 @@ const App = () => {
   return (
     <div className="App">
       <div className="chat-container">
+        <div className="switches-container">
+          <div className="switch-label">
+            <FormControlLabel
+              control={<Switch checked={suggestionsEnabled} onChange={() => setSuggestionsEnabled(!suggestionsEnabled)} />}
+              label={
+                <>
+                  <TipsAndUpdatesIcon style={{ marginRight: '8px' }} />
+                  Predlozi pitanja/odgovora
+                  <Tooltip title="Omogućite predloge pitanja i odgovora">
+                    <HelpIcon className="help-icon" />
+                  </Tooltip>
+                </>
+              }
+            />
+          </div>
+          <div className="switch-label">
+            <FormControlLabel
+              control={<Switch checked={listenEnabled} onChange={() => setListenEnabled(!listenEnabled)} />}
+              label={
+                <>
+                  <VolumeUpIcon style={{ marginRight: '8px' }} />
+                  Slušaj odgovor
+                  <Tooltip title="Omogućite slušanje odgovora">
+                    <HelpIcon className="help-icon" />
+                  </Tooltip>
+                </>
+              }
+            />
+          </div>
+        </div>
         <div className="messages">
           {messages.map((message, index) => (
             <div key={index} className={`message ${message.role}`}>
@@ -115,13 +153,6 @@ const App = () => {
                 <SendIcon />
               </Button>
             </div>
-            {messages.length > 0 && (
-              <div className="clear-chat">
-                <Button type="button" onClick={handleClearChat} color="secondary" variant="contained">
-                  <DeleteIcon /> Obriši
-                </Button>
-              </div>
-            )}
           </form>
           <SpeedDial
             ariaLabel="SpeedDial basic example"
