@@ -16,6 +16,7 @@
   border: 1px solid #343541;
   border-radius: 5px;
   background-color: #343541;
+  overflow: hidden;
 }
 
 .messages {
@@ -78,11 +79,18 @@
   height: 45px;
   padding: 6px;
   border: none;
+  border-radius: 50%; 
   background-color: #454654;
   color: #b3b3b3;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.message-input .send-button:hover {
+  background-color: black; 
+  color: white;
 }
 
 input[type="text"]::placeholder {
@@ -102,7 +110,6 @@ button:enabled {
 button:enabled:hover {
   background-color: black; 
   color: white;
-  border-radius: 50%;
 }
 
 button:disabled {
@@ -123,31 +130,37 @@ button:disabled:hover {
 .speed-dial {
   width: 45px;
   height: 45px;
-  margin-left: 8px;
-  background-color: #454654;
-  border-radius: 50%;
+  margin-left: 10px;
 }
 
 .speed-dial .MuiSpeedDial-fab {
   width: 45px;
   height: 45px;
   margin: 0;
-  padding: 0;
+  padding: 0; 
   background-color: #454654;
   border-radius: 50%;
-  box-shadow: none;
+  box-shadow: none; 
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
+  overflow: hidden; 
 }
 
 .speed-dial .MuiSpeedDial-fab:hover {
-  background-color: black;
+  background-color: black; 
   color: white;
 }
 
-.speed-dial .MuiSpeedDial-actions {
+.speed-dial .MuiSpeedDialIcon-root {
+  color: #b3b3b3;
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.speed-dial:hover .MuiSpeedDial-actions {
   display: flex;
   flex-direction: column;
 }
@@ -159,6 +172,7 @@ button:disabled:hover {
   padding: 10px;
   background-color: #343541;
   border-bottom: 1px solid #454654;
+  text-align: left;
 }
 
 .switch-label {
@@ -169,7 +183,8 @@ button:disabled:hover {
 .label-with-icon {
   display: flex;
   align-items: center;
-  font-size: 0.875rem;
+  font-size: 0.875rem; 
+  text-align: left;
 }
 
 .switch-icon {
@@ -178,10 +193,11 @@ button:disabled:hover {
 }
 
 .help-icon {
-  font-size: 0.75rem;
+  font-size: 0.6rem;
   margin-left: 4px;
   color: #b3b3b3;
   cursor: pointer;
+  text-align: left;
 }
 
 /* Responsive styles */
@@ -199,25 +215,28 @@ button:disabled:hover {
 
   .switches-container {
     padding: 5px;
+    text-align: left;
   }
 
   .switch-label {
     flex-direction: row;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
     width: 100%;
   }
 
   .label-with-icon {
     font-size: 0.75rem;
+    text-align: left;
   }
 
   .switch-icon {
     font-size: 0.875rem;
   }
 
-  .info-icon {
-    font-size: 0.625rem;
+  .help-icon {
+    font-size: 0.5rem;
+    text-align: left;
   }
 
   .speed-dial-wrapper {
@@ -226,7 +245,8 @@ button:disabled:hover {
 
   .speed-dial {
     width: 35px;
-    height: 35px;
+    height: 35px; 
+    margin-left: 5px; 
   }
 
   .speed-dial .MuiSpeedDial-fab {
@@ -241,5 +261,18 @@ button:disabled:hover {
   .message-input .send-button {
     width: 35px;
     height: 35px;
+  }
+
+  .input-row {
+    padding: 5px; 
+  }
+
+  .message-input .input-container {
+    margin-right: 5px; 
+  }
+
+  .message-input input[type="text"] {
+    font-size: 0.875rem; 
+    padding: 8px;
   }
 }

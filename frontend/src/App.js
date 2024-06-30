@@ -105,6 +105,7 @@ const App = () => {
         <div className="switch-label">
             <Switch
               size="small"
+              color="warning"
               checked={suggestionsEnabled}
               onChange={() => setSuggestionsEnabled(!suggestionsEnabled)}
             />
@@ -117,6 +118,7 @@ const App = () => {
           <div className="switch-label">
             <Switch
               size="small"
+              color="warning"
               checked={listenEnabled}
               onChange={() => setListenEnabled(!listenEnabled)}
             />
