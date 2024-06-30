@@ -14,6 +14,8 @@ import Tooltip from '@mui/material/Tooltip';
 import HelpIcon from '@mui/icons-material/Help';
 import TipsAndUpdatesIcon from '@mui/icons-material/TipsAndUpdates';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
+import { alpha, styled } from '@mui/material/styles';
+import { pink } from '@mui/material/colors';
 import { v4 as uuidv4 } from 'uuid';
 
 const PinkSwitch = styled(Switch)(({ theme }) => ({

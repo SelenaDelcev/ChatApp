@@ -181,6 +181,10 @@ button:disabled:hover {
   align-items: center;
 }
 
+.switch-label span{
+  color: white;
+}
+
 .label-with-icon {
   display: flex;
   align-items: center;
@@ -190,6 +194,7 @@ button:disabled:hover {
 
 .switch-icon {
   margin-right: 4px;
+  color: white;
 }
 
 .help-icon {
