@@ -16,6 +16,18 @@ import TipsAndUpdatesIcon from '@mui/icons-material/TipsAndUpdates';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import { v4 as uuidv4 } from 'uuid';
 
+const PinkSwitch = styled(Switch)(({ theme }) => ({
+  '& .MuiSwitch-switchBase.Mui-checked': {
+    color: pink[600],
+    '&:hover': {
+      backgroundColor: alpha(pink[600], theme.palette.action.hoverOpacity),
+    },
+  },
+  '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+    backgroundColor: pink[600],
+  },
+}));
+
 const App = () => {
   const [messages, setMessages] = useState([]);
   const [userMessage, setUserMessage] = useState('');
@@ -103,29 +115,27 @@ const App = () => {
       <div className="chat-container">
         <div className="switches-container">
         <div className="switch-label">
-            <Switch
-              size="small"
+            <PinkSwitch
               color="warning"
               checked={suggestionsEnabled}
               onChange={() => setSuggestionsEnabled(!suggestionsEnabled)}
             />
-            <TipsAndUpdatesIcon className="switch-icon" />
+            <TipsAndUpdatesIcon className="switch-icon" fontSize="small"/>
             <span>Predlozi pitanja/odgovora</span>
             <Tooltip title="Predlozi pitanja/odgovora za asistenta">
-              <HelpIcon className="help-icon" />
+              <HelpIcon className="help-icon" fontSize="small"/>
             </Tooltip>
           </div>
           <div className="switch-label">
-            <Switch
-              size="small"
+            <PinkSwitch
               color="warning"
               checked={listenEnabled}
               onChange={() => setListenEnabled(!listenEnabled)}
             />
-            <VolumeUpIcon className="switch-icon" />
+            <VolumeUpIcon className="switch-icon" fontSize="small"/>
             <span>Slušaj odgovor</span>
             <Tooltip title="Slušaj odgovor asistenta">
-              <HelpIcon className="help-icon" />
+              <HelpIcon className="help-icon" fontSize="small"/>
             </Tooltip>
           </div>
         </div>

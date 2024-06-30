@@ -108,7 +108,7 @@ button:enabled {
 }
 
 button:enabled:hover {
-  background-color: black; 
+  background-color: linear-gradient(145deg, #ed1c24, #ffcdd2);; 
   color: white;
 }
 
@@ -148,8 +148,9 @@ button:disabled:hover {
 }
 
 .speed-dial .MuiSpeedDial-fab:hover {
-  background-color: black; 
+  background-color: linear-gradient(145deg, #ed1c24, #ffcdd2);; 
   color: white;
+  border-radius: 50%;
 }
 
 .speed-dial .MuiSpeedDialIcon-root {
@@ -188,12 +189,10 @@ button:disabled:hover {
 }
 
 .switch-icon {
-  font-size: 1rem;
   margin-right: 4px;
 }
 
 .help-icon {
-  font-size: 0.6rem;
   margin-left: 4px;
   color: #b3b3b3;
   cursor: pointer;
@@ -230,12 +229,7 @@ button:disabled:hover {
     text-align: left;
   }
 
-  .switch-icon {
-    font-size: 0.875rem;
-  }
-
   .help-icon {
-    font-size: 0.5rem;
     text-align: left;
   }
 
@@ -246,7 +240,7 @@ button:disabled:hover {
   .speed-dial {
     width: 35px;
     height: 35px; 
-    margin-left: 5px; 
+    margin-left: 15px; 
   }
 
   .speed-dial .MuiSpeedDial-fab {
