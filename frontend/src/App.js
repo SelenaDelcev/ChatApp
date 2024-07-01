@@ -80,16 +80,15 @@ const App = () => {
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
 
-    return {
-      async next() {
+    async function* streamAsyncIterator() {
+      while (true) {
         const { done, value } = await reader.read();
-        if (done) return { done: true };
-        return { done: false, value: decoder.decode(value, { stream: true }) };
-      },
-      [Symbol.asyncIterator]() {
-        return this;
+        if (done) break;
+        yield decoder.decode(value);
       }
-    };
+    }
+
+    return streamAsyncIterator();
   }
 
   async function handleStreamedResponse() {
