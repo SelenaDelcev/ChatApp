@@ -16,13 +16,14 @@
   border: 1px solid #343541;
   border-radius: 5px;
   background-color: #343541;
-  overflow-y: auto;
+  height: 100%;
 }
 
 .messages {
   flex: 1; 
   padding: 10px;
   display: flex;
+  overflow-y: auto;
   flex-direction: column;
   border-bottom: 1px solid #343541;
 }
@@ -54,6 +55,8 @@
   left: 0;
   right: 0;
   margin: 0 auto;
+  width: calc(100% - 20px); 
+  box-sizing: border-box;
 }
 
 .message-input {
