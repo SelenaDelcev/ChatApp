@@ -78,13 +78,15 @@ const App = () => {
   async function* fetchStream(url, options = {}) {
     const response = await fetch(url, options);
     const reader = response.body.getReader();
-    const decoder = new TextDecoder();
+    const decoder = new TextDecoder("utf-8");
+
+    console.log("Response:", response);
 
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
   
-      const chunk = decoder.decode(value);
+      const chunk = decoder.decode(value, { stream: true });
       console.log("Received chunk:", chunk);
   
       const lines = chunk.split("\n").map(line => line.trim()).filter(line => line);
@@ -107,7 +109,7 @@ const App = () => {
     setUserMessage('');
 
     try {
-      const stream = await fetchStream('https://chatappdemobackend.azurewebsites.net/chat', {
+      const stream = fetchStream('https://chatappdemobackend.azurewebsites.net/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -116,6 +118,8 @@ const App = () => {
         body: JSON.stringify(newMessage),
         credentials: 'include'
       });
+
+      console.log("Stream:", stream);
 
       for await (const chunk of stream) {
         setMessages(prev => {
