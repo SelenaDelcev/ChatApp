@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
 import './App.css';
 import SpeedDial from '@mui/material/SpeedDial';
 import SpeedDialIcon from '@mui/material/SpeedDialIcon';
@@ -73,39 +72,60 @@ const App = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    handleStreamedResponse();
+  };
 
+  async function fetchStream(url, options = {}) {
+    const response = await fetch(url, options);
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+
+    return {
+      async *[Symbol.asyncIterator]() {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          yield decoder.decode(value);
+        }
+      }
+    };
+  }
+
+  async function handleStreamedResponse() {
     const newMessage = {
       role: 'user',
       content: userMessage
     };
 
-    setMessages([...messages, newMessage]);
+    setMessages(prev => [...prev, newMessage]);
     setUserMessage('');
 
     try {
-      const response = await axios.post('https://chatappdemobackend.azurewebsites.net/chat', newMessage, {
+      const stream = await fetchStream('https://chatappdemobackend.azurewebsites.net/chat', {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Session-ID': sessionId
         },
-        withCredentials: true
+        body: JSON.stringify(newMessage),
+        credentials: 'include'
       });
 
-      const filteredMessages = response.data.messages.filter(msg => msg.role !== 'system');
-      setMessages([...filteredMessages]); 
-    } catch (error) {
-      console.error('Network or Server Error:', error);
-      if (error.response) {
-        console.error('Error Response Data:', error.response.data);
-        console.error('Error Response Status:', error.response.status);
-        console.error('Error Response Headers:', error.response.headers);
-      } else if (error.request) {
-        console.error('No response received:', error.request);
-      } else {
-        console.error('Error Message:', error.message);
+      for await (const chunk of stream) {
+        setMessages(prev => {
+          const lastMessage = prev[prev.length - 1];
+          if (lastMessage && lastMessage.role === 'assistant') {
+            lastMessage.content += chunk;
+            return [...prev.slice(0, -1), lastMessage];
+          } else {
+            return [...prev, { role: 'assistant', content: chunk }];
+          }
+        });
       }
+    } catch (error) {
+      console.error('Stream error:', error);
     }
-  };
+  }
 
   const getMessageContent = (message) => {
     if (typeof message.content === 'object') {
