@@ -52,8 +52,7 @@
     "@babel/preset-env": "^7.24.7",
     "@babel/preset-react": "^7.24.7",
     "babel-jest": "^29.7.0",
-    "babel-preset-react-app": "^10.0.1",
-    "react-app-rewired": "^2.2.1"
+    "babel-preset-react-app": "^10.0.1"
   },
   "jest": {
     "transformIgnorePatterns": [

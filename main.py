@@ -4,7 +4,6 @@ from pydantic import BaseModel
 import openai
 import logging
 from typing import Dict, List
-import re
 from openai import OpenAI, RateLimitError, APIConnectionError, APIError
 from util_func import get_openai_client, rag_tool_answer, system_prompt
 from fastapi.responses import StreamingResponse
@@ -33,7 +32,7 @@ class Message(BaseModel):
 
 messages: Dict[str, List[Dict[str, str]]] = {}
 
-@app.get('/chat')
+@app.post('/chat')
 async def chat_with_ai(
     request: Request,
     message: Message,
@@ -74,6 +73,7 @@ async def chat_with_ai(
                 ):
                     content = response.choices[0].delta.content or ""
                     yield content + "▌"
+                    await asyncio.sleep(0.1)
             except Exception as e:
                 logger.error(f"Error while streaming response: {e}")
                 yield f"Error: {e}"
