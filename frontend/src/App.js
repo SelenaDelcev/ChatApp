@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
+import axios from 'axios';
 import SpeedDial from '@mui/material/SpeedDial';
 import SpeedDialIcon from '@mui/material/SpeedDialIcon';
 import SpeedDialAction from '@mui/material/SpeedDialAction';
@@ -72,68 +73,38 @@ const App = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    handleStreamedResponse();
-  };
 
-  async function* fetchStream(url, options = {}) {
-    const response = await fetch(url, options);
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder("utf-8");
-
-    console.log("Response:", response);
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-  
-      const chunk = decoder.decode(value, { stream: true });
-      console.log("Received chunk:", chunk);
-  
-      const lines = chunk.split("\n").map(line => line.trim()).filter(line => line);
-      for (const line of lines) {
-        if (line.startsWith('data: ')) {
-          const content = line.slice(6);  
-          yield content;
-        }
-      }
-    }
-  }
-
-  async function handleStreamedResponse() {
     const newMessage = {
       role: 'user',
       content: userMessage
     };
 
-    setMessages(prev => [...prev, newMessage]);
+    setMessages([...messages, newMessage]);
     setUserMessage('');
 
     try {
-      const stream = fetchStream('https://chatappdemobackend.azurewebsites.net/chat', {
+      const response = await axios.post('https://chatappdemobackend.azurewebsites.net/chat', newMessage, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Session-ID': sessionId
         },
-        body: JSON.stringify(newMessage),
-        credentials: 'include'
+        withCredentials: true
       });
 
-      console.log("Stream:", stream);
-
-      for await (const chunk of stream) {
-        setMessages(prev => {
-          const lastMessage = prev[prev.length - 1];
-          if (lastMessage && lastMessage.role === 'assistant') {
-            lastMessage.content += chunk;
-            return [...prev.slice(0, -1), lastMessage];
-          } else {
-            return [...prev, { role: 'assistant', content: chunk }];
-          }
-        });
-      }
+      const filteredMessages = response.data.messages.filter(msg => msg.role !== 'system');
+      setMessages([...filteredMessages]); 
     } catch (error) {
-      console.error('Stream error:', error);
+      console.error('Network or Server Error:', error);
+      if (error.response) {
+        console.error('Error Response Data:', error.response.data);
+        console.error('Error Response Status:', error.response.status);
+        console.error('Error Response Headers:', error.response.headers);
+      } else if (error.request) {
+        console.error('No response received:', error.request);
+      } else {
+        console.error('Error Message:', error.message);
+      }
     }
   }
 
