@@ -63,22 +63,21 @@ async def chat_with_ai(
         openai_messages.append({"role": "user", "content": prepared_message_content})
 
         async def stream_responses():
-            try:
-                async for response in client.chat.completions.create(
-                    model="gpt-4o",
-                    temperature=0.0,
-                    messages=openai_messages,
-                    stream=True,
-                    stream_options={"include_usage": True},
-                ):
-                    content = response.choices[0].delta.content or ""
-                    yield content + "▌"
-                    await asyncio.sleep(0.1)
-            except Exception as e:
-                logger.error(f"Error while streaming response: {e}")
-                yield f"Error: {e}"
+                try:
+                    async for response in client.chat.completions.create(
+                        model="gpt-4o",
+                        temperature=0.0,
+                        messages=openai_messages,
+                        stream=True,
+                        stream_options={"include_usage": True},
+                    ):
+                        content = response.choices[0].delta.get("content", "")
+                        yield content + "▌"
+                except Exception as e:
+                    logger.error(f"Error while streaming response: {e}")
+                    yield f"Error: {e}"
 
-        return StreamingResponse(stream_responses(), media_type='text/event-stream')
+        return StreamingResponse(stream_responses(), media_type="text/event-stream")
 
     except RateLimitError as e:
         if 'insufficient_quota' in str(e):

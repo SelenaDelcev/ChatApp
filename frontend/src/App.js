@@ -78,23 +78,32 @@ const App = () => {
   async function* fetchStream(url, options = {}) {
     const response = await fetch(url, options);
     const reader = response.body.getReader();
-    const decoder = new TextDecoder("utf-8");
+    const decoder = new TextDecoder();
+
+    const streamIterator = {
+      async next() {
+        const { done, value } = await reader.read();
+        if (done) return { done: true };
+        
+        const chunk = decoder.decode(value);
+        console.log("Received chunk:", chunk);
   
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-  
-      const chunk = decoder.decode(value);
-      console.log("Received chunk:", chunk);
-  
-      const lines = chunk.split("\n").map(line => line.trim()).filter(line => line);
-      for (const line of lines) {
-        if (line.startsWith('data: ')) {
-          const content = line.slice(6);
-          yield content;
+        const lines = chunk.split("\n").map(line => line.trim()).filter(line => line);
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const content = line.slice(6); 
+            return { done: false, value: content };
+          }
         }
-      } 
-    }
+  
+        return { done: false, value: null };
+      },
+      [Symbol.asyncIterator]() {
+        return this;
+      }
+    };
+  
+    return streamIterator;
   }
 
   async function handleStreamedResponse() {
