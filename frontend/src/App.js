@@ -75,20 +75,17 @@ const App = () => {
     handleStreamedResponse();
   };
 
-  async function fetchStream(url, options = {}) {
+  async function* fetchStream(url, options = {}) {
     const response = await fetch(url, options);
+    console.log(response);
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
-
-    async function* streamAsyncIterator() {
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        yield decoder.decode(value);
-      }
+  
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      yield decoder.decode(value);
     }
-
-    return streamAsyncIterator();
   }
 
   async function handleStreamedResponse() {
