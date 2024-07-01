@@ -81,12 +81,13 @@ const App = () => {
     const decoder = new TextDecoder();
 
     return {
-      async *[Symbol.asyncIterator]() {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          yield decoder.decode(value);
-        }
+      async next() {
+        const { done, value } = await reader.read();
+        if (done) return { done: true };
+        return { done: false, value: decoder.decode(value, { stream: true }) };
+      },
+      [Symbol.asyncIterator]() {
+        return this;
       }
     };
   }
