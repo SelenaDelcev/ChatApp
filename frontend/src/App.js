@@ -79,27 +79,21 @@ const App = () => {
     const response = await fetch(url, options);
     const reader = response.body.getReader();
     const decoder = new TextDecoder("utf-8");
-
+  
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
-
-      const chunk = decoder.decode(value);
-      const lines = chunk.split("\n");
-      const parsedLines = lines
-        .map((line) => line.replace(/^data: /, "").trim())
-        .filter((line) => line !== "" && line !== "[DONE]") 
-        .map((line) => JSON.parse(line));
-
-      for (const parsedLine of parsedLines) {
-        const { choices } = parsedLine;
-        const { delta } = choices[0];
-        const { content } = delta;
   
-        if (content) {
+      const chunk = decoder.decode(value);
+      console.log("Received chunk:", chunk);
+  
+      const lines = chunk.split("\n").map(line => line.trim()).filter(line => line);
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          const content = line.slice(6);
           yield content;
         }
-      }
+      } 
     }
   }
 
