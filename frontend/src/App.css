@@ -17,6 +17,7 @@
   border-radius: 5px;
   background-color: #343541;
   height: 100%;
+  overflow: hidden;
 }
 
 .messages {

@@ -74,6 +74,14 @@ const App = () => {
         withCredentials: true
       });
 
+      // Handle the response calendly url
+      if (data.type === 'calendly_url') {
+        setMessages([...messages, newMessage, { role: 'assistant', content: data.url, type: 'calendly' }]);
+      } else {
+        const assistantMessage = { role: 'assistant', content: data };
+        setMessages([...messages, newMessage, assistantMessage]);
+      }
+
       const filteredMessages = response.data.messages.filter(msg => msg.role !== 'system');
       setMessages([...filteredMessages]); 
     } catch (error) {
@@ -112,7 +120,17 @@ const App = () => {
         <div className="messages">
           {messages.map((message, index) => (
             <div key={index} className={`message ${message.role}`}>
+              {msg.type === 'calendly' ? (
+              <iframe
+                src={msg.content}
+                width="90%"
+                height="400px"
+                style={{ border: 'none', scrolling: 'yes' }}
+                title="Calendly Scheduling"
+              ></iframe>
+            ) : (
               <p dangerouslySetInnerHTML={getMessageContent(message)} />
+            )}
             </div>
           ))}
           <div ref={messagesEndRef} />

@@ -7,7 +7,6 @@ import re
 from typing import Dict, List
 from openai import OpenAI, RateLimitError, APIConnectionError, APIError
 from util_func import get_openai_client, rag_tool_answer, system_prompt
-from fastapi.responses import StreamingResponse
 
 # Initialize the FastAPI app
 app = FastAPI()
@@ -49,8 +48,8 @@ async def chat_with_ai(
 
         # Prepare the query with context, but do not save or show it
         context = rag_tool_answer(message.content)
-        # if context == "https://outlook.office365.com/book/Chatbot@positive.rs/":
-        #     return {"calendly_url": context }
+        if context == "https://outlook.office365.com/book/Chatbot@positive.rs/":
+            return {"calendly_url": context }
         
         prepared_message_content = f"{context}\n\n{message.content}"
         
