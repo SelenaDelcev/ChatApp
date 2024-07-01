@@ -76,18 +76,24 @@ const App = () => {
 
       const data = response.data;
 
-      // Extract the URL from the assistant's response if it contains a URL
-      const urlRegex = /(https?:\/\/[^\s]+)/g;
-      const urlMatch = data.content.match(urlRegex);
+      console.log("Response data:", data);
 
-      if (urlMatch) {
+      if (data.calendly_url) {
         setMessages((prevMessages) => [
           ...prevMessages,
-          { role: 'assistant', content: urlMatch[0], type: 'calendly' },
+          { role: 'assistant', content: data.calendly_url, type: 'calendly' },
         ]);
-      } else {
+      } else if (data.messages) {
+        const assistantMessages = data.messages.filter(msg => msg.role === 'assistant').map(msg => ({
+          role: 'assistant',
+          content: msg.content
+        }));
+        setMessages((prevMessages) => [...prevMessages, ...assistantMessages]);
+      } else if (data.content) {
         const assistantMessage = { role: 'assistant', content: data.content };
         setMessages((prevMessages) => [...prevMessages, assistantMessage]);
+      } else {
+        console.error('Unexpected response format:', data);
       }
     } catch (error) {
       console.error('Network or Server Error:', error);
@@ -102,7 +108,6 @@ const App = () => {
       }
     }
   };
-
 
   const getMessageContent = (message) => {
     if (typeof message.content === 'object') {
