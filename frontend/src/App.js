@@ -75,23 +75,21 @@ const App = () => {
       });
 
       const data = response.data;
+      const messages = data.messages;
+      const assistantMessage = messages.find(msg => msg.role === 'assistant');
 
-      console.log("Response data:", data);
+      if (assistantMessage) {
+        const urlRegex = /(https?:\/\/[^\s]+)/g;
+        const urlMatch = assistantMessage.content.match(urlRegex);
 
-      if (data.calendly_url) {
-        setMessages((prevMessages) => [
-          ...prevMessages,
-          { role: 'assistant', content: data.calendly_url, type: 'calendly' },
-        ]);
-      } else if (data.messages) {
-        const assistantMessages = data.messages.filter(msg => msg.role === 'assistant').map(msg => ({
-          role: 'assistant',
-          content: msg.content
-        }));
-        setMessages((prevMessages) => [...prevMessages, ...assistantMessages]);
-      } else if (data.content) {
-        const assistantMessage = { role: 'assistant', content: data.content };
-        setMessages((prevMessages) => [...prevMessages, assistantMessage]);
+        if (urlMatch) {
+          setMessages((prevMessages) => [
+            ...prevMessages,
+            { role: 'assistant', content: urlMatch[0], type: 'calendly' },
+          ]);
+        } else {
+          setMessages((prevMessages) => [...prevMessages, assistantMessage]);
+        }
       } else {
         console.error('Unexpected response format:', data);
       }
