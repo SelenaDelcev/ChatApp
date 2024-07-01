@@ -33,7 +33,7 @@ class Message(BaseModel):
 
 messages: Dict[str, List[Dict[str, str]]] = {}
 
-@app.post('/chat')
+@app.get('/chat')
 async def chat_with_ai(
     request: Request,
     message: Message,
@@ -78,7 +78,7 @@ async def chat_with_ai(
                 logger.error(f"Error while streaming response: {e}")
                 yield f"Error: {e}"
 
-        return StreamingResponse(stream_responses(), media_type="text/plain")
+        return StreamingResponse(stream_responses(), media_type='text/event-stream')
 
     except RateLimitError as e:
         if 'insufficient_quota' in str(e):

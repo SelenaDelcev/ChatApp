@@ -114,7 +114,7 @@ const App = () => {
 
     try {
       const stream = await fetchStream('https://chatappdemobackend.azurewebsites.net/chat', {
-        method: 'POST',
+        method: 'GET',
         headers: {
           'Content-Type': 'application/json',
           'Session-ID': sessionId
