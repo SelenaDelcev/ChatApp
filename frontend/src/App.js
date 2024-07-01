@@ -75,10 +75,10 @@ const App = () => {
       });
 
       // Handle the response calendly url
-      if (data.type === 'calendly_url') {
-        setMessages([...messages, newMessage, { role: 'assistant', content: data.url, type: 'calendly' }]);
+      if (response.data.type === 'calendly_url') {
+        setMessages([...messages, newMessage, { role: 'assistant', content: response.data.url, type: 'calendly' }]);
       } else {
-        const assistantMessage = { role: 'assistant', content: data };
+        const assistantMessage = { role: 'assistant', content: response.data.content };
         setMessages([...messages, newMessage, assistantMessage]);
       }
 
@@ -120,9 +120,9 @@ const App = () => {
         <div className="messages">
           {messages.map((message, index) => (
             <div key={index} className={`message ${message.role}`}>
-              {msg.type === 'calendly' ? (
+              {message.type === 'calendly' ? (
               <iframe
-                src={msg.content}
+                src={message.content}
                 width="90%"
                 height="400px"
                 style={{ border: 'none', scrolling: 'yes' }}
