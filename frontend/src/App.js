@@ -77,16 +77,30 @@ const App = () => {
 
   async function* fetchStream(url, options = {}) {
     const response = await fetch(url, options);
-    console.log(response);
     const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-  
+    const decoder = new TextDecoder("utf-8");
+
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
-      yield decoder.decode(value);
+
+      const chunk = decoder.decode(value);
+      const lines = chunk.split("\n");
+      const parsedLines = lines
+        .map((line) => line.replace(/^data: /, "").trim())
+        .filter((line) => line !== "" && line !== "[DONE]") 
+        .map((line) => JSON.parse(line));
+
+      for (const parsedLine of parsedLines) {
+        const { choices } = parsedLine;
+        const { delta } = choices[0];
+        const { content } = delta;
+  
+        if (content) {
+          yield content;
+        }
+      }
     }
-    
   }
 
   async function handleStreamedResponse() {

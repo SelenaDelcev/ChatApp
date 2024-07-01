@@ -20,8 +20,8 @@
     "web-vitals": "^4.1.1"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
+    "start": "react-app-rewired start",
+    "build": "react-app-rewired build",
     "serve": "serve -s build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
@@ -52,7 +52,8 @@
     "@babel/preset-env": "^7.24.7",
     "@babel/preset-react": "^7.24.7",
     "babel-jest": "^29.7.0",
-    "babel-preset-react-app": "^10.0.1"
+    "babel-preset-react-app": "^10.0.1",
+    "react-app-rewired": "^2.2.1"
   },
   "jest": {
     "transformIgnorePatterns": [
