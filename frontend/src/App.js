@@ -9,27 +9,11 @@ import SendIcon from '@mui/icons-material/Send';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AttachFileSharpIcon from '@mui/icons-material/AttachFileSharp';
 import SaveAltSharpIcon from '@mui/icons-material/SaveAltSharp';
-import Switch from '@mui/material/Switch';
 import Tooltip from '@mui/material/Tooltip';
-import HelpIcon from '@mui/icons-material/Help';
 import TipsAndUpdatesIcon from '@mui/icons-material/TipsAndUpdates';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import KeyboardVoiceIcon from '@mui/icons-material/KeyboardVoice';
-import { alpha, styled } from '@mui/material/styles';
-import { pink } from '@mui/material/colors';
 import { v4 as uuidv4 } from 'uuid';
-
-const PinkSwitch = styled(Switch)(({ theme }) => ({
-  '& .MuiSwitch-switchBase.Mui-checked': {
-    color: pink[500],
-    '&:hover': {
-      backgroundColor: alpha(pink[500], theme.palette.action.hoverOpacity),
-    },
-  },
-  '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-    backgroundColor: pink[500],
-  },
-}));
 
 const App = () => {
   const [messages, setMessages] = useState([]);
@@ -37,8 +21,6 @@ const App = () => {
   const [isRecording, setIsRecording] = useState(false);
   const messagesEndRef = useRef(null);
   const [sessionId, setSessionId] = useState('');
-  const [suggestionsEnabled, setSuggestionsEnabled] = useState(false);
-  const [listenEnabled, setListenEnabled] = useState(false);
 
   useEffect(() => {
     const storedSessionId = sessionStorage.getItem('sessionId');
@@ -119,37 +101,14 @@ const App = () => {
     { icon: <DeleteIcon />, name: 'Obriši', onClick: handleClearChat },
     { icon: <AttachFileSharpIcon />, name: 'Dodaj prilog' },
     { icon: <SaveAltSharpIcon />, name: 'Sačuvaj' },
+    { icon: <TipsAndUpdatesIcon />, name: 'Predlozi pitanja/odgovora' },
+    { icon: <VolumeUpIcon />, name: 'Slušaj odgovor asistenta' }
+
   ];
 
   return (
     <div className="App">
       <div className="chat-container">
-        <div className="switches-container">
-        <div className="switch-label">
-            <PinkSwitch
-              color="warning"
-              checked={suggestionsEnabled}
-              onChange={() => setSuggestionsEnabled(!suggestionsEnabled)}
-            />
-            <TipsAndUpdatesIcon className="switch-icon" fontSize="small"/>
-            <span>Predlozi pitanja/odgovora</span>
-            <Tooltip title="Predlozi pitanja/odgovora za asistenta">
-              <HelpIcon className="help-icon" fontSize="small"/>
-            </Tooltip>
-          </div>
-          <div className="switch-label">
-            <PinkSwitch
-              color="warning"
-              checked={listenEnabled}
-              onChange={() => setListenEnabled(!listenEnabled)}
-            />
-            <VolumeUpIcon className="switch-icon" fontSize="small"/>
-            <span>Slušaj odgovor</span>
-            <Tooltip title="Slušajte odgovor asistenta">
-              <HelpIcon className="help-icon" fontSize="small"/>
-            </Tooltip>
-          </div>
-        </div>
         <div className="messages">
           {messages.map((message, index) => (
             <div key={index} className={`message ${message.role}`}>
