@@ -27,6 +27,7 @@
   overflow-y: auto;
   flex-direction: column;
   border-bottom: 1px solid #343541;
+  padding-bottom: 8px;
 }
 
 .message {

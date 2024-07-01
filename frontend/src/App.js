@@ -74,16 +74,21 @@ const App = () => {
         withCredentials: true
       });
 
-      // Handle the response calendly url
-      if (response.data.type === 'calendly_url') {
-        setMessages([...messages, newMessage, { role: 'assistant', content: response.data.url, type: 'calendly' }]);
-      } else {
-        const assistantMessage = { role: 'assistant', content: response.data.content };
-        setMessages([...messages, newMessage, assistantMessage]);
-      }
+      const data = response.data;
 
-      const filteredMessages = response.data.messages.filter(msg => msg.role !== 'system');
-      setMessages([...filteredMessages]); 
+      // Handle the response based on the type
+      if (data.calendly_url) {
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          { role: 'assistant', content: data.calendly_url, type: 'calendly' },
+        ]);
+      } else if (data.messages) {
+        const assistantMessages = data.messages.filter(msg => msg.role === 'assistant').map(msg => ({
+          role: 'assistant',
+          content: msg.content
+        }));
+        setMessages((prevMessages) => [...prevMessages, ...assistantMessages]);
+      }
     } catch (error) {
       console.error('Network or Server Error:', error);
       if (error.response) {
@@ -96,7 +101,8 @@ const App = () => {
         console.error('Error Message:', error.message);
       }
     }
-  }
+  };
+
 
   const getMessageContent = (message) => {
     if (typeof message.content === 'object') {
