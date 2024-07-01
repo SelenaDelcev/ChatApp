@@ -69,9 +69,10 @@ async def chat_with_ai(
                     model="gpt-4o",
                     temperature=0.0,
                     messages=openai_messages,
-                    stream=True
+                    stream=True,
+                    stream_options={"include_usage": True},
                 ):
-                    content = response.choices[0].delta.get("content", "")
+                    content = response.choices[0].delta.content or ""
                     yield content + "▌"
             except Exception as e:
                 logger.error(f"Error while streaming response: {e}")

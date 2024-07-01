@@ -81,10 +81,14 @@ const App = () => {
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
   
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      yield decoder.decode(value);
+    return {
+      async *[Symbol.asyncIterator]() {
+        while(true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          yield decoder.decode(value);
+        }
+      }
     }
   }
 
