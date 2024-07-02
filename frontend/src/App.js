@@ -13,6 +13,7 @@ import Tooltip from '@mui/material/Tooltip';
 import TipsAndUpdatesIcon from '@mui/icons-material/TipsAndUpdates';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import KeyboardVoiceIcon from '@mui/icons-material/KeyboardVoice';
+import CloseIcon from '@mui/icons-material/Close';
 import { v4 as uuidv4 } from 'uuid';
 
 const App = () => {
@@ -119,6 +120,10 @@ const App = () => {
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
+  };
+
+  const handleFileDelete = () => {
+    setFile(null);
   };
 
   const handleFileSubmit = async (newMessage) => {
