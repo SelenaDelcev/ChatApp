@@ -120,6 +120,17 @@ const App = () => {
     }
   };
 
+  const handleSaveChat = () => {
+    const chatContent = messages.map(msg => `${msg.role}: ${msg.content}`).join('\n');
+    const blob = new Blob([chatContent], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'chat.txt';
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
   };
@@ -198,7 +209,7 @@ const App = () => {
       name: file ? file.name : 'Dodaj prilog',
       onClick: () => document.getElementById('fileInput').click()
     },
-    { icon: <SaveAltSharpIcon />, name: 'Sačuvaj' },
+    { icon: <SaveAltSharpIcon />, name: 'Sačuvaj', onClick: handleSaveChat },
     { icon: <TipsAndUpdatesIcon />, name: 'Predlozi pitanja/odgovora' },
     { icon: <VolumeUpIcon />, name: 'Slušaj odgovor asistenta' }
 
