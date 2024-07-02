@@ -223,7 +223,7 @@ const App = () => {
       <div className="chat-container">
         <div className="messages">
           {messages.map((message, index) => (
-            <div key={index} className={`message ${message.role}`}>
+            <div key={index} className={`${message.role} message`}>
               {message.type === 'calendly' ? (
                 <iframe
                   src={message.content}
