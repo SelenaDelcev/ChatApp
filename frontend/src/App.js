@@ -178,12 +178,11 @@ const App = () => {
           {file && (
             <CloseIcon
               style={{
-                color: 'red',
                 position: 'absolute',
                 top: -11,
                 right: -11,
                 cursor: 'pointer',
-                color: 'black'
+                color: 'red'
               }}
               onClick={(e) => {
                 e.stopPropagation();
