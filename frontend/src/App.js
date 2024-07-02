@@ -23,7 +23,6 @@ const App = () => {
   const [isRecording, setIsRecording] = useState(false);
   const messagesEndRef = useRef(null);
   const [sessionId, setSessionId] = useState('');
-  const [error, setError] = useState(null);
   const [file, setFile] = useState(null);
 
   useEffect(() => {
@@ -56,18 +55,16 @@ const App = () => {
     sessionStorage.setItem('sessionId', newSessionId);
     setSessionId(newSessionId);
     setFile(null);
-    setError(null);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (file && !userMessage.trim()) {
-      setError('Molim napišite poruku kad priložite fajl.');
+      alert('Molim napišite poruku kad priložite fajl.');
       return;
     }
 
-    setError(null);
     const newMessage = {
       role: 'user',
       content: userMessage
@@ -251,7 +248,7 @@ const App = () => {
                 value={userMessage}
                 onChange={(e) => setUserMessage(e.target.value)}
               />
-              {userMessage.trim() || file ? (
+              {userMessage.trim() ? (
                 <Button type="submit" className="send-button">
                   <SendIcon />
                 </Button>
