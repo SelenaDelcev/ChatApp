@@ -22,7 +22,6 @@
 .messages {
   flex: 1; 
   padding: 10px;
-  display: flex;
   overflow-y: auto;
   flex-direction: column;
   border-bottom: 1px solid #343541;
@@ -34,22 +33,19 @@
   padding: 8px 15px;
   margin-top: 5px;
   margin-bottom: 5px;
-  display: inline-block;
+  max-width: 500px;
+  width: fit-content;
 }
 
-.user {
-  align-items: flex-end;
-}
-
-.user .message {
+.message.user {
   color: #343541;
-  margin-left: 25%;
+  margin-left: auto;
   background: linear-gradient(145deg, #ed1c24, #ffcdd2);
   background-attachment: fixed;
   position: relative;
 }
 
-.user .message:before {
+.message.user:before {
   content: "";
   position: absolute;
   z-index: 0;
@@ -62,7 +58,7 @@
   border-bottom-left-radius: 15px;
 }
 
-.user .message:after {
+.message.user:after {
   content: "";
   position: absolute;
   z-index: 1;
