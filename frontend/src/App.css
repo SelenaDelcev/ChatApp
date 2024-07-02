@@ -30,15 +30,47 @@
 }
 
 .message {
+  width: 500px;
   padding: 10px;
   margin-bottom: 10px;
-  border-radius: 5px;
-  background-color: #343541;
-  color: #fff;
+  border-radius: 20px;
+  display: inline-block;
+  position: relative;
 }
 
 .message.user {
+  padding: 8px 15px;
   text-align: right;
+  color: #343541;
+  margin-left: 25%;
+  background: linear-gradient(145deg, #ed1c24, #ffcdd2);
+  background-attachment: fixed;
+  position: relative;
+}
+
+.message.user:before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  bottom: 0;
+  right: -8px;
+  height: 20px;
+  width: 20px;
+  background: linear-gradient(145deg, #ed1c24, #ffcdd2);
+  background-attachment: fixed;
+  border-bottom-left-radius: 15px;
+}
+
+.message.user:after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  bottom: 0;
+  right: -10px;
+  width: 10px;
+  height: 20px;
+  background: linear-gradient(-90deg, #343541, #343541);
+  border-bottom-left-radius: 10px;
 }
 
 .message.assistant {
