@@ -7,6 +7,8 @@ import re
 from typing import Dict, List
 from openai import OpenAI, RateLimitError, APIConnectionError, APIError
 from util_func import get_openai_client, rag_tool_answer, system_prompt
+import PyPDF2
+import docx
 
 # Initialize the FastAPI app
 app = FastAPI()
@@ -38,6 +40,20 @@ def initialize_session(request, messages: Dict[str, List[Dict[str, str]]], syste
     if session_id not in messages:
         messages[session_id] = [{"role": "system", "content": system_prompt()}]
     return session_id
+
+def read_pdf(file):
+    reader = PyPDF2.PdfReader(file)
+    text = ""
+    for page in reader.pages:
+        text += page.extract_text()
+    return text
+
+def read_docx(file):
+    doc = docx.Document(file)
+    text = ""
+    for paragraph in doc.paragraphs:
+        text += paragraph.text + "\n"
+    return text
 
 @app.post('/chat')
 async def chat_with_ai(
@@ -117,12 +133,14 @@ async def upload_file(
     try:
         file_content = await file.read()
         file_name = file.filename
+        text_content = ""
 
-        if file.content_type == 'text/plain':
-            text_content = file_content.decode('utf-8')
-            logger.info(f"File content: {text_content}")
+        if file.content_type == 'application/pdf':
+            text_content = read_pdf(file.file)
+        elif file.content_type == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+            text_content = read_docx(file.file)
         else:
-            text_content = "Binary file content cannot be displayed"
+            return {"detail": "Unsupported file type"}
 
         messages[session_id].append({"role": "user", "content": message})
         messages[session_id].append({"role": "user", "content": f"File uploaded: {file_name}"})

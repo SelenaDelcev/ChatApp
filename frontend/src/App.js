@@ -124,6 +124,7 @@ const App = () => {
 
   const handleFileDelete = () => {
     setFile(null);
+    document.getElementById('fileInput').value = '';
   };
 
   const handleFileSubmit = async (newMessage) => {
@@ -142,10 +143,14 @@ const App = () => {
       });
 
       const data = response.data;
-      const messages = data.messages;
-      setMessages(messages);
-
-      setFile(null);
+      if (data.detail === "Unsupported file type") {
+        alert("Unsupported file type. Please upload a PDF or DOCX file.");
+      }
+      else {
+        const messages = data.messages;
+        setMessages(messages);
+        setFile(null);
+      }
     } catch (error) {
       console.error('File upload error:', error);
     }
@@ -162,7 +167,7 @@ const App = () => {
     { icon: <DeleteIcon />, name: 'Obriši', onClick: handleClearChat },
     {
       icon: (
-        <div style={{ position: 'relative' }}>
+        <div>
           <AttachFileSharpIcon style={{ color: file ? 'red' : 'inherit' }} />
           {file && (
             <CloseIcon
