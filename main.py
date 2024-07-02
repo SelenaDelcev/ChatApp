@@ -104,7 +104,7 @@ async def chat_with_ai(
     except RateLimitError as e:
         if 'insufficient_quota' in str(e):
             logger.error("Potrošili ste sve tokene, kontaktirajte Positive za dalja uputstva")
-            raise HTTPException(status_code=429, detail="Potrošili ste sve tokene, kontaktirajte Positive za dalja uputstva")
+            return {"detail":"Potrošili ste sve tokene, kontaktirajte Positive za dalja uputstva"}
         else:
             logger.error(f"Rate limit error: {str(e)}")
             raise HTTPException(status_code=429, detail=f"Rate limit error: {str(e)}")
@@ -144,7 +144,7 @@ async def upload_file(
         elif file.content_type in ['image/jpeg', 'image/png', 'image/webp']:
             text_content = f"Slika je dodata: {file_name}"
         else:
-            raise HTTPException(status_code=400, detail="Unsupported file type")
+            return {"detail": "Unsupported file type"}
 
         messages[session_id].append({"role": "user", "content": message})
         messages[session_id].append({"role": "assistant", "content": f"Dokument je dodat - Uklonite ga iz uploadera ukoliko ne želite više da pričate o njegovom sadržaju."})
