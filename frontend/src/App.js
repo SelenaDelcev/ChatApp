@@ -159,12 +159,12 @@ const App = () => {
   };
 
   const handleErrorMessage = (errorMessage) => {
-    if (errorMessage === "Unsupported file type") {
+    if (errorMessage.includes("Unsupported file type")) {
       setMessages(prevMessages => [
         ...prevMessages,
         { role: 'assistant', type: 'error', content: "Moguće je priložiti PDF, DOCX, TXT, JPG, PNG ili WEBP fajl." }
       ]);
-    } else if (errorMessage === "Potrošili ste sve tokene, kontaktirajte Positive za dalja uputstva") {
+    } else if (errorMessage.includes("Potrošili ste sve tokene, kontaktirajte Positive za dalja uputstva")) {
       setMessages(prevMessages => [
         ...prevMessages,
         { role: 'assistant', type: 'error', content: "Potrošili ste sve tokene, kontaktirajte Positive za dalja uputstva" }

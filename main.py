@@ -147,7 +147,7 @@ async def upload_file(
             raise HTTPException(status_code=400, detail="Unsupported file type")
 
         messages[session_id].append({"role": "user", "content": message})
-        messages[session_id].append({"role": "user", "content": f"Dokument je dodat - Uklonite ga iz uploadera ukoliko ne želite više da pričate o njegovom sadržaju."})
+        messages[session_id].append({"role": "assistant", "content": f"Dokument je dodat - Uklonite ga iz uploadera ukoliko ne želite više da pričate o njegovom sadržaju."})
         logger.info(f"Messages: {messages[session_id]}")
 
         prepared_message_content = f"User message: {message}\nFile content:\n{text_content}"
