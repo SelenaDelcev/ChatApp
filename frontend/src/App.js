@@ -53,6 +53,7 @@ const App = () => {
     const newSessionId = uuidv4();
     sessionStorage.setItem('sessionId', newSessionId);
     setSessionId(newSessionId);
+    setFile(null);
   };
 
   const handleSubmit = async (e) => {
@@ -147,9 +148,10 @@ const App = () => {
         alert("Unsupported file type. Please upload a PDF or DOCX file.");
       }
       else {
-        const messages = data.messages;
-        setMessages(messages);
-        setFile(null);
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          ...data.messages.filter(msg => msg.role !== 'system')
+        ]);
       }
     } catch (error) {
       console.error('File upload error:', error);
@@ -167,14 +169,14 @@ const App = () => {
     { icon: <DeleteIcon />, name: 'Obriši', onClick: handleClearChat },
     {
       icon: (
-        <div>
+        <div style={{ position: 'relative' }}>
           <AttachFileSharpIcon style={{ color: file ? 'red' : 'inherit' }} />
           {file && (
             <CloseIcon
               style={{
                 position: 'absolute',
-                top: -10,
-                right: -10,
+                top: -11,
+                right: -11,
                 cursor: 'pointer',
                 color: 'black'
               }}
