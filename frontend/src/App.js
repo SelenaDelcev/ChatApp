@@ -159,7 +159,7 @@ const App = () => {
   };
 
   const handleErrorMessage = (errorMessage) => {
-    if (errorMessage.includes("Unsupported file type")) {
+    if (errorMessage === "File upload error: 400: Unsupported file type") {
       setMessages(prevMessages => [
         ...prevMessages,
         { role: 'assistant', type: 'error', content: "Moguće je priložiti PDF, DOCX, TXT, JPG, PNG ili WEBP fajl." }
