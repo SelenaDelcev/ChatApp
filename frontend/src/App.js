@@ -21,6 +21,7 @@ const App = () => {
   const [isRecording, setIsRecording] = useState(false);
   const messagesEndRef = useRef(null);
   const [sessionId, setSessionId] = useState('');
+  const [file, setFile] = useState(null);
 
   useEffect(() => {
     const storedSessionId = sessionStorage.getItem('sessionId');
@@ -56,6 +57,11 @@ const App = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (file && !userMessage.trim()) {
+      alert('Please write a message when attaching a file.');
+      return;
+    }
+
     const newMessage = {
       role: 'user',
       content: userMessage
@@ -64,46 +70,79 @@ const App = () => {
     setMessages([...messages, newMessage]);
     setUserMessage('');
 
+    if (file) {
+      await handleFileSubmit(newMessage);
+    } else {
+      try {
+        const response = await axios.post('https://chatappdemobackend.azurewebsites.net/chat', newMessage, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Session-ID': sessionId
+          },
+          withCredentials: true
+        });
+
+        const data = response.data;
+        const messages = data.messages;
+        const assistantMessage = messages.find(msg => msg.role === 'assistant');
+
+        if (assistantMessage) {
+          const urlRegex = /(https?:\/\/[^\s]+)/g;
+          const urlMatch = assistantMessage.content.match(urlRegex);
+
+          if (urlMatch) {
+            setMessages((prevMessages) => [
+              ...prevMessages,
+              { role: 'assistant', content: urlMatch[0], type: 'calendly' },
+            ]);
+          } else {
+            setMessages((prevMessages) => [...prevMessages, assistantMessage]);
+          }
+        } else {
+          console.error('Unexpected response format:', data);
+        }
+      } catch (error) {
+        console.error('Network or Server Error:', error);
+        if (error.response) {
+          console.error('Error Response Data:', error.response.data);
+          console.error('Error Response Status:', error.response.status);
+          console.error('Error Response Headers:', error.response.headers);
+        } else if (error.request) {
+          console.error('No response received:', error.request);
+        } else {
+          console.error('Error Message:', error.message);
+        }
+      }
+    }
+  };
+
+  const handleFileChange = (e) => {
+    setFile(e.target.files[0]);
+  };
+
+  const handleFileSubmit = async (newMessage) => {
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('message', newMessage.content);
+
     try {
-      const response = await axios.post('https://chatappdemobackend.azurewebsites.net/chat', newMessage, {
-        method: 'POST',
+      const response = await axios.post('https://chatappdemobackend.azurewebsites.net/upload', formData, {
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'multipart/form-data',
           'Session-ID': sessionId
-        },
-        withCredentials: true
+        }
       });
 
       const data = response.data;
       const messages = data.messages;
-      const assistantMessage = messages.find(msg => msg.role === 'assistant');
+      setMessages(messages);
 
-      if (assistantMessage) {
-        const urlRegex = /(https?:\/\/[^\s]+)/g;
-        const urlMatch = assistantMessage.content.match(urlRegex);
-
-        if (urlMatch) {
-          setMessages((prevMessages) => [
-            ...prevMessages,
-            { role: 'assistant', content: urlMatch[0], type: 'calendly' },
-          ]);
-        } else {
-          setMessages((prevMessages) => [...prevMessages, assistantMessage]);
-        }
-      } else {
-        console.error('Unexpected response format:', data);
-      }
+      setFile(null);
     } catch (error) {
-      console.error('Network or Server Error:', error);
-      if (error.response) {
-        console.error('Error Response Data:', error.response.data);
-        console.error('Error Response Status:', error.response.status);
-        console.error('Error Response Headers:', error.response.headers);
-      } else if (error.request) {
-        console.error('No response received:', error.request);
-      } else {
-        console.error('Error Message:', error.message);
-      }
+      console.error('File upload error:', error);
     }
   };
 
@@ -116,7 +155,30 @@ const App = () => {
 
   const actions = [
     { icon: <DeleteIcon />, name: 'Obriši', onClick: handleClearChat },
-    { icon: <AttachFileSharpIcon />, name: 'Dodaj prilog' },
+    {
+      icon: (
+        <div style={{ position: 'relative' }}>
+          <AttachFileSharpIcon style={{ color: file ? 'red' : 'inherit' }} />
+          {file && (
+            <CloseIcon
+              style={{
+                position: 'absolute',
+                top: -10,
+                right: -10,
+                cursor: 'pointer',
+                color: 'black'
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleFileDelete();
+              }}
+            />
+          )}
+        </div>
+      ),
+      name: file ? file.name : 'Dodaj prilog',
+      onClick: () => document.getElementById('fileInput').click()
+    },
     { icon: <SaveAltSharpIcon />, name: 'Sačuvaj' },
     { icon: <TipsAndUpdatesIcon />, name: 'Predlozi pitanja/odgovora' },
     { icon: <VolumeUpIcon />, name: 'Slušaj odgovor asistenta' }
@@ -130,16 +192,16 @@ const App = () => {
           {messages.map((message, index) => (
             <div key={index} className={`message ${message.role}`}>
               {message.type === 'calendly' ? (
-              <iframe
-                src={message.content}
-                width="90%"
-                height="400px"
-                style={{ border: 'none', scrolling: 'yes' }}
-                title="Calendly Scheduling"
-              ></iframe>
-            ) : (
-              <p dangerouslySetInnerHTML={getMessageContent(message)} />
-            )}
+                <iframe
+                  src={message.content}
+                  width="90%"
+                  height="400px"
+                  style={{ border: 'none', scrolling: 'yes' }}
+                  title="Calendly Scheduling"
+                ></iframe>
+              ) : (
+                <p dangerouslySetInnerHTML={getMessageContent(message)} />
+              )}
             </div>
           ))}
           <div ref={messagesEndRef} />
@@ -153,7 +215,7 @@ const App = () => {
                 value={userMessage}
                 onChange={(e) => setUserMessage(e.target.value)}
               />
-              {userMessage.trim() ? (
+              {userMessage.trim() || file ? (
                 <Button type="submit" className="send-button">
                   <SendIcon />
                 </Button>
@@ -183,6 +245,12 @@ const App = () => {
               />
             ))}
           </SpeedDial>
+          <input
+            id="fileInput"
+            type="file"
+            style={{ display: 'none' }}
+            onChange={handleFileChange}
+          />
         </div>
       </div>
     </div>
