@@ -49,6 +49,7 @@ const App = () => {
     const recognition = new SpeechRecognition();
     recognition.onresult = async function(event) {
       console.log('event', event);
+      setIsRecording(true);
       const transcript = event.results[0][0].transcript;
       console.log('Transcript:', transcript);
     }
