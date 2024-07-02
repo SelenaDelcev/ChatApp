@@ -24,6 +24,7 @@ const App = () => {
   const messagesEndRef = useRef(null);
   const [sessionId, setSessionId] = useState('');
   const [file, setFile] = useState(null);
+  const recognitionRef = useRef(null);
 
   useEffect(() => {
     const storedSessionId = sessionStorage.getItem('sessionId');
@@ -33,6 +34,31 @@ const App = () => {
       const newSessionId = uuidv4();
       sessionStorage.setItem('sessionId', newSessionId);
       setSessionId(newSessionId);
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.interimResults = false;
+      recognitionRef.current.lang = 'sr-RS';
+
+      recognitionRef.current.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        setUserMessage(transcript);
+        setIsRecording(false);
+      };
+
+      recognitionRef.current.onerror = (event) => {
+        console.error('Speech recognition error', event.error);
+        setIsRecording(false);
+      };
+
+      recognitionRef.current.onend = () => {
+        setIsRecording(false);
+      };
+    } else {
+      console.warn('SpeechRecognition is not supported in this browser');
     }
   }, []);
 
@@ -45,7 +71,13 @@ const App = () => {
   }, [messages]);
 
   const handleVoiceClick = () => {
-    setIsRecording(!isRecording);
+    if (isRecording) {
+      recognitionRef.current.stop();
+      setIsRecording(false);
+    } else {
+      recognitionRef.current.start();
+      setIsRecording(true);
+    }
   };
 
   const handleClearChat = () => {
@@ -59,11 +91,6 @@ const App = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (file && !userMessage.trim()) {
-      alert('Molim napišite poruku kad priložite fajl.');
-      return;
-    }
 
     const newMessage = {
       role: 'user',
@@ -196,7 +223,7 @@ const App = () => {
                 top: -11,
                 right: -11,
                 cursor: 'pointer',
-                color: '#495057'
+                color: '#8695a3'
               }}
               onClick={(e) => {
                 e.stopPropagation();

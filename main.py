@@ -144,7 +144,7 @@ async def upload_file(
         elif file.content_type in ['image/jpeg', 'image/png', 'image/webp']:
             text_content = f"Slika je dodata: {file_name}"
         else:
-            return {"detail": "Unsupported file type"}
+            return {"detail": "Nije podržan ovaj tip datoteke"}
 
         messages[session_id].append({"role": "user", "content": message})
         messages[session_id].append({"role": "assistant", "content": f"Dokument je dodat - Uklonite ga iz uploadera ukoliko ne želite više da pričate o njegovom sadržaju."})
