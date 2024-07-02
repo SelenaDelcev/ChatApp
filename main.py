@@ -139,11 +139,15 @@ async def upload_file(
             text_content = read_pdf(file.file)
         elif file.content_type == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
             text_content = read_docx(file.file)
+        elif file.content_type == 'text/plain':
+            text_content = file_content.decode('utf-8')
+        elif file.content_type in ['image/jpeg', 'image/png', 'image/webp']:
+            text_content = f"Slika je dodata: {file_name}"
         else:
             return {"detail": "Unsupported file type"}
 
         messages[session_id].append({"role": "user", "content": message})
-        messages[session_id].append({"role": "user", "content": f"Dokument: {file_name} je dodat - Uklonite ga iz uploadera ukoliko ne želite više da pričate o njegovom sadržaju."})
+        messages[session_id].append({"role": "user", "content": f"Dokument je dodat - Uklonite ga iz uploadera ukoliko ne želite više da pričate o njegovom sadržaju."})
         logger.info(f"Messages: {messages[session_id]}")
 
         prepared_message_content = f"User message: {message}\nFile content:\n{text_content}"

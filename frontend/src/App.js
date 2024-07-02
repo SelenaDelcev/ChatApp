@@ -22,6 +22,7 @@ const App = () => {
   const [isRecording, setIsRecording] = useState(false);
   const messagesEndRef = useRef(null);
   const [sessionId, setSessionId] = useState('');
+  const [error, setError] = useState(null);
   const [file, setFile] = useState(null);
 
   useEffect(() => {
@@ -54,16 +55,18 @@ const App = () => {
     sessionStorage.setItem('sessionId', newSessionId);
     setSessionId(newSessionId);
     setFile(null);
+    setError(null);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (file && !userMessage.trim()) {
-      alert('Please write a message when attaching a file.');
+      setError('Please write a message when attaching a file.');
       return;
     }
 
+    setError(null);
     const newMessage = {
       role: 'user',
       content: userMessage
@@ -145,7 +148,7 @@ const App = () => {
 
       const data = response.data;
       if (data.detail === "Unsupported file type") {
-        alert("Unsupported file type. Please upload a PDF or DOCX file.");
+        setError("Unsupported file type. Please upload a PDF, DOCX, TXT, JPG, PNG, or WEBP file.");
       }
       else {
         setMessages((prevMessages) => [
@@ -174,6 +177,7 @@ const App = () => {
           {file && (
             <CloseIcon
               style={{
+                color: 'red',
                 position: 'absolute',
                 top: -11,
                 right: -11,
@@ -201,6 +205,7 @@ const App = () => {
     <div className="App">
       <div className="chat-container">
         <div className="messages">
+        {error && <Alert severity="error">{error}</Alert>} {/* Prikazivanje greške */}
           {messages.map((message, index) => (
             <div key={index} className={`message ${message.role}`}>
               {message.type === 'calendly' ? (
