@@ -16,9 +16,6 @@
   border: 1px solid #343541;
   border-radius: 5px;
   background-color: #343541;
-  height: 100%;
-  overflow: hidden;
-  position: relative;
 }
 
 .messages {
@@ -50,14 +47,13 @@
 .input-row {
   display: flex;
   align-items: center;
-  padding: 10px;
+  padding: 2px;
   background-color: #343541; 
   border-radius: 20px;
   position: relative;
   bottom: 0;
-  width: calc(100% - 10px); 
+  width: calc(100% - 8px); 
   box-sizing: border-box;
-  margin-top: auto;
 }
 
 .message-input {

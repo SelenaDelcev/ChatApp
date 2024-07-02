@@ -14,7 +14,7 @@ import Tooltip from '@mui/material/Tooltip';
 import TipsAndUpdatesIcon from '@mui/icons-material/TipsAndUpdates';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import KeyboardVoiceIcon from '@mui/icons-material/KeyboardVoice';
-import CloseIcon from '@mui/icons-material/Close';
+import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import { v4 as uuidv4 } from 'uuid';
 
 const App = () => {
@@ -176,13 +176,13 @@ const App = () => {
         <div style={{ position: 'relative' }}>
           <AttachFileSharpIcon style={{ color: file ? 'red' : 'inherit' }} />
           {file && (
-            <CloseIcon
+            <CancelOutlinedIcon
               style={{
                 position: 'absolute',
                 top: -11,
                 right: -11,
                 cursor: 'pointer',
-                color: 'red'
+                color: 'white'
               }}
               onClick={(e) => {
                 e.stopPropagation();
@@ -205,7 +205,7 @@ const App = () => {
     <div className="App">
       <div className="chat-container">
         <div className="messages">
-        {error && <Alert variant="outlined" severity="error">{error}</Alert>} {/* Prikazivanje greške */}
+          {error && <Alert variant="outlined" severity="error" style={{ color: 'white' }}>{error}</Alert>} {/* Prikazivanje greške */}
           {messages.map((message, index) => (
             <div key={index} className={`message ${message.role}`}>
               {message.type === 'calendly' ? (
