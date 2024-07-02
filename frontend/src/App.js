@@ -63,7 +63,7 @@ const App = () => {
     e.preventDefault();
 
     if (file && !userMessage.trim()) {
-      setError('Please write a message when attaching a file.');
+      setError('Molim napišite poruku kad priložite fajl.');
       return;
     }
 
@@ -148,17 +148,35 @@ const App = () => {
       });
 
       const data = response.data;
-      if (data.detail === "Unsupported file type") {
-        setError("Unsupported file type. Please upload a PDF, DOCX, TXT, JPG, PNG, or WEBP file.");
-      }
-      else {
+      if (data.detail) {
+        handleErrorMessage(data.detail);
+      } else {
         setMessages((prevMessages) => [
           ...prevMessages,
-          ...data.messages.filter(msg => msg.role !== 'system')
+          ...data.messages.filter(msg => msg.role === 'assistant')
         ]);
       }
     } catch (error) {
       console.error('File upload error:', error);
+    }
+  };
+
+  const handleErrorMessage = (errorMessage) => {
+    if (errorMessage === "Unsupported file type") {
+      setMessages(prevMessages => [
+        ...prevMessages,
+        { role: 'assistant', type: 'error', content: "Moguće je priložiti PDF, DOCX, TXT, JPG, PNG ili WEBP fajl." }
+      ]);
+    } else if (errorMessage === "Potrošili ste sve tokene, kontaktirajte Positive za dalja uputstva") {
+      setMessages(prevMessages => [
+        ...prevMessages,
+        { role: 'assistant', type: 'error', content: "Potrošili ste sve tokene, kontaktirajte Positive za dalja uputstva" }
+      ]);
+    } else {
+      setMessages(prevMessages => [
+        ...prevMessages,
+        { role: 'assistant', type: 'error', content: errorMessage }
+      ]);
     }
   };
 
@@ -182,7 +200,7 @@ const App = () => {
                 top: -11,
                 right: -11,
                 cursor: 'pointer',
-                color: 'white'
+                color: '#495057'
               }}
               onClick={(e) => {
                 e.stopPropagation();
@@ -205,7 +223,6 @@ const App = () => {
     <div className="App">
       <div className="chat-container">
         <div className="messages">
-          {error && <Alert variant="outlined" severity="error" style={{ color: 'white' }}>{error}</Alert>} {/* Prikazivanje greške */}
           {messages.map((message, index) => (
             <div key={index} className={`message ${message.role}`}>
               {message.type === 'calendly' ? (
@@ -216,6 +233,8 @@ const App = () => {
                   style={{ border: 'none', scrolling: 'yes' }}
                   title="Calendly Scheduling"
                 ></iframe>
+              ) : message.type === 'error' ? (
+                <Alert variant="outlined" severity="error" style={{ color: 'white' }}>{message.content}</Alert>
               ) : (
                 <p dangerouslySetInnerHTML={getMessageContent(message)} />
               )}
