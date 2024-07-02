@@ -30,17 +30,18 @@
 }
 
 .message {
-  width: 500px;
-  padding: 10px;
-  margin-bottom: 10px;
   border-radius: 20px;
+  padding: 8px 15px;
+  margin-top: 5px;
+  margin-bottom: 5px;
   display: inline-block;
-  position: relative;
 }
 
-.message.user {
-  padding: 8px 15px;
-  text-align: right;
+.user {
+  align-items: flex-end;
+}
+
+.user .message {
   color: #343541;
   margin-left: 25%;
   background: linear-gradient(145deg, #ed1c24, #ffcdd2);
@@ -48,7 +49,7 @@
   position: relative;
 }
 
-.message.user:before {
+.user .message:before {
   content: "";
   position: absolute;
   z-index: 0;
@@ -61,7 +62,7 @@
   border-bottom-left-radius: 15px;
 }
 
-.message.user:after {
+.user .message:after {
   content: "";
   position: absolute;
   z-index: 1;
