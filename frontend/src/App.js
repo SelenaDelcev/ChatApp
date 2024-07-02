@@ -5,6 +5,7 @@ import SpeedDial from '@mui/material/SpeedDial';
 import SpeedDialIcon from '@mui/material/SpeedDialIcon';
 import SpeedDialAction from '@mui/material/SpeedDialAction';
 import Button from '@mui/material/Button';
+import Alert from '@mui/material/Alert';
 import SendIcon from '@mui/icons-material/Send';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AttachFileSharpIcon from '@mui/icons-material/AttachFileSharp';
@@ -205,7 +206,7 @@ const App = () => {
     <div className="App">
       <div className="chat-container">
         <div className="messages">
-        {error && <Alert severity="error">{error}</Alert>} {/* Prikazivanje greške */}
+        {error && <Alert variant="outlined" severity="error">{error}</Alert>} {/* Prikazivanje greške */}
           {messages.map((message, index) => (
             <div key={index} className={`message ${message.role}`}>
               {message.type === 'calendly' ? (
