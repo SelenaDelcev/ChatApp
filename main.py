@@ -11,7 +11,6 @@ from util_func import get_openai_client, rag_tool_answer, system_prompt
 import PyPDF2
 import docx
 import json
-import asyncio
 
 # Initialize the FastAPI app
 app = FastAPI()
@@ -85,56 +84,80 @@ async def chat_with_ai(
         openai_messages.append({"role": "user", "content": prepared_message_content})
 
         logger.info(f"Prepared OpenAI messages: {openai_messages}")
-        
-        async def event_generator():
-            try:
-                response = await client.chat.completions.create(
-                    model="gpt-4o",
-                    temperature=0.0,
-                    messages=openai_messages,
-                    stream=True,
-                )
 
-                assistant_message_content = ""
-                for chunk in response:
-                    content = chunk.choices[0].delta.content or ""
-                    if content:
-                        assistant_message_content += content
-                        yield f"data: {json.dumps({'content': assistant_message_content})}\n\n"
+        # Return a response immediately to acknowledge the message receipt
+        return {"detail": "Message received. Stream will start shortly."}
 
-                        # Check if the client has disconnected
-                        if await request.is_disconnected():
-                            break
-                        await asyncio.sleep(0.1)
-
-                messages[session_id].append({"role": "assistant", "content": assistant_message_content})
-                logger.info(f"Assistant response: {assistant_message_content}")
-
-            except RateLimitError as e:
-                if 'insufficient_quota' in str(e):
-                    logger.error("Potrošili ste sve tokene, kontaktirajte Positive za dalja uputstva")
-                    yield f"data: {json.dumps({'detail': 'Potrošili ste sve tokene, kontaktirajte Positive za dalja uputstva'})}\n\n"
-                else:
-                    logger.error(f"Rate limit error: {str(e)}")
-                    yield f"data: {json.dumps({'detail': f'Rate limit error: {str(e)}'})}\n\n"
-            except APIConnectionError as e:
-                logger.error(f"Ne mogu da se povežem sa OpenAI API-jem: {e}")
-                yield f"data: {json.dumps({'detail': f'Ne mogu da se povežem sa OpenAI API-jem: {e} pokušajte malo kasnije.'})}\n\n"
-            except APIError as e:
-                logger.error(f"Greška u API-ju: {e}")
-                yield f"data: {json.dumps({'detail': f'Greška u API-ju: {e} pokušajte malo kasnije.'})}\n\n"
-            except openai.OpenAIError as e:
-                logger.error(f"OpenAI API error: {str(e)}")
-                yield f"data: {json.dumps({'detail': f'OpenAI API error: {str(e)}'})}\n\n"
-            except Exception as e:
-                logger.error(f"Internal server error: {str(e)}")
-                yield f"data: {json.dumps({'detail': f'Internal server error: {str(e)}'})}\n\n"
-
-        return StreamingResponse(event_generator(), media_type="text/event-stream")
-
+    except RateLimitError as e:
+        if 'insufficient_quota' in str(e):
+            logger.error("Potrošili ste sve tokene, kontaktirajte Positive za dalja uputstva")
+            return {"detail":"Potrošili ste sve tokene, kontaktirajte Positive za dalja uputstva"}
+        else:
+            logger.error(f"Rate limit error: {str(e)}")
+            raise HTTPException(status_code=429, detail=f"Rate limit error: {str(e)}")
+    except APIConnectionError as e:
+        logger.error(f"Ne mogu da se povežem sa OpenAI API-jem: {e}")
+        raise HTTPException(status_code=502, detail=f"Ne mogu da se povežem sa OpenAI API-jem: {e} pokušajte malo kasnije.")
+    except APIError as e:
+        logger.error(f"Greška u API-ju: {e}")
+        raise HTTPException(status_code=500, detail=f"Greška u API-ju: {e} pokušajte malo kasnije.")
+    except openai.OpenAIError as e:
+        logger.error(f"OpenAI API error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"OpenAI API error: {str(e)}")
     except Exception as e:
         logger.error(f"Internal server error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+@app.get('/chat/stream')
+async def stream(request: Request):
+    session_id = request.headers.get("Session-ID")
+    if not session_id:
+        raise HTTPException(status_code=400, detail="Session ID not provided")
+    if session_id not in messages:
+        raise HTTPException(status_code=400, detail="No messages found for session")
+
+    openai_messages = [{"role": msg["role"], "content": msg["content"]} for msg in messages[session_id]]
+
+    async def event_generator():
+        try:
+            response = openai.chat.completions.create(
+                model="gpt-4o",
+                temperature=0.0,
+                messages=openai_messages,
+                stream=True,
+            )
+
+            assistant_message_content = ""
+            for chunk in response:
+                content = chunk.choices[0].delta.content or ""
+                if content:
+                    assistant_message_content += content
+                    yield f"data: {json.dumps({'content': assistant_message_content})}\n\n"
+
+            messages[session_id].append({"role": "assistant", "content": assistant_message_content})
+            logger.info(f"Assistant response: {assistant_message_content}")
+
+        except RateLimitError as e:
+            if 'insufficient_quota' in str(e):
+                logger.error("Potrošili ste sve tokene, kontaktirajte Positive za dalja uputstva")
+                yield f"data: {json.dumps({'detail': 'Potrošili ste sve tokene, kontaktirajte Positive za dalja uputstva'})}\n\n"
+            else:
+                logger.error(f"Rate limit error: {str(e)}")
+                yield f"data: {json.dumps({'detail': f'Rate limit error: {str(e)}'})}\n\n"
+        except APIConnectionError as e:
+            logger.error(f"Ne mogu da se povežem sa OpenAI API-jem: {e}")
+            yield f"data: {json.dumps({'detail': f'Ne mogu da se povežem sa OpenAI API-jem: {e} pokušajte malo kasnije.'})}\n\n"
+        except APIError as e:
+            logger.error(f"Greška u API-ju: {e}")
+            yield f"data: {json.dumps({'detail': f'Greška u API-ju: {e} pokušajte malo kasnije.'})}\n\n"
+        except openai.OpenAIError as e:
+            logger.error(f"OpenAI API error: {str(e)}")
+            yield f"data: {json.dumps({'detail': f'OpenAI API error: {str(e)}'})}\n\n"
+        except Exception as e:
+            logger.error(f"Internal server error: {str(e)}")
+            yield f"data: {json.dumps({'detail': f'Internal server error: {str(e)}'})}\n\n"
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
     
 @app.post('/upload')
 async def upload_file(
