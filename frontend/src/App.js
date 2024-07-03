@@ -132,6 +132,7 @@ const App = () => {
 
           if (!content.endsWith('▌')) {
             eventSource.close();
+            updateLastMessage({ role: 'assistant', content: content.replace('▌', '') });
           }
         };
 

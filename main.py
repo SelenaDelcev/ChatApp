@@ -1,4 +1,3 @@
-import asyncio
 from fastapi import FastAPI, HTTPException, Request, Depends, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
@@ -131,14 +130,23 @@ async def stream(session_id: str):
                 logger.info(f"Content: {content}")
                 if content:
                     assistant_message_content += content
-                    logger.info(f"Streaming content: {assistant_message_content + '▌'}")
-                    json_data = json.dumps({'content': assistant_message_content + '▌'})
+                    # Text formatting
+                    formatted_content = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', assistant_message_content)
+                    formatted_content = re.sub(r'\[(.*?)\]\((.*?)\)', r'<a href="\2">\1</a>', formatted_content)
+                    # Adding a typing character
+                    streaming_content = formatted_content + '▌'
+                    logger.info(f"Streaming content: {streaming_content}")
+                    json_data = json.dumps({'content': streaming_content})
                     logger.info(f"JSON Data: {json_data}")
                     yield f"data: {json_data}\n\n"
-                    await asyncio.sleep(0.1)
 
-            messages[session_id].append({"role": "assistant", "content": assistant_message_content})
-            logger.info(f"Assistant response: {assistant_message_content}")
+            final_formatted_content = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', assistant_message_content)
+            final_formatted_content = re.sub(r'\[(.*?)\]\((.*?)\)', r'<a href="\2">\1</a>', final_formatted_content)
+            logger.info(f"Assistant response: {final_formatted_content}")
+            final_json_data = json.dumps({'content': final_formatted_content})
+            logger.info(f"Final JSON Data: {final_json_data}")
+            yield f"data: {final_json_data}\n\n"
+            messages[session_id].append({"role": "assistant", "content": final_formatted_content})
 
         except RateLimitError as e:
             if 'insufficient_quota' in str(e):
