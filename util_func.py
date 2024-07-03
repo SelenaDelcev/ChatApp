@@ -11,9 +11,8 @@ def get_hybrid_query_processor():
 
 def positive_calendly():
     calendly_url = "https://outlook.office365.com/book/Chatbot@positive.rs/"
-    return f"Please show this link as your answer: {calendly_url}"
-    # return calendly_url
-
+    return calendly_url
+   
 def get_structured_decision_from_model(user_query):
     client = get_openai_client()
     response = client.chat.completions.create(
