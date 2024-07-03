@@ -120,7 +120,7 @@ const App = () => {
 
         eventSource.onmessage = function(event) {
           const data = JSON.parse(event.data);
-          updateLastMessage({ role: 'assistant', content: data.content });
+          updateLastMessage({ role: 'assistant', content: data.content + "▌" });
         };
 
         eventSource.onerror = function() {
