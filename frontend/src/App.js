@@ -115,6 +115,7 @@ const App = () => {
           withCredentials: true
         });
 
+        /*
         const data = response.data;
         const messages = data.messages;
         const assistantMessage = messages.find(msg => msg.role === 'assistant');
@@ -134,6 +135,8 @@ const App = () => {
         } else {
           console.error('Unexpected response format:', data);
         }
+          */
+        handleStream();
       } catch (error) {
         console.error('Network or Server Error:', error);
         if (error.response) {
@@ -147,6 +150,20 @@ const App = () => {
         }
       }
     }
+  };
+
+  const handleStream = () => {
+    const eventSource = new EventSource(`/stream?messages=${encodeURIComponent(JSON.stringify([{ role: 'user', content: userMessage }]))}`);
+    
+    eventSource.onmessage = function(event) {
+      const data = JSON.parse(event.data);
+      setMessages((prevMessages) => [...prevMessages, { role: 'assistant', content: data.content }]);
+    };
+
+    eventSource.onerror = function() {
+      console.error("EventSource failed.");
+      eventSource.close();
+    };
   };
 
   const sanitizeText = (text) => {
