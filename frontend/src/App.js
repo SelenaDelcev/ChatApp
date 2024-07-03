@@ -112,31 +112,21 @@ const App = () => {
             'Content-Type': 'application/json',
             'Session-ID': sessionId
           },
-          withCredentials: true
+          withCredentials: true,
+          responseType: 'text'
         });
 
-        /*
-        const data = response.data;
-        const messages = data.messages;
-        const assistantMessage = messages.find(msg => msg.role === 'assistant');
+        const eventSource = new EventSource(`https://chatappdemobackend.azurewebsites.net/chat?session_id=${sessionId}`);
 
-        if (assistantMessage) {
-          const urlRegex = /(https?:\/\/[^\s]+)/g;
-          const urlMatch = assistantMessage.content.match(urlRegex);
+        eventSource.onmessage = function(event) {
+          const data = JSON.parse(event.data);
+          setMessages((prevMessages) => [...prevMessages, { role: 'assistant', content: data.content }]);
+        };
 
-          if (urlMatch) {
-            setMessages((prevMessages) => [
-              ...prevMessages,
-              { role: 'assistant', content: urlMatch[0], type: 'calendly' },
-            ]);
-          } else {
-            setMessages((prevMessages) => [...prevMessages, assistantMessage]);
-          }
-        } else {
-          console.error('Unexpected response format:', data);
-        }
-          */
-        handleStream();
+        eventSource.onerror = function() {
+          console.error("EventSource failed.");
+          eventSource.close();
+        };
       } catch (error) {
         console.error('Network or Server Error:', error);
         if (error.response) {
@@ -150,21 +140,6 @@ const App = () => {
         }
       }
     }
-  };
-
-  const handleStream = () => {
-    const sessionId = sessionStorage.getItem('sessionId');
-    const eventSource = new EventSource(`https://chatappdemobackend.azurewebsites.net/stream?messages=${encodeURIComponent(JSON.stringify([{ role: 'user', content: userMessage }]))}&session_id=${sessionId}`);
-    
-    eventSource.onmessage = function(event) {
-      const data = JSON.parse(event.data);
-      setMessages((prevMessages) => [...prevMessages, { role: 'assistant', content: data.content }]);
-    };
-
-    eventSource.onerror = function() {
-      console.error("EventSource failed.");
-      eventSource.close();
-    };
   };
 
   const sanitizeText = (text) => {
