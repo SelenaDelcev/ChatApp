@@ -82,25 +82,40 @@ async def chat_with_ai(
         openai_messages.append({"role": "user", "content": prepared_message_content})
 
         logger.info(f"Prepared OpenAI messages: {openai_messages}")
-        response = client.chat.completions.create(
+        assistant_message_content = ""
+        ####### streaming ####
+        for response in client.chat.completions.create(
             model="gpt-4o",
             temperature=0.0,
             messages=openai_messages,
-        )
-        logger.info(f"OpenAI response: {response}")
-        # Extract the assistant's message content
-        if response.choices:
-            assistant_message_content = response.choices[0].message.content
+            stream=True,
+            ):
+        
+            # ovo se prikazuje kako izlazi kao stream
+            assistant_message_content += (response.choices[0].delta.content or "")
+            #### na ekran ->>>
+            # logger.info(f"OpenAI response: {response}")
+            # Extract the assistant's message content
+            
+            # assistant_message_content = response.choices[0].message.content
             # Replace Markdown bold with HTML bold
-            assistant_message_content = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', assistant_message_content)
-            # Replace Markdown links with HTML links
-            assistant_message_content = re.sub(r'\[(.*?)\]\((.*?)\)', r'<a href="\2">\1</a>', assistant_message_content)
-            messages[session_id].append({"role": "assistant", "content": assistant_message_content})
-            logger.info(f"Assistant response: {assistant_message_content}")
-        else:
-            raise ValueError("Unexpected response format: 'choices' list is empty")
-        return {"messages": messages[session_id]}
+            # assistant_message_content = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', assistant_message_content)
+            # # Replace Markdown links with HTML links
+            # assistant_message_content = re.sub(r'\[(.*?)\]\((.*?)\)', r'<a href="\2">\1</a>', assistant_message_content)
 
+        messages[session_id].append({"role": "assistant", "content": assistant_message_content})
+        logger.info(f"Assistant response: {assistant_message_content}")
+            # else:
+            #     raise ValueError("Unexpected response format: 'choices' list is empty")
+            # return {"messages": messages[session_id]}
+
+            
+        # response = client.chat.completions.create(
+        #     model="gpt-4o",
+        #     temperature=0.0,
+        #     messages=openai_messages,
+        # )
+      
     except RateLimitError as e:
         if 'insufficient_quota' in str(e):
             logger.error("Potrošili ste sve tokene, kontaktirajte Positive za dalja uputstva")
