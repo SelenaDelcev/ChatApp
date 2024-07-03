@@ -204,18 +204,29 @@ const App = () => {
     ]);
   };
 
+  const sanitizeText = (text) => {
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = text;
+    return tempDiv.textContent || tempDiv.innerText || '';
+  };
+
   const handleCopyToClipboard = (messageContent, index) => {
-    const sanitizedText = messageContent.replace(/\*\*|\[.*?\]/g, '');
+    const sanitizedText = sanitizeText(messageContent);
     const textArea = document.createElement('textarea');
     textArea.value = sanitizedText;
     document.body.appendChild(textArea);
     textArea.select();
     document.execCommand('copy');
     document.body.removeChild(textArea);
-    const tooltipText = document.getElementById(`tooltip-text-${index}`);
-    tooltipText.textContent = 'Kopirano!';
+    setTooltipText((prev) => ({
+      ...prev,
+      [index]: 'Kopirano!'
+    }));
     setTimeout(() => {
-      tooltipText.textContent = 'Klikni da kopiraš u međuspremnik';
+      setTooltipText((prev) => ({
+        ...prev,
+        [index]: 'Klikni da kopiraš u međuspremnik'
+      }));
     }, 3000);
   };
 
@@ -275,14 +286,15 @@ const App = () => {
               ) : message.type === 'error' ? (
                 <Alert variant="outlined" severity="error" style={{ color: 'white' }}>{message.content}</Alert>
               ) : (
-                <div className="tooltip" onClick={() => handleCopyToClipboard(message.content, index)}>
-                  <p dangerouslySetInnerHTML={getMessageContent(message)} />
-                  {message.role === 'assistant' && (
-                    <span className="tooltiptext" id={`tooltip-text-${index}`}>
-                      Click to copy to clipboard
-                    </span>
-                  )}
-                </div>
+                <Tooltip
+                  title={tooltipText[index] || 'Klikni da kopiraš u međuspremnik'}
+                  placement="top"
+                  arrow
+                >
+                  <div onClick={() => handleCopyToClipboard(message.content, index)}>
+                    <p dangerouslySetInnerHTML={getMessageContent(message)} />
+                  </div>
+                </Tooltip>
               )}
             </div>
           ))}
