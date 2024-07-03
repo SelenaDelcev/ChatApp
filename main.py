@@ -112,8 +112,8 @@ async def chat_with_ai(
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 @app.get('/stream')
-async def stream(request: Request):
-    session_id = request.headers.get("Session-ID")
+async def stream(request: Request, client: OpenAI = Depends(get_openai_client)):
+    session_id = request.query_params.get("session_id")
     if not session_id:
         raise HTTPException(status_code=400, detail="Session ID not provided")
     if session_id not in messages:
@@ -123,7 +123,7 @@ async def stream(request: Request):
 
     async def event_generator():
         try:
-            response = openai.ChatCompletion.create(
+            response = await client.chat_completions.create(
                 model="gpt-4o",
                 temperature=0.0,
                 messages=openai_messages,
@@ -160,7 +160,11 @@ async def stream(request: Request):
             yield f"data: {json.dumps({'detail': f'Greška u API-ju: {e} pokušajte malo kasnije.'})}\n\n"
         except openai.OpenAIError as e:
             logger.error(f"OpenAI API error: {str(e)}")
-            
+            yield f"data: {json.dumps({'detail': f'OpenAI API error: {str(e)}'})}\n\n"
+        except Exception as e:
+            logger.error(f"Internal server error: {str(e)}")
+            yield f"data: {json.dumps({'detail': f'Internal server error: {str(e)}'})}\n\n"
+
     return StreamingResponse(event_generator(), media_type="text/event-stream")
     
 @app.post('/upload')
