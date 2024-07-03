@@ -16,14 +16,12 @@
   border: 1px solid #343541;
   border-radius: 5px;
   background-color: #343541;
-  height: 100%;
   overflow: hidden;
 }
 
 .messages {
   flex: 1; 
   padding: 10px;
-  display: flex;
   overflow-y: auto;
   flex-direction: column;
   border-bottom: 1px solid #343541;
@@ -31,33 +29,89 @@
 }
 
 .message {
-  padding: 10px;
-  margin-bottom: 10px;
-  border-radius: 5px;
-  background-color: #343541;
-  color: #fff;
+  border-radius: 20px;
+  padding: 5px 10px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  max-width: 400px;
+  width: fit-content;
 }
 
 .message.user {
-  text-align: right;
+  color: #343541;
+  margin-left: auto;
+  background: linear-gradient(145deg, #ed1c24, #ffcdd2);
+  background-attachment: fixed;
+  position: relative;
+}
+
+.message.user:before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  bottom: 0;
+  right: -8px;
+  height: 20px;
+  width: 20px;
+  background: linear-gradient(145deg, #ed1c24, #ffcdd2);
+  background-attachment: fixed;
+  border-bottom-left-radius: 15px;
+}
+
+.message.user:after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  bottom: 0;
+  right: -10px;
+  width: 10px;
+  height: 20px;
+  background: linear-gradient(-90deg, #343541, #343541);
+  border-bottom-left-radius: 10px;
 }
 
 .message.assistant {
-  text-align: left;
+  color: #343541;
+  margin-right: auto;
+  background: #eee;
+  background-attachment: fixed;
+  position: relative;
+}
+
+.message.assistant:before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  bottom: 0;
+  left: -9px;
+  height: 20px;
+  width: 20px;
+  background: #eee;
+  background-attachment: fixed;
+  border-bottom-right-radius: 15px;
+}
+
+.message.assistant:after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  bottom: 0;
+  left: -9px;
+  width: 10px;
+  height: 20px;
+  background: linear-gradient(-90deg, #343541, #343541);
+  border-bottom-right-radius: 10px;
 }
 
 .input-row {
   display: flex;
   align-items: center;
-  padding: 10px;
+  padding: 15px;
   background-color: #343541; 
   border-radius: 20px;
   position: fixed;
   bottom: 0;
-  left: 0;
-  right: 0;
-  margin: 0 auto;
-  width: calc(100% - 20px); 
+  width: calc(100% - 10px); 
   box-sizing: border-box;
 }
 

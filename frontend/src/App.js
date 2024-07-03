@@ -5,6 +5,7 @@ import SpeedDial from '@mui/material/SpeedDial';
 import SpeedDialIcon from '@mui/material/SpeedDialIcon';
 import SpeedDialAction from '@mui/material/SpeedDialAction';
 import Button from '@mui/material/Button';
+import Alert from '@mui/material/Alert';
 import SendIcon from '@mui/icons-material/Send';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AttachFileSharpIcon from '@mui/icons-material/AttachFileSharp';
@@ -13,6 +14,7 @@ import Tooltip from '@mui/material/Tooltip';
 import TipsAndUpdatesIcon from '@mui/icons-material/TipsAndUpdates';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import KeyboardVoiceIcon from '@mui/icons-material/KeyboardVoice';
+import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import { v4 as uuidv4 } from 'uuid';
 
 const App = () => {
@@ -21,6 +23,8 @@ const App = () => {
   const [isRecording, setIsRecording] = useState(false);
   const messagesEndRef = useRef(null);
   const [sessionId, setSessionId] = useState('');
+  const [file, setFile] = useState(null);
+  const [tooltipText, setTooltipText] = useState({});
 
   useEffect(() => {
     const storedSessionId = sessionStorage.getItem('sessionId');
@@ -42,7 +46,40 @@ const App = () => {
   }, [messages]);
 
   const handleVoiceClick = () => {
-    setIsRecording(!isRecording);
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      console.warn('SpeechRecognition is not supported in this browser');
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'sr-RS';
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    recognition.onstart = () => {
+      setIsRecording(true);
+      console.log('Speech recognition started');
+    };
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      console.log('Transcript:', transcript);
+      setUserMessage(transcript);
+      setIsRecording(false);
+    };
+
+    recognition.onerror = (event) => {
+      console.error('Speech recognition error:', event.error);
+      setIsRecording(false);
+    };
+
+    recognition.onend = () => {
+      console.log('Speech recognition ended');
+      setIsRecording(false);
+    };
+
+    recognition.start();
   };
 
   const handleClearChat = () => {
@@ -51,6 +88,7 @@ const App = () => {
     const newSessionId = uuidv4();
     sessionStorage.setItem('sessionId', newSessionId);
     setSessionId(newSessionId);
+    setFile(null);
   };
 
   const handleSubmit = async (e) => {
@@ -64,47 +102,133 @@ const App = () => {
     setMessages([...messages, newMessage]);
     setUserMessage('');
 
+    if (file) {
+      await handleFileSubmit(newMessage);
+    } else {
+      try {
+        const response = await axios.post('https://chatappdemobackend.azurewebsites.net/chat', newMessage, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Session-ID': sessionId
+          },
+          withCredentials: true
+        });
+
+        const data = response.data;
+        const messages = data.messages;
+        const assistantMessage = messages.find(msg => msg.role === 'assistant');
+
+        if (assistantMessage) {
+          const urlRegex = /(https?:\/\/[^\s]+)/g;
+          const urlMatch = assistantMessage.content.match(urlRegex);
+
+          if (urlMatch) {
+            setMessages((prevMessages) => [
+              ...prevMessages,
+              { role: 'assistant', content: urlMatch[0], type: 'calendly' },
+            ]);
+          } else {
+            setMessages((prevMessages) => [...prevMessages, assistantMessage]);
+          }
+        } else {
+          console.error('Unexpected response format:', data);
+        }
+      } catch (error) {
+        console.error('Network or Server Error:', error);
+        if (error.response) {
+          console.error('Error Response Data:', error.response.data);
+          console.error('Error Response Status:', error.response.status);
+          console.error('Error Response Headers:', error.response.headers);
+        } else if (error.request) {
+          console.error('No response received:', error.request);
+        } else {
+          console.error('Error Message:', error.message);
+        }
+      }
+    }
+  };
+
+  const sanitizeText = (text) => {
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = text;
+    return tempDiv.textContent || tempDiv.innerText || '';
+  };
+
+  const handleSaveChat = () => {
+    const chatContent = messages.map(msg => `${msg.role}: ${sanitizeText(msg.content)}`).join('\n');
+    const blob = new Blob([chatContent], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'chat.txt';
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
+  const handleFileChange = (e) => {
+    setFile(e.target.files[0]);
+  };
+
+  const handleFileDelete = () => {
+    setFile(null);
+    document.getElementById('fileInput').value = '';
+  };
+
+  const handleFileSubmit = async (newMessage) => {
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('message', newMessage.content);
+
     try {
-      const response = await axios.post('https://chatappdemobackend.azurewebsites.net/chat', newMessage, {
-        method: 'POST',
+      const response = await axios.post('https://chatappdemobackend.azurewebsites.net/upload', formData, {
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'multipart/form-data',
           'Session-ID': sessionId
-        },
-        withCredentials: true
+        }
       });
 
       const data = response.data;
-      const messages = data.messages;
-      const assistantMessage = messages.find(msg => msg.role === 'assistant');
-
-      if (assistantMessage) {
-        const urlRegex = /(https?:\/\/[^\s]+)/g;
-        const urlMatch = assistantMessage.content.match(urlRegex);
-
-        if (urlMatch) {
-          setMessages((prevMessages) => [
-            ...prevMessages,
-            { role: 'assistant', content: urlMatch[0], type: 'calendly' },
-          ]);
-        } else {
-          setMessages((prevMessages) => [...prevMessages, assistantMessage]);
-        }
+      if (data.detail) {
+        handleErrorMessage(data.detail);
       } else {
-        console.error('Unexpected response format:', data);
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          ...data.messages.filter(msg => msg.role === 'assistant')
+        ]);
       }
     } catch (error) {
-      console.error('Network or Server Error:', error);
-      if (error.response) {
-        console.error('Error Response Data:', error.response.data);
-        console.error('Error Response Status:', error.response.status);
-        console.error('Error Response Headers:', error.response.headers);
-      } else if (error.request) {
-        console.error('No response received:', error.request);
-      } else {
-        console.error('Error Message:', error.message);
-      }
+      console.error('File upload error:', error);
     }
+  };
+
+  const handleErrorMessage = (errorMessage) => {
+    setMessages(prevMessages => [
+      ...prevMessages,
+      { role: 'assistant', type: 'error', content: errorMessage }
+    ]);
+  };
+
+  const handleCopyToClipboard = (messageContent, index) => {
+    const sanitizedText = sanitizeText(messageContent);
+    const textArea = document.createElement('textarea');
+    textArea.value = sanitizedText;
+    document.body.appendChild(textArea);
+    textArea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textArea);
+    setTooltipText((prev) => ({
+      ...prev,
+      [index]: 'Kopirano!'
+    }));
+    setTimeout(() => {
+      setTooltipText((prev) => ({
+        ...prev,
+        [index]: 'Klikni da kopiraš u međuspremnik'
+      }));
+    }, 3000);
   };
 
   const getMessageContent = (message) => {
@@ -116,8 +240,31 @@ const App = () => {
 
   const actions = [
     { icon: <DeleteIcon />, name: 'Obriši', onClick: handleClearChat },
-    { icon: <AttachFileSharpIcon />, name: 'Dodaj prilog' },
-    { icon: <SaveAltSharpIcon />, name: 'Sačuvaj' },
+    {
+      icon: (
+        <div style={{ position: 'relative' }}>
+          <AttachFileSharpIcon style={{ color: file ? 'red' : 'inherit' }} />
+          {file && (
+            <CancelOutlinedIcon
+              style={{
+                position: 'absolute',
+                top: -11,
+                right: -11,
+                cursor: 'pointer',
+                color: '#8695a3'
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleFileDelete();
+              }}
+            />
+          )}
+        </div>
+      ),
+      name: file ? file.name : 'Dodaj prilog',
+      onClick: () => document.getElementById('fileInput').click()
+    },
+    { icon: <SaveAltSharpIcon />, name: 'Sačuvaj', onClick: handleSaveChat },
     { icon: <TipsAndUpdatesIcon />, name: 'Predlozi pitanja/odgovora' },
     { icon: <VolumeUpIcon />, name: 'Slušaj odgovor asistenta' }
 
@@ -130,16 +277,26 @@ const App = () => {
           {messages.map((message, index) => (
             <div key={index} className={`message ${message.role}`}>
               {message.type === 'calendly' ? (
-              <iframe
-                src={message.content}
-                width="90%"
-                height="400px"
-                style={{ border: 'none', scrolling: 'yes' }}
-                title="Calendly Scheduling"
-              ></iframe>
-            ) : (
-              <p dangerouslySetInnerHTML={getMessageContent(message)} />
-            )}
+                <iframe
+                  src={message.content}
+                  width="90%"
+                  height="400px"
+                  style={{ border: 'none', scrolling: 'yes' }}
+                  title="Calendly Scheduling"
+                ></iframe>
+              ) : message.type === 'error' ? (
+                <Alert variant="outlined" severity="error" style={{ color: 'white' }}>{message.content}</Alert>
+              ) : (
+                <Tooltip
+                  title={tooltipText[index] || 'Klikni da kopiraš u međuspremnik'}
+                  placement="top"
+                  arrow
+                >
+                  <div onClick={() => handleCopyToClipboard(message.content, index)}>
+                    <p dangerouslySetInnerHTML={getMessageContent(message)} />
+                  </div>
+                </Tooltip>
+              )}
             </div>
           ))}
           <div ref={messagesEndRef} />
@@ -183,6 +340,12 @@ const App = () => {
               />
             ))}
           </SpeedDial>
+          <input
+            id="fileInput"
+            type="file"
+            style={{ display: 'none' }}
+            onChange={handleFileChange}
+          />
         </div>
       </div>
     </div>
