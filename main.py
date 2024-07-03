@@ -1,3 +1,4 @@
+import asyncio
 from fastapi import FastAPI, HTTPException, Request, Depends, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
@@ -130,7 +131,11 @@ async def stream(session_id: str):
                 logger.info(f"Content: {content}")
                 if content:
                     assistant_message_content += content
-                    yield "data: " + assistant_message_content + "\n\n" 
+                    logger.info(f"Streaming content: {assistant_message_content + '▌'}")
+                    json_data = json.dumps({'content': assistant_message_content + '▌'})
+                    logger.info(f"JSON Data: {json_data}")
+                    yield f"data: {json_data}\n\n"
+                    await asyncio.sleep(0.1)
 
             messages[session_id].append({"role": "assistant", "content": assistant_message_content})
             logger.info(f"Assistant response: {assistant_message_content}")
