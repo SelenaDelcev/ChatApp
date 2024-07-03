@@ -120,7 +120,7 @@ const App = () => {
 
         eventSource.onmessage = function(event) {
           const data = JSON.parse(event.data);
-          setMessages((prevMessages) => [...prevMessages, { role: 'assistant', content: data.content }]);
+          updateLastMessage({ role: 'assistant', content: data.content });
         };
 
         eventSource.onerror = function() {
@@ -140,6 +140,18 @@ const App = () => {
         }
       }
     }
+  };
+
+  const updateLastMessage = (newMessage) => {
+    setMessages(prevMessages => {
+      const lastIndex = prevMessages.length - 1;
+      if (prevMessages[lastIndex] && prevMessages[lastIndex].role === 'assistant') {
+        const updatedMessages = [...prevMessages];
+        updatedMessages[lastIndex] = newMessage;
+        return updatedMessages;
+      }
+      return [...prevMessages, newMessage];
+    });
   };
 
   const sanitizeText = (text) => {

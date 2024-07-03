@@ -125,14 +125,12 @@ async def stream(session_id: str):
                 messages=openai_messages,
                 stream=True,
             )
-            logger.info(f"Response: {response}")
             assistant_message_content = ""
             for chunk in response:
                 content = chunk.choices[0].delta.content or ""
                 logger.info(f"Content: {content}")
                 if content:
                     assistant_message_content += content
-                    logger.info(f"Assistant message: {assistant_message_content}")
                     yield f"data: {json.dumps({'content': assistant_message_content})}\n\n"
 
             messages[session_id].append({"role": "assistant", "content": assistant_message_content})
