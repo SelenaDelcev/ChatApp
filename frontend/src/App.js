@@ -24,6 +24,7 @@ const App = () => {
   const messagesEndRef = useRef(null);
   const [sessionId, setSessionId] = useState('');
   const [file, setFile] = useState(null);
+  const [tooltipText, setTooltipText] = useState({});
 
   useEffect(() => {
     const storedSessionId = sessionStorage.getItem('sessionId');
@@ -148,8 +149,14 @@ const App = () => {
     }
   };
 
+  const sanitizeText = (text) => {
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = text;
+    return tempDiv.textContent || tempDiv.innerText || '';
+  };
+
   const handleSaveChat = () => {
-    const chatContent = messages.map(msg => `${msg.role}: ${msg.content}`).join('\n');
+    const chatContent = messages.map(msg => `${msg.role}: ${sanitizeText(msg.content)}`).join('\n');
     const blob = new Blob([chatContent], { type: 'text/plain' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -202,12 +209,6 @@ const App = () => {
       ...prevMessages,
       { role: 'assistant', type: 'error', content: errorMessage }
     ]);
-  };
-
-  const sanitizeText = (text) => {
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = text;
-    return tempDiv.textContent || tempDiv.innerText || '';
   };
 
   const handleCopyToClipboard = (messageContent, index) => {
