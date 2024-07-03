@@ -153,7 +153,7 @@ const App = () => {
   };
 
   const handleStream = () => {
-    const eventSource = new EventSource(`/stream?messages=${encodeURIComponent(JSON.stringify([{ role: 'user', content: userMessage }]))}`);
+    const eventSource = new EventSource(`https://chatappdemobackend.azurewebsites.net/stream?messages=${encodeURIComponent(JSON.stringify([{ role: 'user', content: userMessage }]))}`);
     
     eventSource.onmessage = function(event) {
       const data = JSON.parse(event.data);
