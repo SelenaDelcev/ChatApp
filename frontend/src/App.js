@@ -204,6 +204,21 @@ const App = () => {
     ]);
   };
 
+  const handleCopyToClipboard = (messageContent, index) => {
+    const sanitizedText = messageContent.replace(/\*\*|\[.*?\]/g, '');
+    const textArea = document.createElement('textarea');
+    textArea.value = sanitizedText;
+    document.body.appendChild(textArea);
+    textArea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textArea);
+    const tooltipText = document.getElementById(`tooltip-text-${index}`);
+    tooltipText.textContent = 'Kopirano!';
+    setTimeout(() => {
+      tooltipText.textContent = 'Klikni da kopiraš u međuspremnik';
+    }, 3000);
+  };
+
   const getMessageContent = (message) => {
     if (typeof message.content === 'object') {
       return { __html: message.content.content };
@@ -260,7 +275,14 @@ const App = () => {
               ) : message.type === 'error' ? (
                 <Alert variant="outlined" severity="error" style={{ color: 'white' }}>{message.content}</Alert>
               ) : (
-                <p dangerouslySetInnerHTML={getMessageContent(message)} />
+                <div className="tooltip" onClick={() => handleCopyToClipboard(message.content, index)}>
+                  <p dangerouslySetInnerHTML={getMessageContent(message)} />
+                  {message.role === 'assistant' && (
+                    <span className="tooltiptext" id={`tooltip-text-${index}`}>
+                      Click to copy to clipboard
+                    </span>
+                  )}
+                </div>
               )}
             </div>
           ))}
