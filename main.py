@@ -88,7 +88,7 @@ async def chat_with_ai(
         
         async def event_generator():
             try:
-                response = await client.chat_completions.create(
+                response = await client.chat.completions.create(
                     model="gpt-4o",
                     temperature=0.0,
                     messages=openai_messages,
