@@ -116,15 +116,27 @@ const App = () => {
           responseType: 'text'
         });
 
-        const eventSource = new EventSource(`https://chatappdemobackend.azurewebsites.net/chat/stream?session_id=${sessionId}`)
+        const eventSource = new EventSource(`https://chatappdemobackend.azurewebsites.net/chat/stream?session_id=${sessionId}`,
+          { withCredentials: true }
+        );
+
+        eventSource.onopen = function() {
+          console.log("EventSource connection opened.");
+          setMessages(prevMessages => [...prevMessages, { role: 'assistant', content: '' }]);
+        };
 
         eventSource.onmessage = function(event) {
           const data = JSON.parse(event.data);
-          updateLastMessage({ role: 'assistant', content: data.content + "▌" });
+          const content = data.content;
+          updateLastMessage({ role: 'assistant', content: content });
+
+          if (!content.endsWith('▌')) {
+            eventSource.close();
+          }
         };
 
-        eventSource.onerror = function() {
-          console.error("EventSource failed.");
+        eventSource.onerror = function(event) {
+          console.error("EventSource failed.", event);
           eventSource.close();
         };
       } catch (error) {
@@ -145,6 +157,7 @@ const App = () => {
   const updateLastMessage = (newMessage) => {
     setMessages(prevMessages => {
       const lastIndex = prevMessages.length - 1;
+
       if (prevMessages[lastIndex] && prevMessages[lastIndex].role === 'assistant') {
         const updatedMessages = [...prevMessages];
         updatedMessages[lastIndex] = newMessage;

@@ -119,19 +119,18 @@ async def stream(session_id: str):
 
     async def event_generator():
         try:
-            response = openai.chat.completions.create(
+            assistant_message_content = ""
+            for response in openai.chat.completions.create(
                 model="gpt-4o",
                 temperature=0.0,
                 messages=openai_messages,
                 stream=True,
-            )
-            assistant_message_content = ""
-            for chunk in response:
-                content = chunk.choices[0].delta.content or ""
+            ):
+                content = response.choices[0].delta.content or ""
                 logger.info(f"Content: {content}")
                 if content:
                     assistant_message_content += content
-                    yield f"data: {json.dumps({'content': assistant_message_content})}\n\n"
+                    yield "data: " + assistant_message_content + "\n\n" 
 
             messages[session_id].append({"role": "assistant", "content": assistant_message_content})
             logger.info(f"Assistant response: {assistant_message_content}")
