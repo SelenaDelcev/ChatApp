@@ -106,7 +106,7 @@ const App = () => {
       await handleFileSubmit(newMessage);
     } else {
       try {
-        const response = await axios.post('https://chatappdemobackend.azurewebsites.net/chat', newMessage, {
+        await axios.post('https://chatappdemobackend.azurewebsites.net/chat', newMessage, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
