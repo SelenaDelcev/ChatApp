@@ -109,8 +109,7 @@ async def chat_with_ai(
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 @app.get('/chat/stream')
-async def stream(request: Request):
-    session_id = request.headers.get("Session-ID")
+async def stream(session_id: str):
     if not session_id:
         raise HTTPException(status_code=400, detail="Session ID not provided")
     if session_id not in messages:
@@ -126,12 +125,14 @@ async def stream(request: Request):
                 messages=openai_messages,
                 stream=True,
             )
-
+            logger.info(f"Response: {response}")
             assistant_message_content = ""
             for chunk in response:
                 content = chunk.choices[0].delta.content or ""
+                logger.info(f"Content: {content}")
                 if content:
                     assistant_message_content += content
+                    logger.info(f"Assistant message: {assistant_message_content}")
                     yield f"data: {json.dumps({'content': assistant_message_content})}\n\n"
 
             messages[session_id].append({"role": "assistant", "content": assistant_message_content})

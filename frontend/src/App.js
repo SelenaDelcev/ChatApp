@@ -116,11 +116,7 @@ const App = () => {
           responseType: 'text'
         });
 
-        const eventSource = new EventSource(`https://chatappdemobackend.azurewebsites.net/chat/stream`, {
-          headers: {
-            'Session-ID': sessionId
-          }
-        });
+        const eventSource = new EventSource(`https://chatappdemobackend.azurewebsites.net/chat/stream?session_id=${sessionId}`)
 
         eventSource.onmessage = function(event) {
           const data = JSON.parse(event.data);
