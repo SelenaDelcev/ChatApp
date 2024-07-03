@@ -11,6 +11,7 @@ from util_func import get_openai_client, rag_tool_answer, system_prompt
 import PyPDF2
 import docx
 import json
+import asyncio
 
 # Initialize the FastAPI app
 app = FastAPI()
@@ -139,6 +140,7 @@ async def stream(session_id: str):
                     json_data = json.dumps({'content': streaming_content})
                     logger.info(f"JSON Data: {json_data}")
                     yield f"data: {json_data}\n\n"
+                    await asyncio.sleep(0.1)
 
             final_formatted_content = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', assistant_message_content)
             final_formatted_content = re.sub(r'\[(.*?)\]\((.*?)\)', r'<a href="\2">\1</a>', final_formatted_content)
