@@ -46,13 +46,38 @@ const App = () => {
 
   const handleVoiceClick = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      console.warn('SpeechRecognition is not supported in this browser');
+      return;
+    }
+
     const recognition = new SpeechRecognition();
-    recognition.onresult = async function(event) {
-      console.log('event', event);
+    recognition.lang = 'sr-RS';
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    recognition.onstart = () => {
       setIsRecording(true);
+      console.log('Speech recognition started');
+    };
+
+    recognition.onresult = (event) => {
       const transcript = event.results[0][0].transcript;
       console.log('Transcript:', transcript);
-    }
+      setUserMessage(transcript);
+      setIsRecording(false);
+    };
+
+    recognition.onerror = (event) => {
+      console.error('Speech recognition error:', event.error);
+      setIsRecording(false);
+    };
+
+    recognition.onend = () => {
+      console.log('Speech recognition ended');
+      setIsRecording(false);
+    };
+
     recognition.start();
   };
 
