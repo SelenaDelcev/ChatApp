@@ -40,7 +40,7 @@
 .message.user {
   color: #343541;
   margin-left: auto;
-  background: linear-gradient(145deg, #ed1c24, #ed1c24);
+  background: linear-gradient(145deg, #ff9a9d, #ff9a9d);
   background-attachment: fixed;
   position: relative;
 }
@@ -53,7 +53,7 @@
   right: -8px;
   height: 20px;
   width: 20px;
-  background: linear-gradient(145deg, #ed1c24, #ed1c24);
+  background: linear-gradient(145deg, #ff9a9d, #ff9a9d);
   background-attachment: fixed;
   border-bottom-left-radius: 15px;
 }

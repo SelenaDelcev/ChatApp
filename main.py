@@ -90,7 +90,7 @@ async def chat_with_ai(
             messages=openai_messages,
             stream=True,
             ):
-        
+            logger.info(f"Response: {response}")
             # ovo se prikazuje kako izlazi kao stream
             assistant_message_content += (response.choices[0].delta.content or "")
             #### na ekran ->>>
