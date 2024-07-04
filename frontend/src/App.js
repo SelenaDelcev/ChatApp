@@ -116,12 +116,13 @@ const App = () => {
           responseType: 'text'
         });
 
-        console.log("response", response)
+        const data = JSON.parse(response.data);
+        const calendly_url = data.calendly_url
 
-        if (response.data.calendly_url) {
+        if (calendly_url) {
           setMessages((prevMessages) => [
             ...prevMessages,
-            { role: 'assistant', content: response.data.calendly_url, type: 'calendly' },
+            { role: 'assistant', content: calendly_url, type: 'calendly' },
           ]);
         } else {
           const eventSource = new EventSource(`https://chatappdemobackend.azurewebsites.net/chat/stream?session_id=${sessionId}`, {
