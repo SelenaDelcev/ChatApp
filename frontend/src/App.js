@@ -307,7 +307,7 @@ const App = () => {
               {message.type === 'calendly' ? (
                 <iframe
                   src={message.content}
-                  width="90%"
+                  width="80%"
                   height="400px"
                   style={{ border: 'none', scrolling: 'yes' }}
                   title="Calendly Scheduling"

@@ -113,7 +113,7 @@ async def stream(session_id: str):
                         full_calendly_url = url_match.group(0)
                         final_json_data = json.dumps({'content': full_calendly_url, 'type': 'calendly'})
                         yield f"data: {final_json_data}\n\n"
-                        break
+                        return
                     # Text formatting
                     formatted_content = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', assistant_message_content)
                     formatted_content = re.sub(r'\[(.*?)\]\((.*?)\)', r'<a href="\2">\1</a>', formatted_content)
