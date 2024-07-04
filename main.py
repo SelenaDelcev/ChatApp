@@ -69,8 +69,8 @@ async def chat_with_ai(
 
     # Prepare the query with context, but do not save or show it
     context = rag_tool_answer(message.content)
-    if context == "https://outlook.office365.com/book/Chatbot@positive.rs/":
-        return {"calendly_url": context}
+    if "https://outlook.office365.com/book/Chatbot@positive.rs/" in context:
+        messages[session_id].append({"role": "assistant", "content": context, "type": "calendly"})
         
     prepared_message_content = f"{context}\n\n{message.content}"
         
@@ -105,15 +105,6 @@ async def stream(session_id: str):
                 logger.info(f"Content: {content}")
                 if content:
                     assistant_message_content += content
-                    # Regular expression to find URLs
-                    url_regex = r'https?:\/\/[^\s]+'
-                    url_match = re.search(url_regex, assistant_message_content)
-
-                    if url_match and url_match.group(0).endswith("rs/"):
-                        full_calendly_url = url_match.group(0)
-                        final_json_data = json.dumps({'content': full_calendly_url, 'type': 'calendly'})
-                        yield f"data: {final_json_data}\n\n"
-                        return
                     # Text formatting
                     formatted_content = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', assistant_message_content)
                     formatted_content = re.sub(r'\[(.*?)\]\((.*?)\)', r'<a href="\2">\1</a>', formatted_content)
