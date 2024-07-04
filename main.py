@@ -105,6 +105,14 @@ async def stream(session_id: str):
                 logger.info(f"Content: {content}")
                 if content:
                     assistant_message_content += content
+                    # Regular expression to find URLs
+                    url_regex = r'https?:\/\/[^\s]+'
+                    url_match = re.search(url_regex, content)
+
+                    if url_match:
+                        full_calendly_url += url_match.group(0)
+                        if full_calendly_url.endswith("rs/"):
+                            url_detected = True
                     # Text formatting
                     formatted_content = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', assistant_message_content)
                     formatted_content = re.sub(r'\[(.*?)\]\((.*?)\)', r'<a href="\2">\1</a>', formatted_content)

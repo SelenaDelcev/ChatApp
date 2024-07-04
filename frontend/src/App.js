@@ -129,15 +129,10 @@ const App = () => {
           const data = JSON.parse(event.data);
           const content = data.content;
   
-          // Regular expression to find URLs
-          const urlRegex = /(https?:\/\/[^\s]+)/g;
-          const urlMatch = content.match(urlRegex);
-  
-          if (urlMatch) {
-            // If a URL is found, add it as a Calendly message
+          if (data.type === 'calendly') {
             setMessages((prevMessages) => [
               ...prevMessages,
-              { role: 'assistant', content: urlMatch[0], type: 'calendly' },
+              { role: 'assistant', content: content, type: 'calendly' },
             ]);
             eventSource.close(); // Close the EventSource if a URL is found
           } else {
