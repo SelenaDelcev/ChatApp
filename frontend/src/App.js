@@ -118,7 +118,7 @@ const App = () => {
 
         const data = JSON.parse(response.data);
 
-        if (data.calendly_url) {
+        if (data && data.calendly_url) {
           setMessages((prevMessages) => [
             ...prevMessages,
             { role: 'assistant', content: data.calendly_url, type: 'calendly' },
@@ -308,9 +308,6 @@ const App = () => {
               {message.type === 'calendly' ? (
                 <iframe
                   src={message.content}
-                  width="100%"
-                  height="400px"
-                  style={{ border: 'none', scrolling: 'yes' }}
                   title="Calendly Scheduling"
                 ></iframe>
               ) : message.type === 'error' ? (
