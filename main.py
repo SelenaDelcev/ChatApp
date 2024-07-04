@@ -88,7 +88,7 @@ async def stream(session_id: str):
     if session_id not in messages:
         raise HTTPException(status_code=400, detail="No messages found for session")
     
-    client = get_openai_client();
+    client = get_openai_client()
 
     openai_messages = [{"role": msg["role"], "content": msg["content"]} for msg in messages[session_id]]
 
