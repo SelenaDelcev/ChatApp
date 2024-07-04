@@ -116,6 +116,8 @@ const App = () => {
           responseType: 'text'
         });
 
+        console.log("response", response)
+
         if (response.data.calendly_url) {
           setMessages((prevMessages) => [
             ...prevMessages,
