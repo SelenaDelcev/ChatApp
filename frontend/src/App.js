@@ -106,7 +106,7 @@ const App = () => {
       await handleFileSubmit(newMessage);
     } else {
       try {
-        const response = await axios.post('https://chatappdemobackend.azurewebsites.net/chat', newMessage, {
+        await axios.post('https://chatappdemobackend.azurewebsites.net/chat', newMessage, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -116,40 +116,45 @@ const App = () => {
           responseType: 'text'
         });
 
-        const data = response.data;
-        if (data.calendly_url) {
-          setMessages((prevMessages) => [
-            ...prevMessages,
-            { role: 'assistant', content: data.calendly_url, type: 'calendly' },
-          ]);
-        } else {
-          const eventSource = new EventSource(`https://chatappdemobackend.azurewebsites.net/chat/stream?session_id=${sessionId}`, {
-            withCredentials: true
-          });
+        const eventSource = new EventSource(`https://chatappdemobackend.azurewebsites.net/chat/stream?session_id=${sessionId}`,
+          { withCredentials: true }
+        );
 
-          eventSource.onopen = function() {
-            console.log("EventSource connection opened.");
-            setMessages(prevMessages => [...prevMessages, { role: 'assistant', content: '' }]);
-          };
-
-          eventSource.onmessage = function(event) {
-            const data = JSON.parse(event.data);
-            const content = data.content;
-            if (content) {
-              updateLastMessage({ role: 'assistant', content: content });
-
-              if (!content.endsWith('▌')) {
-                eventSource.close();
-                updateLastMessage({ role: 'assistant', content: content.replace('▌', '') });
-              }
+        eventSource.onopen = function() {
+          console.log("EventSource connection opened.");
+          setMessages(prevMessages => [...prevMessages, { role: 'assistant', content: '' }]);
+        };
+  
+        eventSource.onmessage = function(event) {
+          const data = JSON.parse(event.data);
+          const content = data.content;
+  
+          // Regular expression to find URLs
+          const urlRegex = /(https?:\/\/[^\s]+)/g;
+          const urlMatch = content.match(urlRegex);
+  
+          if (urlMatch) {
+            // If a URL is found, add it as a Calendly message
+            setMessages((prevMessages) => [
+              ...prevMessages,
+              { role: 'assistant', content: urlMatch[0], type: 'calendly' },
+            ]);
+            eventSource.close(); // Close the EventSource if a URL is found
+          } else {
+            // Otherwise, update the last message normally
+            updateLastMessage({ role: 'assistant', content: content });
+  
+            if (!content.endsWith('▌')) {
+              eventSource.close();
+              updateLastMessage({ role: 'assistant', content: content.replace('▌', '') });
             }
-          };
+          }
+        };
 
-          eventSource.onerror = function(event) {
-            console.error("EventSource failed.", event);
-            eventSource.close();
-          };
-        }
+        eventSource.onerror = function(event) {
+          console.error("EventSource failed.", event);
+          eventSource.close();
+        };
       } catch (error) {
         console.error('Network or Server Error:', error);
         if (error.response) {
