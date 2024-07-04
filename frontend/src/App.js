@@ -116,30 +116,40 @@ const App = () => {
           responseType: 'text'
         });
 
-        const eventSource = new EventSource(`https://chatappdemobackend.azurewebsites.net/chat/stream?session_id=${sessionId}`,
-          { withCredentials: true }
-        );
+        const data = response.data;
+        if (data.calendly_url) {
+          setMessages((prevMessages) => [
+            ...prevMessages,
+            { role: 'assistant', content: data.calendly_url, type: 'calendly' },
+          ]);
+        } else {
+          const eventSource = new EventSource(`https://chatappdemobackend.azurewebsites.net/chat/stream?session_id=${sessionId}`, {
+            withCredentials: true
+          });
 
-        eventSource.onopen = function() {
-          console.log("EventSource connection opened.");
-          setMessages(prevMessages => [...prevMessages, { role: 'assistant', content: '' }]);
-        };
+          eventSource.onopen = function() {
+            console.log("EventSource connection opened.");
+            setMessages(prevMessages => [...prevMessages, { role: 'assistant', content: '' }]);
+          };
 
-        eventSource.onmessage = function(event) {
-          const data = JSON.parse(event.data);
-          const content = data.content;
-          updateLastMessage({ role: 'assistant', content: content });
+          eventSource.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            const content = data.content;
+            if (content) {
+              updateLastMessage({ role: 'assistant', content: content });
 
-          if (!content.endsWith('▌')) {
+              if (!content.endsWith('▌')) {
+                eventSource.close();
+                updateLastMessage({ role: 'assistant', content: content.replace('▌', '') });
+              }
+            }
+          };
+
+          eventSource.onerror = function(event) {
+            console.error("EventSource failed.", event);
             eventSource.close();
-            updateLastMessage({ role: 'assistant', content: content.replace('▌', '') });
-          }
-        };
-
-        eventSource.onerror = function(event) {
-          console.error("EventSource failed.", event);
-          eventSource.close();
-        };
+          };
+        }
       } catch (error) {
         console.error('Network or Server Error:', error);
         if (error.response) {
