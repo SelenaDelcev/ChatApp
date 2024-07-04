@@ -78,13 +78,8 @@ async def chat_with_ai(
     messages[session_id].append({"role": "user", "content": message.content})
     logger.info(f"Messages: {messages[session_id]}")
 
-    # Save the prepared message content with context
+    # Add the prepared message content with context to the OpenAI messages
     messages[session_id].append({"role": "user", "content": prepared_message_content})
-
-    logger.info(f"Prepared OpenAI messages: {prepared_message_content}")
-
-    # Return a response immediately to acknowledge the message receipt
-    return {"detail": "Message received. Stream will start shortly."}
 
 @app.get('/chat/stream')
 async def stream(session_id: str):
@@ -93,7 +88,7 @@ async def stream(session_id: str):
     if session_id not in messages:
         raise HTTPException(status_code=400, detail="No messages found for session")
     
-    client = get_openai_client()
+    client = get_openai_client();
 
     openai_messages = [{"role": msg["role"], "content": msg["content"]} for msg in messages[session_id]]
 
