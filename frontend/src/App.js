@@ -134,11 +134,10 @@ const App = () => {
               ...prevMessages,
               { role: 'assistant', content: content, type: 'calendly' },
             ]);
-            eventSource.close(); // Close the EventSource if a URL is found
+            eventSource.close();
           } else {
-            // Otherwise, update the last message normally
             updateLastMessage({ role: 'assistant', content: content });
-  
+        
             if (!content.endsWith('▌')) {
               eventSource.close();
               updateLastMessage({ role: 'assistant', content: content.replace('▌', '') });

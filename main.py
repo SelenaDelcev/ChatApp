@@ -107,12 +107,13 @@ async def stream(session_id: str):
                     assistant_message_content += content
                     # Regular expression to find URLs
                     url_regex = r'https?:\/\/[^\s]+'
-                    url_match = re.search(url_regex, content)
+                    url_match = re.search(url_regex, assistant_message_content)
 
-                    if url_match:
-                        full_calendly_url += url_match.group(0)
-                        if full_calendly_url.endswith("rs/"):
-                            url_detected = True
+                    if url_match and url_match.group(0).endswith("rs/"):
+                        full_calendly_url = url_match.group(0)
+                        final_json_data = json.dumps({'content': full_calendly_url, 'type': 'calendly'})
+                        yield f"data: {final_json_data}\n\n"
+                        break
                     # Text formatting
                     formatted_content = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', assistant_message_content)
                     formatted_content = re.sub(r'\[(.*?)\]\((.*?)\)', r'<a href="\2">\1</a>', formatted_content)
