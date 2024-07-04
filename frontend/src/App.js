@@ -106,7 +106,7 @@ const App = () => {
       await handleFileSubmit(newMessage);
     } else {
       try {
-        await axios.post('https://chatappdemobackend.azurewebsites.net/chat', newMessage, {
+        const response = await axios.post('https://chatappdemobackend.azurewebsites.net/chat', newMessage, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -116,39 +116,38 @@ const App = () => {
           responseType: 'text'
         });
 
-        const eventSource = new EventSource(`https://chatappdemobackend.azurewebsites.net/chat/stream?session_id=${sessionId}`,
-          { withCredentials: true }
-        );
-
-        eventSource.onopen = function() {
-          console.log("EventSource connection opened.");
-          setMessages(prevMessages => [...prevMessages, { role: 'assistant', content: '' }]);
-        };
-  
-        eventSource.onmessage = function(event) {
-          const data = JSON.parse(event.data);
-          const content = data.content;
-  
-          if (data.type === 'calendly') {
-            setMessages((prevMessages) => [
-              ...prevMessages,
-              { role: 'assistant', content: content, type: 'calendly' },
-            ]);
-            eventSource.close();
-          } else {
+        if (response.data.calendly_url) {
+          setMessages((prevMessages) => [
+            ...prevMessages,
+            { role: 'assistant', content: response.data.calendly_url, type: 'calendly' },
+          ]);
+        } else {
+          const eventSource = new EventSource(`https://chatappdemobackend.azurewebsites.net/chat/stream?session_id=${sessionId}`, {
+            withCredentials: true
+          });
+    
+          eventSource.onopen = function() {
+            console.log("EventSource connection opened.");
+            setMessages(prevMessages => [...prevMessages, { role: 'assistant', content: '' }]);
+          };
+    
+          eventSource.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            const content = data.content;
+    
             updateLastMessage({ role: 'assistant', content: content });
-        
+    
             if (!content.endsWith('▌')) {
               eventSource.close();
               updateLastMessage({ role: 'assistant', content: content.replace('▌', '') });
             }
-          }
-        };
-
-        eventSource.onerror = function(event) {
-          console.error("EventSource failed.", event);
-          eventSource.close();
-        };
+          };
+    
+          eventSource.onerror = function(event) {
+            console.error("EventSource failed.", event);
+            eventSource.close();
+          };
+        }
       } catch (error) {
         console.error('Network or Server Error:', error);
         if (error.response) {

@@ -67,11 +67,10 @@ async def chat_with_ai(
 
     logger.info(f"Received message: {message.content}")
 
-    # Prepare the query with context, but do not save or show it
     context = rag_tool_answer(message.content)
+    logger.info(f"Context from RAG: {context}")
     if context == "https://outlook.office365.com/book/Chatbot@positive.rs/":
-        messages[session_id].append({"role": "assistant", "content": context, "type": "calendly"})
-        return {"detail": "Message received. Stream will start shortly."}
+        return {"calendly_url": context}
         
     prepared_message_content = f"{context}\n\n{message.content}"
         
