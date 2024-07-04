@@ -78,12 +78,10 @@ async def chat_with_ai(
     messages[session_id].append({"role": "user", "content": message.content})
     logger.info(f"Messages: {messages[session_id]}")
 
-    # Save the original user message
-    messages[session_id].append({"role": "user", "content": message.content})
     # Save the prepared message content with context
     messages[session_id].append({"role": "user", "content": prepared_message_content})
 
-    logger.info(f"Prepared OpenAI messages: {openai_messages}")
+    logger.info(f"Prepared OpenAI messages: {prepared_message_content}")
 
     # Return a response immediately to acknowledge the message receipt
     return {"detail": "Message received. Stream will start shortly."}
