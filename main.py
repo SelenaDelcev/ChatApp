@@ -107,7 +107,7 @@ async def stream(session_id: str):
                     assistant_message_content += content
                     # Text formatting
                     formatted_content = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', assistant_message_content)
-                    formatted_content = re.sub(r'\[(.*?)\]\((.*?)\)', r'<a href="\2">\1</a>', formatted_content)
+                    formatted_content = re.sub(r'\[(.*?)\]\((.*?)\)', r'<a href="\2" target="_blank">\1</a>', formatted_content)
                     # Adding a typing character
                     streaming_content = formatted_content + '▌'
                     logger.info(f"Streaming content: {streaming_content}")
