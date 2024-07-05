@@ -25,8 +25,6 @@ const App = () => {
   const [sessionId, setSessionId] = useState('');
   const [file, setFile] = useState(null);
   const [tooltipText, setTooltipText] = useState({});
-  const mediaRecorderRef = useRef(null);
-  const chunksRef = useRef([]);
 
   useEffect(() => {
     const storedSessionId = sessionStorage.getItem('sessionId');
@@ -48,59 +46,40 @@ const App = () => {
   }, [messages]);
 
   const handleVoiceClick = () => {
-    if (isRecording) {
-      stopRecording();
-    } else {
-      startRecording();
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      console.warn('SpeechRecognition is not supported in this browser');
+      return;
     }
-  };
 
-  const startRecording = () => {
-    navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-      const mediaRecorder = new MediaRecorder(stream);
-      mediaRecorderRef.current = mediaRecorder;
-      chunksRef.current = [];
-      mediaRecorder.ondataavailable = event => {
-        chunksRef.current.push(event.data);
-      };
-      console.log("Media recorder ondata available:", mediaRecorder)
-      mediaRecorder.onstop = async () => {
-        const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
-        const formData = new FormData();
-        formData.append('file', blob, 'audio.webm');
-        formData.append('message', userMessage);
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'sr-RS';
+    recognition.continuous = false;
+    recognition.interimResults = false;
 
-        console.log("Media recorder onstop:", mediaRecorder)
-        console.log("Form Data:", formData)
-
-        try {
-          const response = await axios.post('https://chatappdemobackend.azurewebsites.net/upload', formData, {
-            headers: {
-              'Session-ID': sessionId,
-            },
-          });
-
-          const data = response.data;
-          if (data.transcript) {
-            setUserMessage(data.transcript);
-          }
-        } catch (error) {
-          console.error('Error uploading audio:', error);
-        }
-      };
-
-      mediaRecorder.start();
+    recognition.onstart = () => {
       setIsRecording(true);
-    }).catch(error => {
-      console.error('Error accessing microphone:', error);
-    });
-  };
+      console.log('Speech recognition started');
+    };
 
-  const stopRecording = () => {
-    if (mediaRecorderRef.current) {
-      mediaRecorderRef.current.stop();
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      console.log('Transcript:', transcript);
+      setUserMessage(transcript);
       setIsRecording(false);
-    }
+    };
+
+    recognition.onerror = (event) => {
+      console.error('Speech recognition error:', event.error);
+      setIsRecording(false);
+    };
+
+    recognition.onend = () => {
+      console.log('Speech recognition ended');
+      setIsRecording(false);
+    };
+
+    recognition.start();
   };
 
   const handleClearChat = () => {

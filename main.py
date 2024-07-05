@@ -12,7 +12,6 @@ import PyPDF2
 import docx
 import json
 import asyncio
-import io
 
 # Initialize the FastAPI app
 app = FastAPI()
@@ -155,7 +154,6 @@ async def upload_file(
     client: OpenAI = Depends(get_openai_client),
 ):
     session_id = initialize_session(request, messages, system_prompt)
-    logger.info(f"File content type: {file.content_type}")
 
     try:
         file_content = await file.read()
@@ -170,21 +168,6 @@ async def upload_file(
             text_content = file_content.decode('utf-8')
         elif file.content_type in ['image/jpeg', 'image/png', 'image/webp']:
             text_content = f"Slika je dodata: {file_name}"
-        elif file.content_type == 'audio/webm':
-            logger.info(f"File content type is audio/webm")
-            audio_bio = io.BytesIO(file_content)
-            audio_bio.name = 'audio.webm'
-            try:
-                logger.info(f"Try transcript")
-                transcript = client.audio.transcriptions.create(
-                            model="whisper-1",
-                            file=audio_bio,
-                            language="sr"
-                        )
-                logger.info(f"Transcript: {transcript}")
-                return {"transcript": transcript["text"]}
-            except Exception as e:
-                raise HTTPException(status_code=500, detail=f"Transcription error: {str(e)}")
         else:
             return {"detail": "Nije podržan ovaj tip datoteke"}
 
@@ -193,25 +176,8 @@ async def upload_file(
         logger.info(f"Messages: {messages[session_id]}")
 
         prepared_message_content = f"User message: {message}\nFile content:\n{text_content}"
-        openai_messages = [{"role": msg["role"], "content": msg["content"]} for msg in messages[session_id]]
-        openai_messages.append({"role": "user", "content": prepared_message_content})
-
-        response = client.chat.completions.create(
-            model="gpt-4",
-            temperature=0.0,
-            messages=openai_messages,
-        )
-
-        if response.choices:
-            assistant_message_content = response.choices[0].message.content
-            assistant_message_content = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', assistant_message_content)
-            assistant_message_content = re.sub(r'\[(.*?)\]\((.*?)\)', r'<a href="\2">\1</a>', assistant_message_content)
-            messages[session_id].append({"role": "assistant", "content": assistant_message_content})
-            logger.info(f"Assistant response: {assistant_message_content}")
-        else:
-            raise ValueError("Unexpected response format: 'choices' list is empty")
-
-        return {"messages": messages[session_id]}
+        
+        messages[session_id].append({"role": "user", "content": prepared_message_content})
 
     except Exception as e:
         logger.error(f"File upload error: {str(e)}")
