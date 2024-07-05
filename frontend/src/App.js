@@ -67,6 +67,7 @@ const App = () => {
         const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
         const formData = new FormData();
         formData.append('file', blob, 'audio.webm');
+        formData.append('message', userMessage);
 
         try {
           const response = await axios.post('https://chatappdemobackend.azurewebsites.net/upload', formData, {
