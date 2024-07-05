@@ -12,6 +12,7 @@ import PyPDF2
 import docx
 import json
 import asyncio
+import io
 
 # Initialize the FastAPI app
 app = FastAPI()
