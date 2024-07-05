@@ -168,6 +168,18 @@ async def upload_file(
             text_content = file_content.decode('utf-8')
         elif file.content_type in ['image/jpeg', 'image/png', 'image/webp']:
             text_content = f"Slika je dodata: {file_name}"
+        elif file.content_type == 'audio/webm':
+            audio_bio = io.BytesIO(file_content)
+            audio_bio.name = 'audio.webm'
+            try:
+                transcript = client.audio.transcriptions.create(
+                            model="whisper-1",
+                            file=audio_bio,
+                            language="sr"
+                        )
+                return {"transcript": transcript["text"]}
+            except Exception as e:
+                raise HTTPException(status_code=500, detail=f"Transcription error: {str(e)}")
         else:
             return {"detail": "Nije podržan ovaj tip datoteke"}
 
