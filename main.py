@@ -117,7 +117,7 @@ async def stream(session_id: str):
                     await asyncio.sleep(0.1)
 
             final_formatted_content = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', assistant_message_content)
-            final_formatted_content = re.sub(r'\[(.*?)\]\((.*?)\)', r'<a href="\2">\1</a>', final_formatted_content)
+            final_formatted_content = re.sub(r'\[(.*?)\]\((.*?)\)', r'<a href="\2" target="_blank">\1</a>', final_formatted_content)
             logger.info(f"Assistant response: {final_formatted_content}")
             final_json_data = json.dumps({'content': final_formatted_content})
             logger.info(f"Final JSON Data: {final_json_data}")
