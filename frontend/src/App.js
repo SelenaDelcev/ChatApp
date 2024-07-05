@@ -25,6 +25,8 @@ const App = () => {
   const [sessionId, setSessionId] = useState('');
   const [file, setFile] = useState(null);
   const [tooltipText, setTooltipText] = useState({});
+  const mediaRecorderRef = useRef(null);
+  const chunksRef = useRef([]);
 
   useEffect(() => {
     const storedSessionId = sessionStorage.getItem('sessionId');
