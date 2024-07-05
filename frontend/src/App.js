@@ -63,11 +63,15 @@ const App = () => {
       mediaRecorder.ondataavailable = event => {
         chunksRef.current.push(event.data);
       };
+      console.log("Media recorder ondata available:", mediaRecorder)
       mediaRecorder.onstop = async () => {
         const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
         const formData = new FormData();
         formData.append('file', blob, 'audio.webm');
         formData.append('message', userMessage);
+
+        console.log("Media recorder onstop:", mediaRecorder)
+        console.log("Form Data:", formData)
 
         try {
           const response = await axios.post('https://chatappdemobackend.azurewebsites.net/upload', formData, {
