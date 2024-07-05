@@ -72,7 +72,6 @@ const App = () => {
           const response = await axios.post('https://chatappdemobackend.azurewebsites.net/upload', formData, {
             headers: {
               'Session-ID': sessionId,
-              'Content-Type': 'multipart/form-data',
             },
           });
 

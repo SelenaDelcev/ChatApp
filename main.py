@@ -155,6 +155,7 @@ async def upload_file(
     client: OpenAI = Depends(get_openai_client),
 ):
     session_id = initialize_session(request, messages, system_prompt)
+    logger.info(f"File content type: {file.content_type}")
 
     try:
         file_content = await file.read()
@@ -170,14 +171,17 @@ async def upload_file(
         elif file.content_type in ['image/jpeg', 'image/png', 'image/webp']:
             text_content = f"Slika je dodata: {file_name}"
         elif file.content_type == 'audio/webm':
+            logger.info(f"File content type is audio/webm")
             audio_bio = io.BytesIO(file_content)
             audio_bio.name = 'audio.webm'
             try:
+                logger.info(f"Try transcript")
                 transcript = client.audio.transcriptions.create(
                             model="whisper-1",
                             file=audio_bio,
                             language="sr"
                         )
+                logger.info(f"Transcript: {transcript}")
                 return {"transcript": transcript["text"]}
             except Exception as e:
                 raise HTTPException(status_code=500, detail=f"Transcription error: {str(e)}")
