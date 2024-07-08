@@ -146,13 +146,37 @@ async def stream(session_id: str):
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")
 
-
 import base64
-import aiofiles
-def image_to_base64(image_path: str) -> str:
-    with open(image_path, "rb") as image_file:
-        return base64.b64encode(image_file.read()).decode('utf-8')
+# Function to read and process image files
+async def process_image(file: UploadFile):
+    # Read the image file
+    image_content = await file.read()
+    # Encode the image content to base64
+    image_base64 = base64.b64encode(image_content).decode('utf-8')
+    client = get_openai_client()
+    # Create a request to OpenAI to describe the image
+    response = client.chat.completions.create(
+        model='gpt-4o',
+        messages=[
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": "What’s in this image?"},
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/jpeg;base64,{image_base64}"
+                        }
+                    }
+                ]
+            }
+        ],
+        max_tokens=300,
+    )
     
+    # Extract the description from the response
+    description = response.choices[0].message.content
+    return description
 
 @app.post('/upload')
 async def upload_file(
@@ -176,31 +200,7 @@ async def upload_file(
             elif file.content_type == 'text/plain':
                 text_content = file_content.decode('utf-8')
             elif file.content_type in ['image/jpeg', 'image/png', 'image/webp']:
-                client = get_openai_client()
-                async with aiofiles.open(f"/tmp/{file_name}", 'wb') as out_file:
-                    await out_file.write(file_content)
-                image_base64 = image_to_base64(f"/tmp/{file_name}")
-
-                response = client.chat.completions.create(
-                    model="gpt-4o",
-                    messages=[
-                        {
-                            "role": "user",
-                            "content": [
-                                {"type": "text", "text": "What’s in this image?"},
-                                {
-                                    "type": "image_url",
-                                    "image_url": {
-                                        "url": image_base64,
-                                        "detail": "high"
-                                    },
-                                },
-                            ],
-                        }
-                    ],
-                    max_tokens=300,
-                )
-                text_content = response.choices[0].message.content
+                await process_image(file)
             else:
                 return {"detail": "Nije podržan ovaj tip datoteke"}
 
