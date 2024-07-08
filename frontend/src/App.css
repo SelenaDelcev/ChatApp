@@ -115,6 +115,21 @@
   box-sizing: border-box;
 }
 
+.file-item {
+  display: flex;
+  align-items: center;
+  margin-top: 5px;
+  position: relative;
+}
+
+.cancel-icon {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  cursor: pointer;
+  color: #8695a3;
+}
+
 .iframe-container {
   width: 100%;
   overflow-x: auto;
