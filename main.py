@@ -145,7 +145,15 @@ async def stream(session_id: str):
             yield f"data: {json.dumps({'detail': f'Internal server error: {str(e)}'})}\n\n"
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")
+
+
+import base64
+import aiofiles
+def image_to_base64(image_path: str) -> str:
+    with open(image_path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode('utf-8')
     
+
 @app.post('/upload')
 async def upload_file(
     request: Request,
@@ -168,7 +176,31 @@ async def upload_file(
             elif file.content_type == 'text/plain':
                 text_content = file_content.decode('utf-8')
             elif file.content_type in ['image/jpeg', 'image/png', 'image/webp']:
-                text_content = f"Slika je dodata: {file_name}"
+                client = get_openai_client()
+                async with aiofiles.open(f"/tmp/{file_name}", 'wb') as out_file:
+                    await out_file.write(file_content)
+                image_base64 = image_to_base64(f"/tmp/{file_name}")
+
+                response = client.chat.completions.create(
+                    model="gpt-4o",
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": [
+                                {"type": "text", "text": "What’s in this image?"},
+                                {
+                                    "type": "image_url",
+                                    "image_url": {
+                                        "url": image_base64,
+                                        "detail": "high"
+                                    },
+                                },
+                            ],
+                        }
+                    ],
+                    max_tokens=300,
+                )
+                text_content = response.choices[0].message.content
             else:
                 return {"detail": "Nije podržan ovaj tip datoteke"}
 
