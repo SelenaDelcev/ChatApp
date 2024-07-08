@@ -110,6 +110,15 @@ const App = () => {
     };
   }
 
+  const handleClearChat = () => {
+    setMessages([]);
+    sessionStorage.removeItem('sessionId');
+    const newSessionId = uuidv4();
+    sessionStorage.setItem('sessionId', newSessionId);
+    setSessionId(newSessionId);
+    setFiles([]);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -194,7 +203,7 @@ const App = () => {
     setFiles([...files, ...Array.from(e.target.files)]);
   };
 
-  const handleFileDelete = () => {
+  const handleFileDelete = (index) => {
     setFiles(prevFiles => prevFiles.filter((_, i) => i !== index));
   };
 
