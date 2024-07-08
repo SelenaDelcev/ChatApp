@@ -224,7 +224,7 @@ const App = () => {
       });
 
       const data = response.data;
-      if (data.detail) {
+      if (data && data.detail) {
         handleErrorMessage(data.detail);
       } else {
         getEventSource();
