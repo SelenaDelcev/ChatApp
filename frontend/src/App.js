@@ -110,6 +110,15 @@ const App = () => {
     };
   }
 
+  const handleClearChat = () => {
+    setMessages([]);
+    sessionStorage.removeItem('sessionId');
+    const newSessionId = uuidv4();
+    sessionStorage.setItem('sessionId', newSessionId);
+    setSessionId(newSessionId);
+    setFiles([]);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -194,16 +203,13 @@ const App = () => {
     setFiles([...files, ...Array.from(e.target.files)]);
   };
 
-  const handleFileDelete = () => {
-    setFile(null);
-    document.getElementById('fileInput').value = '';
+  const handleFileDelete = (index) => {
+    setFiles(prevFiles => prevFiles.filter((_, i) => i !== index));
   };
 
   const handleFileSubmit = async (newMessage) => {
-    if (!file) return;
-
     const formData = new FormData();
-    formData.append('file', file);
+    files.forEach(file => formData.append('files', file));
     formData.append('message', newMessage.content);
 
     try {
@@ -247,7 +253,7 @@ const App = () => {
     setTimeout(() => {
       setTooltipText((prev) => ({
         ...prev,
-        [index]: 'Klikni da kopiraš tekst'
+        [index]: 'Klikni da kopiraš u međuspremnik'
       }));
     }, 3000);
   };
@@ -264,21 +270,28 @@ const App = () => {
     {
       icon: (
         <div style={{ position: 'relative' }}>
-          <AttachFileSharpIcon style={{ color: file ? 'red' : 'inherit' }} />
-          {file && (
-            <CancelOutlinedIcon
-              style={{
-                position: 'absolute',
-                top: -11,
-                right: -11,
-                cursor: 'pointer',
-                color: '#8695a3'
-              }}
-              onClick={(e) => {
-                e.stopPropagation();
-                handleFileDelete();
-              }}
-            />
+          <AttachFileSharpIcon style={{ color: files.length > 0 ? 'red' : 'inherit' }} />
+          {files.length > 0 && (
+            files.map((file, index) => (
+              <div key={index} style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                <CancelOutlinedIcon
+                  style={{
+                    position: 'absolute',
+                    top: -5,
+                    right: -5,
+                    cursor: 'pointer',
+                    color: '#8695a3'
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleFileDelete(index);
+                  }}
+                />
+                <Tooltip title={file.name} placement="top" arrow>
+                  <span style={{ marginLeft: 20 }}>{file.name}</span>
+                </Tooltip>
+              </div>
+            ))
           )}
         </div>
       ),
@@ -306,7 +319,7 @@ const App = () => {
                 <Alert variant="outlined" severity="error" style={{ color: 'white' }}>{message.content}</Alert>
               ) : (
                 <Tooltip
-                  title={tooltipText[index] || 'Klikni da kopiraš tekst'}
+                  title={tooltipText[index] || 'Klikni da kopiraš u međuspremnik'}
                   placement="top"
                   arrow
                 >
@@ -361,6 +374,7 @@ const App = () => {
           <input
             id="fileInput"
             type="file"
+            multiple
             style={{ display: 'none' }}
             onChange={handleFileChange}
           />
