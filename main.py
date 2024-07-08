@@ -151,7 +151,6 @@ async def upload_file(
     request: Request,
     message: str = Form(...),
     file: UploadFile = File(...),
-    client: OpenAI = Depends(get_openai_client),
 ):
     session_id = initialize_session(request, messages, system_prompt)
 
