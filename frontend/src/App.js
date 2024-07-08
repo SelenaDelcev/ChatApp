@@ -274,7 +274,7 @@ const App = () => {
         <div style={{ position: 'relative' }}>
         <AttachFileSharpIcon style={{ color: files.length > 0 ? 'red' : 'inherit' }} />
           {files.length > 0 && (
-            files.map((file, index) => (
+            files.map((index) => (
               <div key={index} style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                 <CancelOutlinedIcon
                   style={{
@@ -294,7 +294,7 @@ const App = () => {
           )}
         </div>
       ),
-      name: files.length > 0 ? `${files.length} files` : 'Dodaj prilog',
+      name: files.length > 0 ? files.map(file => file.name).join('\n') : 'Dodaj prilog',
       onClick: () => document.getElementById('fileInput').click()
   },
     { icon: <SaveAltSharpIcon />, name: 'Sačuvaj', onClick: handleSaveChat },
