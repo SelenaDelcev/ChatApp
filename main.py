@@ -150,31 +150,35 @@ async def stream(session_id: str):
 async def upload_file(
     request: Request,
     message: str = Form(...),
-    file: UploadFile = File(...),
+    files: List[UploadFile] = File(...),
 ):
     session_id = initialize_session(request, messages, system_prompt)
 
     try:
-        file_content = await file.read()
-        file_name = file.filename
-        text_content = ""
+        all_text_content = ""
+        for file in files:
+            file_content = await file.read()
+            file_name = file.filename
+            text_content = ""
 
-        if file.content_type == 'application/pdf':
-            text_content = read_pdf(file.file)
-        elif file.content_type == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
-            text_content = read_docx(file.file)
-        elif file.content_type == 'text/plain':
-            text_content = file_content.decode('utf-8')
-        elif file.content_type in ['image/jpeg', 'image/png', 'image/webp']:
-            text_content = f"Slika je dodata: {file_name}"
-        else:
-            return {"detail": "Nije podržan ovaj tip datoteke"}
+            if file.content_type == 'application/pdf':
+                text_content = read_pdf(file.file)
+            elif file.content_type == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+                text_content = read_docx(file.file)
+            elif file.content_type == 'text/plain':
+                text_content = file_content.decode('utf-8')
+            elif file.content_type in ['image/jpeg', 'image/png', 'image/webp']:
+                text_content = f"Slika je dodata: {file_name}"
+            else:
+                return {"detail": "Nije podržan ovaj tip datoteke"}
+
+            all_text_content += text_content + "\n"
 
         messages[session_id].append({"role": "user", "content": message})
-        messages[session_id].append({"role": "assistant", "content": f"Dokument je dodat - Uklonite ga iz uploadera ukoliko ne želite više da pričate o njegovom sadržaju."})
+        messages[session_id].append({"role": "assistant", "content": f"Dokumenti su dodati - Uklonite ih iz uploadera ukoliko ne želite više da pričate o njihovom sadržaju."})
         logger.info(f"Messages: {messages[session_id]}")
 
-        prepared_message_content = f"User message: {message}\nFile content:\n{text_content}"
+        prepared_message_content = f"User message: {message}\nFile content:\n{all_text_content}"
         
         messages[session_id].append({"role": "user", "content": prepared_message_content})
 

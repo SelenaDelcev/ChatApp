@@ -23,7 +23,7 @@ const App = () => {
   const [isRecording, setIsRecording] = useState(false);
   const messagesEndRef = useRef(null);
   const [sessionId, setSessionId] = useState('');
-  const [file, setFile] = useState(null);
+  const [files, setFiles] = useState([]);
   const [tooltipText, setTooltipText] = useState({});
 
   useEffect(() => {
@@ -110,15 +110,6 @@ const App = () => {
     };
   }
 
-  const handleClearChat = () => {
-    setMessages([]);
-    sessionStorage.removeItem('sessionId');
-    const newSessionId = uuidv4();
-    sessionStorage.setItem('sessionId', newSessionId);
-    setSessionId(newSessionId);
-    setFile(null);
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -130,7 +121,7 @@ const App = () => {
     setMessages([...messages, newMessage]);
     setUserMessage('');
 
-    if (file) {
+    if (files.length > 0) {
       await handleFileSubmit(newMessage);
     } else {
       try {
@@ -200,7 +191,7 @@ const App = () => {
   };
 
   const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
+    setFiles([...files, ...Array.from(e.target.files)]);
   };
 
   const handleFileDelete = () => {
@@ -256,7 +247,7 @@ const App = () => {
     setTimeout(() => {
       setTooltipText((prev) => ({
         ...prev,
-        [index]: 'Klikni da kopiraš u međuspremnik'
+        [index]: 'Klikni da kopiraš tekst'
       }));
     }, 3000);
   };
@@ -291,7 +282,7 @@ const App = () => {
           )}
         </div>
       ),
-      name: file ? file.name : 'Dodaj prilog',
+      name: files.length > 0 ? `${files.length} files` : 'Dodaj prilog',
       onClick: () => document.getElementById('fileInput').click()
     },
     { icon: <SaveAltSharpIcon />, name: 'Sačuvaj', onClick: handleSaveChat },
@@ -315,7 +306,7 @@ const App = () => {
                 <Alert variant="outlined" severity="error" style={{ color: 'white' }}>{message.content}</Alert>
               ) : (
                 <Tooltip
-                  title={tooltipText[index] || 'Klikni da kopiraš u međuspremnik'}
+                  title={tooltipText[index] || 'Klikni da kopiraš tekst'}
                   placement="top"
                   arrow
                 >
