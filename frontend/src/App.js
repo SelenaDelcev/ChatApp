@@ -289,9 +289,6 @@ const App = () => {
                     handleFileDelete(index);
                   }}
                 />
-                <Tooltip title={file.name} placement="top" arrow>
-                  <span style={{ marginLeft: 20 }}>{file.name}</span>
-                </Tooltip>
               </div>
             ))
           )}
