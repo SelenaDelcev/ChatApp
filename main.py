@@ -133,21 +133,9 @@ async def stream(session_id: str):
 async def process_image(file: UploadFile):
     # Read the image file
     image_content = await file.read()
-    # Provera da li je sadržaj fajla prazan
-    if not image_content:
-        logger.error("Failed to read image content, content is empty")
-        raise HTTPException(status_code=400, detail="Failed to read image content, content is empty")
-        
     # Encode the image content to base64
     image_base64 = base64.b64encode(image_content).decode('utf-8')
-        
-    # Log base64 length i sadržaj
-    logger.info(f"Base64 encoded image length: {len(image_base64)} characters")
-    logger.info(f"Base64 encoded image start: {image_base64[:100]}")
-    logger.info(f"Base64 encoded image end: {image_base64[-100:]}")
-        
     client = get_openai_client()
-    logger.info(f"Image content length: {len(image_content)} bytes")
     # Create a request to OpenAI to describe the image
     response = client.chat.completions.create(
         model='gpt-4o',
@@ -192,7 +180,6 @@ async def upload_file(
             all_text_content += text_content + "\n"
 
         messages[session_id].append({"role": "user", "content": message})
-        messages[session_id].append({"role": "assistant", "content": f"Dokumenti su dodati - Uklonite ih iz uploadera ukoliko ne želite više da pričate o njihovom sadržaju."})
         logger.info(f"Messages: {messages[session_id]}")
 
         prepared_message_content = f"User message: {message}\nFile content:\n{all_text_content}"
