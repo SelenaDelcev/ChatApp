@@ -153,20 +153,28 @@ async def process_image(file: UploadFile):
     image_content = await file.read()
     # Encode the image content to base64
     image_base64 = base64.b64encode(image_content).decode('utf-8')
+     # Log base64 length
+    logger.info(f"Base64 encoded image length: {len(image_base64)} characters")
+        
+    if len(image_base64) < 100:
+        logger.error("Base64 encoded image string is too short")
+        raise HTTPException(status_code=400, detail="Base64 encoded image string is too short")
+        
     client = get_openai_client()
-    logger.info(f"Base64 encoded image: {image_base64[:100]}...")
+    logger.info(f"Image content length: {len(image_content)} bytes")
+    logger.info(f"Base64 encoded image: {image_base64[:100]}...") 
     # Create a request to OpenAI to describe the image
     response = client.chat.completions.create(
         model='gpt-4o',
         messages=[
             {
                 "role": "user",
-                "content": f"What’s in this image? data:image/jpeg;base64, {image_base64}"
+                "content": f"What’s in this image? data:image/jpeg;base64,{image_base64}"
             }
         ],
         max_tokens=300,
     )
-    
+    logger.info(f"API Response for Image: {response}")
     # Extract the description from the response
     description = response.choices[0].message.content
     return description
