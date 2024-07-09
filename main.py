@@ -12,14 +12,12 @@ import PyPDF2
 import docx
 import json
 import asyncio
-
+import base64
 # Initialize the FastAPI app
 app = FastAPI()
-
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
@@ -28,14 +26,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 # Data model for incoming messages
 class Message(BaseModel):
     role: str
     content: str
-
 messages: Dict[str, List[Dict[str, str]]] = {}
-
 def initialize_session(request, messages: Dict[str, List[Dict[str, str]]], system_prompt):
     session_id = request.headers.get("Session-ID")
     if not session_id:
@@ -43,30 +38,25 @@ def initialize_session(request, messages: Dict[str, List[Dict[str, str]]], syste
     if session_id not in messages:
         messages[session_id] = [{"role": "system", "content": system_prompt()}]
     return session_id
-
 def read_pdf(file):
     reader = PyPDF2.PdfReader(file)
     text = ""
     for page in reader.pages:
         text += page.extract_text()
     return text
-
 def read_docx(file):
     doc = docx.Document(file)
     text = ""
     for paragraph in doc.paragraphs:
         text += paragraph.text + "\n"
     return text
-
 @app.post('/chat')
 async def chat_with_ai(
     request: Request,
     message: Message,
 ):
     session_id = initialize_session(request, messages, system_prompt)
-
     logger.info(f"Received message: {message.content}")
-
     context = rag_tool_answer(message.content)
     logger.info(f"Context from RAG: {context}")
     if context == "https://outlook.office365.com/book/Chatbot@positive.rs/":
@@ -77,10 +67,8 @@ async def chat_with_ai(
     # Save the original user message
     messages[session_id].append({"role": "user", "content": message.content})
     logger.info(f"Messages: {messages[session_id]}")
-
     # Add the prepared message content with context to the OpenAI messages
     messages[session_id].append({"role": "user", "content": prepared_message_content})
-
 @app.get('/chat/stream')
 async def stream(session_id: str):
     if not session_id:
@@ -89,9 +77,7 @@ async def stream(session_id: str):
         raise HTTPException(status_code=400, detail="No messages found for session")
     
     client = get_openai_client()
-
     openai_messages = [{"role": msg["role"], "content": msg["content"]} for msg in messages[session_id]]
-
     async def event_generator():
         try:
             assistant_message_content = ""
@@ -115,7 +101,6 @@ async def stream(session_id: str):
                     logger.info(f"JSON Data: {json_data}")
                     yield f"data: {json_data}\n\n"
                     await asyncio.sleep(0.1)
-
             final_formatted_content = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', assistant_message_content)
             final_formatted_content = re.sub(r'\[(.*?)\]\((.*?)\)', r'<a href="\2" target="_blank">\1</a>', final_formatted_content)
             logger.info(f"Assistant response: {final_formatted_content}")
@@ -123,7 +108,6 @@ async def stream(session_id: str):
             logger.info(f"Final JSON Data: {final_json_data}")
             yield f"data: {final_json_data}\n\n"
             messages[session_id].append({"role": "assistant", "content": final_formatted_content})
-
         except RateLimitError as e:
             if 'insufficient_quota' in str(e):
                 logger.error("Potrošili ste sve tokene, kontaktirajte Positive za dalja uputstva")
@@ -143,26 +127,15 @@ async def stream(session_id: str):
         except Exception as e:
             logger.error(f"Internal server error: {str(e)}")
             yield f"data: {json.dumps({'detail': f'Internal server error: {str(e)}'})}\n\n"
-
     return StreamingResponse(event_generator(), media_type="text/event-stream")
 
-import base64
 # Function to read and process image files
 async def process_image(file: UploadFile):
     # Read the image file
     image_content = await file.read()
     # Encode the image content to base64
     image_base64 = base64.b64encode(image_content).decode('utf-8')
-     # Log base64 length
-    logger.info(f"Base64 encoded image length: {len(image_base64)} characters")
-        
-    if len(image_base64) < 100:
-        logger.error("Base64 encoded image string is too short")
-        raise HTTPException(status_code=400, detail="Base64 encoded image string is too short")
-        
     client = get_openai_client()
-    logger.info(f"Image content length: {len(image_content)} bytes")
-    logger.info(f"Base64 encoded image: {image_base64[:100]}...") 
     # Create a request to OpenAI to describe the image
     response = client.chat.completions.create(
         model='gpt-4o',
@@ -174,11 +147,10 @@ async def process_image(file: UploadFile):
         ],
         max_tokens=300,
     )
-    logger.info(f"API Response for Image: {response}")
+    
     # Extract the description from the response
     description = response.choices[0].message.content
     return description
-
 @app.post('/upload')
 async def upload_file(
     request: Request,
@@ -186,14 +158,12 @@ async def upload_file(
     files: List[UploadFile] = File(...),
 ):
     session_id = initialize_session(request, messages, system_prompt)
-
     try:
         all_text_content = ""
         for file in files:
             file_content = await file.read()
             file_name = file.filename
             text_content = ""
-
             if file.content_type == 'application/pdf':
                 text_content = read_pdf(file.file)
             elif file.content_type == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
