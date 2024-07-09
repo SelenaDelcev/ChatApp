@@ -131,9 +131,11 @@ async def stream(session_id: str):
 
 # Function to read and process image files
 async def process_image(file: UploadFile):
-    # Read and encode the image content to base64
-    image_base64 = base64.b64encode(await file.read()).decode('utf-8')
-    logger.info(f"PAZNJA! iMAGE BASE 64 JE: {image_base64}")
+    # Read the image file
+    image_content = await file.read()
+    # Encode the image content to base64
+    image_base64 = base64.b64encode(image_content).decode('utf-8')
+    logger.info(f"PAZNJA!! IMAGE BASE 64 JE: {image_base64}")
     client = get_openai_client()
     # Create a request to OpenAI to describe the image
     response = client.chat.completions.create(
@@ -144,7 +146,7 @@ async def process_image(file: UploadFile):
                 "content": [
                 {"type": "text", "text": "What’s in this image?"},
                 {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_base64}"}}
-                ]
+            ]
             }
         ],
         max_tokens=300,
