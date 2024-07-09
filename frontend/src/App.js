@@ -204,7 +204,11 @@ const App = () => {
   };
 
   const handleFileDelete = (index) => {
-    setFiles(prevFiles => prevFiles.filter((_, i) => i !== index));
+    setFiles(prevFiles => {
+      const updatedFiles = prevFiles.filter((_, i) => i !== index);
+      console.log('Updated Files:', updatedFiles);
+      return updatedFiles;
+    });
   };
 
   const handleFileSubmit = async (newMessage) => {
@@ -213,6 +217,11 @@ const App = () => {
     const formData = new FormData();
     files.forEach(file => formData.append('files', file));
     formData.append('message', newMessage.content);
+
+    console.log('formData pre slanja na backend:');
+    for (let pair of formData.entries()) {
+      console.log('Par', pair[0], pair[1]);
+    }
 
     try {
       const response = await axios.post('https://chatappdemobackend.azurewebsites.net/upload', formData, {
@@ -274,7 +283,7 @@ const App = () => {
         <div style={{ position: 'relative' }}>
         <AttachFileSharpIcon style={{ color: files.length > 0 ? 'red' : 'inherit' }} />
           {files.length > 0 && (
-            files.map((index) => (
+            files.map((file, index) => (
               <div key={index} style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                 <CancelOutlinedIcon
                   style={{
