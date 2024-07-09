@@ -154,6 +154,7 @@ async def process_image(file: UploadFile):
     # Encode the image content to base64
     image_base64 = base64.b64encode(image_content).decode('utf-8')
     client = get_openai_client()
+    logger.info(f"Base64 encoded image: {image_base64[:100]}...")
     # Create a request to OpenAI to describe the image
     response = client.chat.completions.create(
         model='gpt-4o',
