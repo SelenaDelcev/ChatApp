@@ -193,7 +193,7 @@ async def upload_file(
                 text_content = file_content.decode('utf-8')
             elif file.content_type in ['image/jpeg', 'image/png', 'image/webp']:
                 logger.info(f"Detektuje se da je poslat fajl u formatu slike")
-                await process_image(file)
+                text_content = await process_image(file)
             else:
                 return {"detail": "Nije podržan ovaj tip datoteke"}
 
