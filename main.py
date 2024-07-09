@@ -149,7 +149,7 @@ async def process_image(image_content: bytes, mime_type: str):
     )
     
     # Extract the description from the response
-    description = response["choices"][0]["message"]["content"]
+    description = response.choices[0].message.content
     return description
 @app.post('/upload')
 async def upload_file(
