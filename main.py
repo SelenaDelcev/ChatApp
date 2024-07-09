@@ -155,6 +155,7 @@ async def process_image(file: UploadFile):
     image_base64 = base64.b64encode(image_content).decode('utf-8')
     client = get_openai_client()
     logger.info(f"Image content: {image_content}")
+    logger.info(f"Image content length: {len(image_content)} bytes")
     # Create a request to OpenAI to describe the image
     response = client.chat.completions.create(
         model='gpt-4o',
@@ -190,7 +191,9 @@ async def upload_file(
     try:
         all_text_content = ""
         for file in files:
+            logger.info(f"File content before read {len(file)} bytes")
             file_content = await file.read()
+            logger.info(f"File content after read {len(file_content)} bytes")
             file_name = file.filename
             text_content = ""
 
