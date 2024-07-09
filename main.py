@@ -169,7 +169,7 @@ async def process_image(file: UploadFile):
         messages=[
             {
                 "role": "user",
-                "content": f"What’s in this image? data:image/jpeg;base64,{image_base64}"
+                "content": f"What’s in this image? data:image/jpeg;base64, {image_base64}"
             }
         ],
         max_tokens=300,
