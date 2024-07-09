@@ -130,13 +130,10 @@ async def stream(session_id: str):
     return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 # Function to read and process image files
-async def process_image(file: UploadFile):
-    image_content = await file.read()
-    logger.info(f"Image content after read: {len(image_content)} bytes")
+async def process_image(image_content: bytes, mime_type: str):
     # Encode the image content to base64
-    image_base64 = base64.b64encode(await file.read()).decode('utf-8')
+    image_base64 = base64.b64encode(image_content).decode('utf-8')
     logger.info(f"PAZNJA!! IMAGE BASE 64 JE: {image_base64}")
-    mime_type = file.content_type
     data_url_prefix = f"data:{mime_type};base64,"
     client = get_openai_client()
     # Create a request to OpenAI to describe the image
@@ -177,7 +174,7 @@ async def upload_file(
             elif file.content_type == 'text/plain':
                 text_content = file_content.decode('utf-8')
             elif file.content_type in ['image/jpeg', 'image/png', 'image/webp']:
-                text_content = await process_image(file)
+                text_content = await process_image(file_content, file.content_type)
             else:
                 return {"detail": "Nije podržan ovaj tip datoteke"}
 
