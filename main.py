@@ -133,9 +133,26 @@ async def stream(session_id: str):
 async def process_image(file: UploadFile):
     # Read the image file
     image_content = await file.read()
+    # Provera da li je sadržaj fajla prazan
+    if not image_content:
+        logger.error("Failed to read image content, content is empty")
+        raise HTTPException(status_code=400, detail="Failed to read image content, content is empty")
+        
     # Encode the image content to base64
     image_base64 = base64.b64encode(image_content).decode('utf-8')
+        
+    # Provera dužine base64 stringa
+    if len(image_base64) < 100:
+        logger.error("Base64 encoded image string is too short")
+        raise HTTPException(status_code=400, detail="Base64 encoded image string is too short")
+        
+    # Log base64 length i sadržaj
+    logger.info(f"Base64 encoded image length: {len(image_base64)} characters")
+    logger.info(f"Base64 encoded image start: {image_base64[:100]}")
+    logger.info(f"Base64 encoded image end: {image_base64[-100:]}")
+        
     client = get_openai_client()
+    logger.info(f"Image content length: {len(image_content)} bytes")
     # Create a request to OpenAI to describe the image
     response = client.chat.completions.create(
         model='gpt-4o',
@@ -162,7 +179,8 @@ async def upload_file(
         all_text_content = ""
         for file in files:
             file_content = await file.read()
-            file_name = file.filename
+            # Logovanje posle čitanja fajla
+            logger.info(f"File content after read: {len(file_content)} bytes")
             text_content = ""
             if file.content_type == 'application/pdf':
                 text_content = read_pdf(file.file)
