@@ -147,11 +147,9 @@ async def process_image(image_content: bytes, mime_type: str):
         ],
         max_tokens=300,
     )
-    # Log API response
-    logger.info(f"Response Image: {response}")
     
     # Extract the description from the response
-    description = response.choices[0].message.content
+    description = response["choices"][0]["message"]["content"]
     return description
 @app.post('/upload')
 async def upload_file(
