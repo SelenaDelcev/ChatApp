@@ -141,11 +141,6 @@ async def process_image(file: UploadFile):
     # Encode the image content to base64
     image_base64 = base64.b64encode(image_content).decode('utf-8')
         
-    # Provera dužine base64 stringa
-    if len(image_base64) < 100:
-        logger.error("Base64 encoded image string is too short")
-        raise HTTPException(status_code=400, detail="Base64 encoded image string is too short")
-        
     # Log base64 length i sadržaj
     logger.info(f"Base64 encoded image length: {len(image_base64)} characters")
     logger.info(f"Base64 encoded image start: {image_base64[:100]}")
