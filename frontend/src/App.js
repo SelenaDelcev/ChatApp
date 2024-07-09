@@ -324,7 +324,7 @@ const App = () => {
                   title="Calendly Scheduling"
                 ></iframe>
               ) : message.type === 'error' ? (
-                <Alert variant="outlined" severity="error" style={{ color: 'white' }}>{message.content}</Alert>
+                <Alert variant="outlined" severity="error" style={{ color: '#black' }}>{message.content}</Alert>
               ) : (
                 <Tooltip
                   title={tooltipText[index] || 'Klikni da kopiraš tekst'}

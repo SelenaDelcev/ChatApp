@@ -154,6 +154,7 @@ async def process_image(file: UploadFile):
     # Encode the image content to base64
     image_base64 = base64.b64encode(image_content).decode('utf-8')
     client = get_openai_client()
+    logger.info(f"Image content", {image_content})
     # Create a request to OpenAI to describe the image
     response = client.chat.completions.create(
         model='gpt-4o',
@@ -200,6 +201,7 @@ async def upload_file(
             elif file.content_type == 'text/plain':
                 text_content = file_content.decode('utf-8')
             elif file.content_type in ['image/jpeg', 'image/png', 'image/webp']:
+                logger.info(f"Detektuje se da je poslat fajl u formatu slike")
                 await process_image(file)
             else:
                 return {"detail": "Nije podržan ovaj tip datoteke"}
