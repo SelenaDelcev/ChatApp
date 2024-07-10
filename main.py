@@ -133,9 +133,10 @@ async def stream(session_id: str):
 async def process_image(image_content: bytes, mime_type: str):
     # Encode the image content to base64
     image_base64 = base64.b64encode(image_content).decode('utf-8')
-    logger.info(f"PAZNJA!! IMAGE BASE 64 JE: {image_base64}")
+    logger.info(f"IMAGE BASE 64: {image_base64[:100]}")
     data_url_prefix = f"data:{mime_type};base64,"
     client = get_openai_client()
+    logger.info(f"Content za sliku: {data_url_prefix}{image_base64}")
     # Create a request to OpenAI to describe the image
     response = client.chat.completions.create(
         model='gpt-4o',
@@ -147,10 +148,13 @@ async def process_image(image_content: bytes, mime_type: str):
         ],
         max_tokens=300,
     )
+
+    logger.info(f"Opis sike dobijen od OpenAI: {response}")
     
     # Extract the description from the response
     description = response.choices[0].message.content
     return description
+
 @app.post('/upload')
 async def upload_file(
     request: Request,
@@ -175,8 +179,6 @@ async def upload_file(
                 text_content = await process_image(file_content, file.content_type)
             else:
                 return {"detail": "Nije podržan ovaj tip datoteke"}
-            
-            logger.info(f"Opis sike {text_content}")
 
             all_text_content += text_content + "\n"
 
