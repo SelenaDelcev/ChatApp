@@ -164,6 +164,8 @@ async def upload_file(
             file_content = await file.read()
             # Logovanje posle čitanja fajla
             logger.info(f"File content after read: {len(file_content)} bytes")
+            logger.info(f"File {file}")
+            logger.info(f"File content {file_content}")
             text_content = ""
             if file.content_type == 'application/pdf':
                 text_content = read_pdf(file.file)
@@ -172,8 +174,6 @@ async def upload_file(
             elif file.content_type == 'text/plain':
                 text_content = file_content.decode('utf-8')
             elif file.content_type in ['image/jpeg', 'image/png', 'image/webp']:
-                logger.info(f"File {file}")
-                logger.info(f"File content {file_content}")
                 text_content = await process_image(file_content, file.content_type)
             else:
                 return {"detail": "Nije podržan ovaj tip datoteke"}
