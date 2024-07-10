@@ -13,6 +13,8 @@ import docx
 import json
 import asyncio
 import base64
+import aiofiles
+
 # Initialize the FastAPI app
 app = FastAPI()
 # Configure logging
@@ -26,6 +28,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 # Data model for incoming messages
 class Message(BaseModel):
     role: str
@@ -69,6 +72,7 @@ async def chat_with_ai(
     logger.info(f"Messages: {messages[session_id]}")
     # Add the prepared message content with context to the OpenAI messages
     messages[session_id].append({"role": "user", "content": prepared_message_content})
+
 @app.get('/chat/stream')
 async def stream(session_id: str):
     if not session_id:
@@ -88,7 +92,6 @@ async def stream(session_id: str):
                 stream=True,
             ):
                 content = response.choices[0].delta.content or ""
-                logger.info(f"Content: {content}")
                 if content:
                     assistant_message_content += content
                     # Text formatting
@@ -98,14 +101,12 @@ async def stream(session_id: str):
                     streaming_content = formatted_content + '▌'
                     logger.info(f"Streaming content: {streaming_content}")
                     json_data = json.dumps({'content': streaming_content})
-                    logger.info(f"JSON Data: {json_data}")
                     yield f"data: {json_data}\n\n"
                     await asyncio.sleep(0.1)
             final_formatted_content = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', assistant_message_content)
             final_formatted_content = re.sub(r'\[(.*?)\]\((.*?)\)', r'<a href="\2" target="_blank">\1</a>', final_formatted_content)
             logger.info(f"Assistant response: {final_formatted_content}")
             final_json_data = json.dumps({'content': final_formatted_content})
-            logger.info(f"Final JSON Data: {final_json_data}")
             yield f"data: {final_json_data}\n\n"
             messages[session_id].append({"role": "assistant", "content": final_formatted_content})
         except RateLimitError as e:
@@ -129,31 +130,9 @@ async def stream(session_id: str):
             yield f"data: {json.dumps({'detail': f'Internal server error: {str(e)}'})}\n\n"
     return StreamingResponse(event_generator(), media_type="text/event-stream")
 
-# Function to read and process image files
-async def process_image(image_content: bytes, mime_type: str):
-    # Encode the image content to base64
-    image_base64 = base64.b64encode(image_content).decode('utf-8')
-    logger.info(f"IMAGE BASE 64: {image_base64[:100]}")
-    data_url_prefix = f"data:{mime_type};base64,"
-    client = get_openai_client()
-    logger.info(f"Content za sliku: {data_url_prefix}{image_base64}")
-    # Create a request to OpenAI to describe the image
-    response = client.chat.completions.create(
-        model='gpt-4o',
-        messages=[
-            {
-                "role": "user",
-                "content": f"Describe this image {data_url_prefix}{image_base64}"
-            }
-        ],
-        max_tokens=300,
-    )
-
-    logger.info(f"Opis sike dobijen od OpenAI: {response}")
-    
-    # Extract the description from the response
-    description = response.choices[0].message.content
-    return description
+def image_to_base64(image_path: str) -> str:
+    with open(image_path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode('utf-8')
 
 @app.post('/upload')
 async def upload_file(
