@@ -109,9 +109,7 @@
   padding: 15px;
   background-color: #343541; 
   border-radius: 20px;
-  position: fixed;
-  bottom: 0;
-  width: 90%;
+  width: 95%;
   box-sizing: border-box;
 }
 
@@ -279,9 +277,21 @@ button:disabled:hover {
     font-size: 20px;
   }
 
+  .input-row {
+    padding: 5px; 
+  }
+
   .message-input .send-button {
     width: 35px;
     height: 35px;
   }
 
+  .message-input .input-container {
+    margin-right: 5px; 
+  }
+
+  .message-input input[type="text"] {
+    font-size: 0.875rem; 
+    padding: 8px;
+  }
 }
