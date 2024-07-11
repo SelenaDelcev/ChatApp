@@ -53,6 +53,7 @@ def read_docx(file):
     for paragraph in doc.paragraphs:
         text += paragraph.text + "\n"
     return text
+
 @app.post('/chat')
 async def chat_with_ai(
     request: Request,
@@ -133,7 +134,6 @@ async def stream(session_id: str):
 async def process_image(image_content: bytes, mime_type: str):
     # Encode the image content to base64
     image_base64 = base64.b64encode(image_content).decode('utf-8')
-    logger.info(f"IMAGE BASE 64: {image_base64[:100]}")
     data_url_prefix = f"data:{mime_type};base64,"
     client = get_openai_client()
     # Create a request to OpenAI to describe the image
@@ -147,8 +147,6 @@ async def process_image(image_content: bytes, mime_type: str):
         ],
         max_tokens=300,
     )
-
-    logger.info(f"Opis sike dobijen od OpenAI: {response}")
 
     # Extract the description from the response
     description = response.choices[0].message.content
