@@ -182,7 +182,7 @@ async def stream(session_id: str):
 async def process_image(image_content: bytes, mime_type: str):
     # Encode the image content to base64
     image_base64 = base64.b64encode(image_content).decode('utf-8')
-    data_url_prefix = f"data:{mime_type};base64,"
+    data_url_prefix = f"data:{mime_type};base64,{image_base64}"
     client = get_openai_client()
     # Create a request to OpenAI to describe the image
     response = client.chat.completions.create(
@@ -190,7 +190,15 @@ async def process_image(image_content: bytes, mime_type: str):
         messages=[
             {
                 "role": "user",
-                "content": f"Describe this image {data_url_prefix}{image_base64}"
+                "content": [
+                    {"type": "text", "text": "Opiši šta se nalazi na slici?"},
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": data_url_prefix
+                        }
+                    }
+                ]
             }
         ],
         max_tokens=300,
