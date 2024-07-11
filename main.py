@@ -5,7 +5,7 @@ from pydantic import BaseModel
 import openai
 import logging
 import re
-from typing import Dict, List
+from typing import Dict, List, Optional
 from openai import OpenAI, RateLimitError, APIConnectionError, APIError
 from util_func import get_openai_client, rag_tool_answer, system_prompt
 import PyPDF2
@@ -34,6 +34,24 @@ class Message(BaseModel):
     role: str
     content: str
 messages: Dict[str, List[Dict[str, str]]] = {}
+
+
+# NOVO >> da zajedno sa porukom pošaljemo i info da li treba da generisemo predložena pitanja
+class ChatRequest(BaseModel):
+    message: Message
+    suggest_questions: Optional[bool] = False
+
+# NOVO >> obican openai poziv
+def suggest_questions(sq_system, sq_user): 
+    client = get_openai_client()
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[sq_system, sq_user],
+    )
+    odgovor = response.choices[0].message.content
+    return odgovor.split('\n')
+
+
 def initialize_session(request, messages: Dict[str, List[Dict[str, str]]], system_prompt):
     session_id = request.headers.get("Session-ID")
     if not session_id:
@@ -54,11 +72,16 @@ def read_docx(file):
         text += paragraph.text + "\n"
     return text
 
+
+# NOVO >> chat_request paket umesto samo message
 @app.post('/chat')
 async def chat_with_ai(
     request: Request,
-    message: Message,
+    chat_request: ChatRequest,
 ):
+    message = chat_request.message
+    suggest_questions = chat_request.suggest_questions
+
     session_id = initialize_session(request, messages, system_prompt)
     logger.info(f"Received message: {message.content}")
     context = rag_tool_answer(message.content)
@@ -73,6 +96,31 @@ async def chat_with_ai(
     logger.info(f"Messages: {messages[session_id]}")
     # Add the prepared message content with context to the OpenAI messages
     messages[session_id].append({"role": "user", "content": prepared_message_content})
+
+    # NOVO >> da bi se info o uspesnom primanju poruke vratio FE
+    # I onda doddajemo predlozena pitanja u odgovor
+    response_data = {"detail": "Message received"}
+    if suggest_questions:
+        sq_system = {
+            "role": "system",
+            "content": f"Use only the Serbian language"
+        }
+        sq_user = {
+            "role": "user",
+            "content": f"""You are an AI language model assistant for a company's chatbot. Your task is to generate 3 different possible continuation sentences that a user might say based on the given context. These continuations should be in the form of questions or statements that naturally follow from the conversation.
+
+                        Your goal is to help guide the user through the Q&A process by predicting their next possible inputs. Ensure these continuations are from the user's perspective and relevant to the context provided.
+
+                        Provide these sentences separated by newlines, without numbering.
+
+                        Original context:
+                        {message.content}
+                        """}
+        suggested_questions = suggest_questions(sq_system, sq_user)
+        response_data["suggested_questions"] = suggested_questions
+
+    return response_data
+
 
 @app.get('/chat/stream')
 async def stream(session_id: str):
