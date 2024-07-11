@@ -130,9 +130,29 @@ async def stream(session_id: str):
             yield f"data: {json.dumps({'detail': f'Internal server error: {str(e)}'})}\n\n"
     return StreamingResponse(event_generator(), media_type="text/event-stream")
 
-def image_to_base64(image_path: str) -> str:
-    with open(image_path, "rb") as image_file:
-        return base64.b64encode(image_file.read()).decode('utf-8')
+async def process_image(image_content: bytes, mime_type: str):
+    # Encode the image content to base64
+    image_base64 = base64.b64encode(image_content).decode('utf-8')
+    logger.info(f"IMAGE BASE 64: {image_base64[:100]}")
+    data_url_prefix = f"data:{mime_type};base64,"
+    client = get_openai_client()
+    # Create a request to OpenAI to describe the image
+    response = client.chat.completions.create(
+        model='gpt-4o',
+        messages=[
+            {
+                "role": "user",
+                "content": f"Describe this image {data_url_prefix}{image_base64}"
+            }
+        ],
+        max_tokens=300,
+    )
+
+    logger.info(f"Opis sike dobijen od OpenAI: {response}")
+
+    # Extract the description from the response
+    description = response.choices[0].message.content
+    return description
 
 @app.post('/upload')
 async def upload_file(
