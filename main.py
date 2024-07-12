@@ -125,7 +125,6 @@ async def chat_with_ai(
                         """}
         suggested_questions = suggest_questions(sq_system, sq_user)
         response_data["suggested_questions"] = suggested_questions
-
     return response_data
 
 
