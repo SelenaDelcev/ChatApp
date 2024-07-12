@@ -111,7 +111,7 @@ async def chat_with_ai(
 
                         Your goal is to help guide the user through the Q&A process by predicting their next possible inputs. Ensure these continuations are from the user's perspective and relevant to the context provided.
 
-                        Provide these sentences separated by newlines, without numbering.
+                        Provide these sentences separated by newlines, without numbering. Only provide them! Do not include any additional information or context. All 3 continuations should be aimed at the user's intent.
 
                         Original context:
                         {message.content}
