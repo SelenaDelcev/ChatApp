@@ -27,6 +27,7 @@ const App = () => {
   const [tooltipText, setTooltipText] = useState({});
   const [suggestQuestions, setSuggestQuestions] = useState(false);
   const [userSuggestQuestions, setUserSuggestQuestions] = useState([]);
+  const [isAssistantResponding, setIsAssistantResponding] = useState(false);
 
   useEffect(() => {
     const storedSessionId = sessionStorage.getItem('sessionId');
@@ -85,6 +86,7 @@ const App = () => {
   };
 
   const getEventSource = () => {
+    setIsAssistantResponding(true);
     const eventSource = new EventSource(`https://chatappdemobackend.azurewebsites.net/chat/stream?session_id=${sessionId}`, {
       withCredentials: true
     });
@@ -110,12 +112,14 @@ const App = () => {
       if (!content.endsWith('▌')) {
         eventSource.close();
         updateLastMessage({ role: 'assistant', content: filteredContent.replace('▌', '') });
+        setIsAssistantResponding(false);
       }
     };
 
     eventSource.onerror = function(event) {
       console.error("EventSource failed.", event);
       eventSource.close();
+      setIsAssistantResponding(false);
     };
   }
 
@@ -167,6 +171,11 @@ const App = () => {
           ]);
         } else {
           getEventSource();
+        }
+
+        // Now, request suggested questions only if assistant has finished responding
+        if (!isAssistantResponding) {
+          handleSuggestedQuestionClick(newMessage);
         }
 
         if (data.suggested_questions) {
@@ -420,7 +429,7 @@ const App = () => {
           <div ref={messagesEndRef} />
         </div>
         <div className="input-row-container">
-          {userSuggestQuestions.length > 0 && (
+          {!isAssistantResponding && userSuggestQuestions.length > 0 && (
             <div className="suggested-questions">
               {userSuggestQuestions.map((question, index) => (
                 <Button
