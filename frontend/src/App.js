@@ -25,6 +25,8 @@ const App = () => {
   const [sessionId, setSessionId] = useState('');
   const [files, setFiles] = useState([]);
   const [tooltipText, setTooltipText] = useState({});
+  const [suggestQuestions, setSuggestQuestions] = useState(false);
+  const [userSuggestQuestions, setUserSuggestQuestions] = useState([]);
 
   useEffect(() => {
     const storedSessionId = sessionStorage.getItem('sessionId');
@@ -96,11 +98,18 @@ const App = () => {
       const data = JSON.parse(event.data);
       const content = data.content;
 
-      updateLastMessage({ role: 'assistant', content: content });
+      if (data.suggested_questions) {
+        console.log(data.suggested_questions);
+      }
+
+      // Filtriraj sadržaj da ne uključuje predložena pitanja
+      const filteredContent = content.replace(/Predložena pitanja:.*(?:\n|$)/g, '');
+
+      updateLastMessage({ role: 'assistant', content: filteredContent });
 
       if (!content.endsWith('▌')) {
         eventSource.close();
-        updateLastMessage({ role: 'assistant', content: content.replace('▌', '') });
+        updateLastMessage({ role: 'assistant', content: filteredContent.replace('▌', '') });
       }
     };
 
@@ -119,6 +128,10 @@ const App = () => {
     setFiles([]);
   };
 
+  const handleSuggestQuestions = () => {
+    setSuggestQuestions(!suggestQuestions);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -128,23 +141,24 @@ const App = () => {
     };
 
     setMessages([...messages, newMessage]);
-    setUserMessage('');
+    setUserMessage(''); // Clear the input field
 
     if (files.length > 0) {
       await handleFileSubmit(newMessage);
     } else {
-      try {
-        const response = await axios.post('https://chatappdemobackend.azurewebsites.net/chat', newMessage, {
-          method: 'POST',
+      try { 
+        const response = await axios.post('https://chatappdemobackend.azurewebsites.net/chat', {
+          message: newMessage,
+          suggest_questions: suggestQuestions // send the flag to the backend
+        }, {
           headers: {
-            'Content-Type': 'application/json',
-            'Session-ID': sessionId
+              'Content-Type': 'application/json',
+              'Session-ID': sessionId
           },
           withCredentials: true,
-          responseType: 'text'
         });
 
-        const data = JSON.parse(response.data);
+        const data = response.data;
 
         if (data && data.calendly_url) {
           setMessages((prevMessages) => [
@@ -153,6 +167,71 @@ const App = () => {
           ]);
         } else {
           getEventSource();
+        }
+
+        if (data.suggested_questions) {
+          setUserSuggestQuestions(data.suggested_questions.filter(q => q.trim() !== '')); // Update the state with the non-empty suggested questions
+        } else {
+          setUserSuggestQuestions([]); // Clear suggested questions if not present
+        }
+      } catch (error) {
+        console.error('Network or Server Error:', error);
+        if (error.response) {
+          console.error('Error Response Data:', error.response.data);
+          console.error('Error Response Status:', error.response.status);
+          console.error('Error Response Headers:', error.response.headers);
+        } else if (error.request) {
+          console.error('No response received:', error.request);
+        } else {
+          console.error('Error Message:', error.message);
+        }
+      }
+    }
+  };
+
+  const handleSuggestedQuestionClick = async (question) => {
+    console.log("Pitanje: ", question);
+    setUserMessage(question); // Set the clicked question as the user message
+    setUserSuggestQuestions([]); // Clear suggested questions until the assistant responds
+  
+    const newMessage = {
+      role: 'user',
+      content: question
+    };
+  
+    setMessages(prevMessages => [...prevMessages, newMessage]);
+    setUserMessage(''); // Clear the input field
+  
+    if (files.length > 0) {
+      await handleFileSubmit(newMessage);
+    } else {
+      try { 
+        const response = await axios.post('https://chatappdemobackend.azurewebsites.net/chat', {
+          message: newMessage,
+          suggest_questions: suggestQuestions // send the flag to the backend
+        }, {
+          headers: {
+              'Content-Type': 'application/json',
+              'Session-ID': sessionId
+          },
+          withCredentials: true,
+        });
+  
+        const data = response.data;
+  
+        if (data && data.calendly_url) {
+          setMessages((prevMessages) => [
+            ...prevMessages,
+            { role: 'assistant', content: data.calendly_url, type: 'calendly' },
+          ]);
+        } else {
+          getEventSource();
+        }
+  
+        if (data.suggested_questions) {
+          setUserSuggestQuestions(data.suggested_questions.filter(q => q.trim() !== '')); // Update the state with the non-empty suggested questions
+        } else {
+          setUserSuggestQuestions([]); // Clear suggested questions if not present
         }
       } catch (error) {
         console.error('Network or Server Error:', error);
@@ -307,7 +386,7 @@ const App = () => {
       onClick: () => document.getElementById('fileInput').click()
   },
     { icon: <SaveAltSharpIcon />, name: 'Sačuvaj', onClick: handleSaveChat },
-    { icon: <TipsAndUpdatesIcon />, name: 'Predlozi pitanja/odgovora' },
+    { icon: <TipsAndUpdatesIcon style={{ color: suggestQuestions === true ? 'red' : 'inherit' }}/>, name: suggestQuestions === true ? 'Iskljuci predloge pitanja' : 'Predlozi pitanja/odgovora', onClick: handleSuggestQuestions },
     { icon: <VolumeUpIcon />, name: 'Slušaj odgovor asistenta' }
 
   ];
@@ -340,52 +419,68 @@ const App = () => {
           ))}
           <div ref={messagesEndRef} />
         </div>
-        <div className="input-row">
-          <form onSubmit={handleSubmit} className="message-input">
-            <div className="input-container">
-              <input
-                type="text"
-                placeholder="Kako vam mogu pomoći?"
-                value={userMessage}
-                onChange={(e) => setUserMessage(e.target.value)}
-              />
-              {userMessage.trim() ? (
-                <Button type="submit" className="send-button">
-                  <SendIcon />
+        <div className="input-row-container">
+          {userSuggestQuestions.length > 0 && (
+            <div className="suggested-questions">
+              {userSuggestQuestions.map((question, index) => (
+                <Button
+                  key={index}
+                  variant="outlined"
+                  onClick={() => handleSuggestedQuestionClick(question)}
+                  style={{ marginBottom: '10px' }}
+                >
+                  {question}
                 </Button>
-              ) : (
-                <Tooltip title="Kliknite da započnete snimanje">
-                  <Button
-                    className={`send-button ${isRecording ? 'recording' : ''}`}
-                    onClick={handleVoiceClick}
-                  >
-                    <KeyboardVoiceIcon />
-                  </Button>
-                </Tooltip>
-              )}
+              ))}
             </div>
-          </form>
-          <SpeedDial
-            ariaLabel="SpeedDial basic example"
-            className="speed-dial"
-            icon={<SpeedDialIcon />}
-          >
-            {actions.map((action) => (
-              <SpeedDialAction
-                key={action.name}
-                icon={action.icon}
-                tooltipTitle={action.name}
-                onClick={action.onClick}
-              />
-            ))}
-          </SpeedDial>
-          <input
-            id="fileInput"
-            type="file"
-            multiple
-            style={{ display: 'none' }}
-            onChange={handleFileChange}
-          />
+          )}
+          <div className="input-row">
+            <form onSubmit={handleSubmit} className="message-input">
+              <div className="input-container">
+                <input
+                  type="text"
+                  placeholder="Kako vam mogu pomoći?"
+                  value={userMessage}
+                  onChange={(e) => setUserMessage(e.target.value)}
+                />
+                {userMessage.trim() ? (
+                  <Button type="submit" className="send-button">
+                    <SendIcon />
+                  </Button>
+                ) : (
+                  <Tooltip title="Kliknite da započnete snimanje">
+                    <Button
+                      className={`send-button ${isRecording ? 'recording' : ''}`}
+                      onClick={handleVoiceClick}
+                    >
+                      <KeyboardVoiceIcon />
+                    </Button>
+                  </Tooltip>
+                )}
+              </div>
+            </form>
+            <SpeedDial
+              ariaLabel="SpeedDial basic example"
+              className="speed-dial"
+              icon={<SpeedDialIcon />}
+            >
+              {actions.map((action) => (
+                <SpeedDialAction
+                  key={action.name}
+                  icon={action.icon}
+                  tooltipTitle={action.name}
+                  onClick={action.onClick}
+                />
+              ))}
+            </SpeedDial>
+            <input
+              id="fileInput"
+              type="file"
+              multiple
+              style={{ display: 'none' }}
+              onChange={handleFileChange}
+            />
+          </div>
         </div>
       </div>
     </div>

@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Request, Depends, File, UploadFile, Form
+from fastapi import FastAPI, HTTPException, Request, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
@@ -13,7 +13,6 @@ import docx
 import json
 import asyncio
 import base64
-import aiofiles
 
 # Initialize the FastAPI app
 app = FastAPI()
@@ -42,14 +41,16 @@ class ChatRequest(BaseModel):
     suggest_questions: Optional[bool] = False
 
 # NOVO >> obican openai poziv
-def suggest_questions(sq_system, sq_user): 
+def generate_suggested_questions(sq_system, sq_user): 
     client = get_openai_client()
     response = client.chat.completions.create(
         model="gpt-4o",
         messages=[sq_system, sq_user],
     )
     odgovor = response.choices[0].message.content
-    return odgovor.split('\n')
+    # Filter out empty strings
+    return [question for question in odgovor.split('\n') if question.strip()]
+
 
 
 def initialize_session(request, messages: Dict[str, List[Dict[str, str]]], system_prompt):
@@ -95,10 +96,8 @@ async def chat_with_ai(
     messages[session_id].append({"role": "user", "content": message.content})
     logger.info(f"Messages: {messages[session_id]}")
     # Add the prepared message content with context to the OpenAI messages
-    messages[session_id].append({"role": "user", "content": prepared_message_content})
+    ({"role": "user", "content": prepared_message_content})
 
-    # NOVO >> da bi se info o uspesnom primanju poruke vratio FE
-    # I onda doddajemo predlozena pitanja u odgovor
     response_data = {"detail": "Message received"}
     if suggest_questions:
         sq_system = {
@@ -111,12 +110,12 @@ async def chat_with_ai(
 
                         Your goal is to help guide the user through the Q&A process by predicting their next possible inputs. Ensure these continuations are from the user's perspective and relevant to the context provided.
 
-                        Provide these sentences separated by newlines, without numbering. Only provide them! Do not include any additional information or context. All 3 continuations should be aimed at the user's intent.
+                        Provide these sentences separated by newlines, without numbering.
 
                         Original context:
                         {message.content}
                         """}
-        suggested_questions = suggest_questions(sq_system, sq_user)
+        suggested_questions = generate_suggested_questions(sq_system, sq_user)
         response_data["suggested_questions"] = suggested_questions
 
     return response_data
