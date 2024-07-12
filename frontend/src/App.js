@@ -199,17 +199,13 @@ const App = () => {
   };
 
   const handleSuggestedQuestionClick = async (question) => {
-    console.log("Pitanje: ", question);
-    setUserMessage(question); // Set the clicked question as the user message
-    setUserSuggestQuestions([]); // Clear suggested questions until the assistant responds
-  
     const newMessage = {
       role: 'user',
       content: question
     };
   
     setMessages(prevMessages => [...prevMessages, newMessage]);
-    setUserMessage(''); // Clear the input field
+    setUserSuggestQuestions([]);
   
     if (files.length > 0) {
       await handleFileSubmit(newMessage);
