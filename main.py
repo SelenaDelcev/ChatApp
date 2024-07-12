@@ -103,19 +103,19 @@ async def chat_with_ai(
     if suggest_questions:
         sq_system = {
             "role": "system",
-            "content": f"Use only the Serbian language"
+            "content": f"Use only the Servuab language"           
+                f"You are an AI language model assistant for a company's chatbot. Your task is to generate "
+                f"3 different possible continuation sentences that a user might say based on the given context. "
+                f"These continuations should be in the form of questions or statements that naturally follow from "
+                f"the conversation.\n\n"
+                f"Your goal is to help guide the user through the Q&A process by predicting their next possible inputs. "
+                f"Ensure these continuations are from the user's perspective and relevant to the context provided.\n\n"
+                f"Provide these sentences separated by newlines, without numbering.\n\n"
+                f"Original context:\n"
         }
         sq_user = {
             "role": "user",
-            "content": f"""You are an AI language model assistant for a company's chatbot. Your task is to generate 3 different possible continuation sentences that a user might say based on the given context. These continuations should be in the form of questions or statements that naturally follow from the conversation.
-
-                        Your goal is to help guide the user through the Q&A process by predicting their next possible inputs. Ensure these continuations are from the user's perspective and relevant to the context provided.
-
-                        Provide these sentences separated by newlines, without numbering. Only provide them! Do not include any additional information or context. All 3 continuations should be aimed at the user's intent.
-
-                        Original context:
-                        {message.content}
-                        """}
+            "content": f"{message.content}"}
         suggested_questions = suggest_questions(sq_system, sq_user)
         response_data["suggested_questions"] = suggested_questions
 
