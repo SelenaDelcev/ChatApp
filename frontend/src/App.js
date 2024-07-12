@@ -104,7 +104,6 @@ const App = () => {
         console.log(data.suggested_questions);
       }
 
-      // Filtriraj sadržaj da ne uključuje predložena pitanja
       const filteredContent = content.replace(/Predložena pitanja:.*(?:\n|$)/g, '');
 
       updateLastMessage({ role: 'assistant', content: filteredContent });
@@ -143,8 +142,8 @@ const App = () => {
       role: 'user',
       content: userMessage
     };
-    
-    setUserMessage(''); // Clear the input field
+
+    setUserMessage('');
 
     if (files.length > 0) {
       await handleFileSubmit(newMessage);
@@ -152,7 +151,7 @@ const App = () => {
       try { 
         const response = await axios.post('https://chatappdemobackend.azurewebsites.net/chat', {
           message: newMessage,
-          suggest_questions: suggestQuestions // send the flag to the backend
+          suggest_questions: suggestQuestions 
         }, {
           headers: {
               'Content-Type': 'application/json',
