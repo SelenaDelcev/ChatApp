@@ -143,8 +143,7 @@ const App = () => {
       role: 'user',
       content: userMessage
     };
-
-    setMessages([...messages, newMessage]);
+    
     setUserMessage(''); // Clear the input field
 
     if (files.length > 0) {
