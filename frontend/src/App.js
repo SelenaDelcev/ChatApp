@@ -77,22 +77,53 @@ const App = () => {
     } else {
       navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
         mediaRecorderRef.current = new MediaRecorder(stream);
-
+        let silenceTimeout;
+  
+        const resetSilenceTimeout = () => {
+          clearTimeout(silenceTimeout);
+          silenceTimeout = setTimeout(() => {
+            mediaRecorderRef.current.stop();
+          }, 5000);
+        };
+  
         mediaRecorderRef.current.ondataavailable = (event) => {
           const blob = event.data;
+          console.log("Blob:", blob);
           handleAudioUpload(blob);
         };
-
+  
         mediaRecorderRef.current.onstart = () => {
           console.log('Recording started');
+          resetSilenceTimeout();
         };
-
+  
         mediaRecorderRef.current.onstop = () => {
           console.log('Recording stopped');
+          clearTimeout(silenceTimeout);
         };
-
+  
         mediaRecorderRef.current.start();
         setIsRecording(true);
+  
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const source = audioContext.createMediaStreamSource(stream);
+        const analyser = audioContext.createAnalyser();
+        source.connect(analyser);
+        analyser.fftSize = 2048;
+        const dataArray = new Uint8Array(analyser.fftSize);
+  
+        const detectSilence = () => {
+          analyser.getByteTimeDomainData(dataArray);
+          const isSilent = dataArray.every(value => value === 128);
+          if (!isSilent) {
+            resetSilenceTimeout();
+          }
+          if (isRecording) {
+            requestAnimationFrame(detectSilence);
+          }
+        };
+  
+        detectSilence();
       });
     }
   };
