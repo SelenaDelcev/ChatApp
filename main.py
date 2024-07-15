@@ -6,13 +6,14 @@ import openai
 import logging
 import re
 from typing import Dict, List, Optional
-from openai import OpenAI, RateLimitError, APIConnectionError, APIError
+from openai import OpenAI, OpenAIError, RateLimitError, APIConnectionError, APIError
 from util_func import get_openai_client, rag_tool_answer, system_prompt
 import PyPDF2
 import docx
 import json
 import asyncio
 import base64
+import os
 
 # Initialize the FastAPI app
 app = FastAPI()
@@ -240,3 +241,28 @@ async def upload_file(
     except Exception as e:
         logger.error(f"File upload error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"File upload error: {str(e)}")
+    
+@app.post("/transcribe")
+async def transcribe_audio(file: UploadFile = File(...), session_id: str = Form(...)):
+    try:
+        client = get_openai_client()
+        file_location = f"temp_{session_id}.webm"
+        with open(file_location, "wb") as f:
+            f.write(await file.read())
+
+        with open(file_location, "rb") as audio_file:
+            response = client.audio.transcriptions.create(
+                model="whisper-1",
+                file=audio_file,
+                language="sr"
+            )
+
+        os.remove(file_location)
+
+        return {"transcript": response.text}
+    except OpenAIError as e:
+        print(f"OpenAI Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as e:
+        print(f"Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
