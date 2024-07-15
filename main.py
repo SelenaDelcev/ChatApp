@@ -1,3 +1,5 @@
+import io
+import os
 from fastapi import FastAPI, HTTPException, Request, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
@@ -13,7 +15,6 @@ import docx
 import json
 import asyncio
 import base64
-import os
 
 # Initialize the FastAPI app
 app = FastAPI()
@@ -40,6 +41,7 @@ messages: Dict[str, List[Dict[str, str]]] = {}
 class ChatRequest(BaseModel):
     message: Message
     suggest_questions: Optional[bool] = False
+    play_audio_response: Optional[bool] = False
 
 # NOVO >> obican openai poziv
 def generate_suggested_questions(sq_system, sq_user): 
@@ -51,6 +53,19 @@ def generate_suggested_questions(sq_system, sq_user):
     odgovor = response.choices[0].message.content
     # Filter out empty strings
     return [question for question in odgovor.split('\n') if question.strip()]
+
+def generate_audio_response(full_response):
+    client = get_openai_client()
+    spoken_response = client.audio.speech.create(
+        model="tts-1-hd",
+        voice="nova",
+        input=full_response,
+    )
+    spoken_response_bytes = spoken_response.read()
+    buffer = io.BytesIO(spoken_response_bytes)
+    buffer.seek(0)
+    audio_base64 = base64.b64encode(buffer.read()).decode()
+    return audio_base64
 
 
 
@@ -100,18 +115,23 @@ async def chat_with_ai(
     ({"role": "user", "content": prepared_message_content})
 
     response_data = {"detail": "Message received"}
+    
     if suggest_questions:
         sq_system = {
             "role": "system",
-            "content": """Use only the Serbian language         
-                You are an AI language model assistant for a company's chatbot. Your task is to generate 3 different possible continuation sentences that a user might say based on the given context.
-                These continuations should be in the form of questions or statements that naturally follow from the conversation.\n\n
-                Your goal is to help guide the user through the Q&A process by predicting their next possible inputs. Ensure these continuations are from the user's perspective and relevant to the context provided.\n\n
-                Provide these sentences separated by newlines, without numbering. Original context:\n"""
+            "content": f"Use only the Serbian language"
         }
         sq_user = {
             "role": "user",
-            "content": f"{message.content}"}
+            "content": f"""You are an AI language model assistant for a company's chatbot. Your task is to generate 3 different possible continuation sentences that a user might say based on the given context. These continuations should be in the form of questions or statements that naturally follow from the conversation.
+
+                        Your goal is to help guide the user through the Q&A process by predicting their next possible inputs. Ensure these continuations are from the user's perspective and relevant to the context provided.
+
+                        Provide these sentences separated by newlines, without numbering.
+
+                        Original context:
+                        {message.content}
+                        """}
         suggested_questions = generate_suggested_questions(sq_system, sq_user)
         response_data["suggested_questions"] = suggested_questions
 
@@ -151,7 +171,11 @@ async def stream(session_id: str):
             final_formatted_content = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', assistant_message_content)
             final_formatted_content = re.sub(r'\[(.*?)\]\((.*?)\)', r'<a href="\2" target="_blank">\1</a>', final_formatted_content)
             logger.info(f"Assistant response: {final_formatted_content}")
-            final_json_data = json.dumps({'content': final_formatted_content})
+            plain_text_content = re.sub(r'\*\*(.*?)\*\*', r'\1', assistant_message_content)
+            plain_text_content = re.sub(r'\[(.*?)\]\((.*?)\)', r'\1', plain_text_content)
+            
+            audio_response = generate_audio_response(plain_text_content)
+            final_json_data = json.dumps({'content': final_formatted_content, 'audio': audio_response})
             yield f"data: {final_json_data}\n\n"
             messages[session_id].append({"role": "assistant", "content": final_formatted_content})
         except RateLimitError as e:

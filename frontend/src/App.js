@@ -29,6 +29,8 @@ const App = () => {
   const [suggestQuestions, setSuggestQuestions] = useState(false);
   const [userSuggestQuestions, setUserSuggestQuestions] = useState([]);
   const [isAssistantResponding, setIsAssistantResponding] = useState(false);
+  const [audioResponse, setAudioResponse] = useState(false);
+  const audioRef = useRef(null);
 
   useEffect(() => {
     const storedSessionId = sessionStorage.getItem('sessionId');
@@ -105,6 +107,7 @@ const App = () => {
         mediaRecorderRef.current.start();
         setIsRecording(true);
   
+        // Detekcija aktivnosti mikrofona
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
         const source = audioContext.createMediaStreamSource(stream);
         const analyser = audioContext.createAnalyser();
@@ -128,6 +131,14 @@ const App = () => {
     }
   };
 
+  const handleAudioResponse = (audioBase64) => {
+    if(audioResponse) {
+      const audio = new Audio(`data:audio/wav;base64,${audioBase64}`);
+      audioRef.current = audio
+      audio.play();
+    }
+  };
+
   const getEventSource = () => {
     setIsAssistantResponding(true);
     const eventSource = new EventSource(`https://chatappdemobackend.azurewebsites.net/chat/stream?session_id=${sessionId}`, {
@@ -147,6 +158,11 @@ const App = () => {
         console.log(data.suggested_questions);
       }
 
+      if (data.audio) {
+        handleAudioResponse(data.audio);
+      }
+
+      // Filtriraj sadržaj da ne uključuje predložena pitanja
       const filteredContent = content.replace(/Predložena pitanja:.*(?:\n|$)/g, '');
 
       updateLastMessage({ role: 'assistant', content: filteredContent });
@@ -178,6 +194,14 @@ const App = () => {
     setSuggestQuestions(!suggestQuestions);
   };
 
+  const handleAudioResponseClick = () => {
+    if (audioRef.current) {
+        audioRef.current.pause(); 
+        audioRef.current = null;
+    }
+    setAudioResponse(!audioResponse);
+};
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -185,8 +209,8 @@ const App = () => {
       role: 'user',
       content: userMessage
     };
-
-    setUserMessage('');
+    
+    setUserMessage(''); // Clear the input field
 
     if (files.length > 0) {
       await handleFileSubmit(newMessage);
@@ -194,7 +218,7 @@ const App = () => {
       try { 
         const response = await axios.post('https://chatappdemobackend.azurewebsites.net/chat', {
           message: newMessage,
-          suggest_questions: suggestQuestions 
+          suggest_questions: suggestQuestions // send the flag to the backend
         }, {
           headers: {
               'Content-Type': 'application/json',
@@ -254,7 +278,8 @@ const App = () => {
       try { 
         const response = await axios.post('https://chatappdemobackend.azurewebsites.net/chat', {
           message: newMessage,
-          suggest_questions: suggestQuestions // send the flag to the backend
+          suggest_questions: suggestQuestions, // send the flag to the backend
+          play_audio_response: audioResponse // send the flag to the backend
         }, {
           headers: {
               'Content-Type': 'application/json',
@@ -343,11 +368,6 @@ const App = () => {
     files.forEach(file => formData.append('files', file));
     formData.append('message', newMessage.content);
 
-    console.log('formData pre slanja na backend:');
-    for (let pair of formData.entries()) {
-      console.log('Par', pair[0], pair[1]);
-    }
-
     try {
       const response = await axios.post('https://chatappdemobackend.azurewebsites.net/upload', formData, {
         headers: {
@@ -432,8 +452,8 @@ const App = () => {
       onClick: () => document.getElementById('fileInput').click()
   },
     { icon: <SaveAltSharpIcon />, name: 'Sačuvaj', onClick: handleSaveChat },
-    { icon: <TipsAndUpdatesIcon style={{ color: suggestQuestions === true ? 'red' : 'inherit' }}/>, name: suggestQuestions === true ? 'Iskljuci predloge pitanja' : 'Predlozi pitanja/odgovora', onClick: handleSuggestQuestions },
-    { icon: <VolumeUpIcon />, name: 'Slušaj odgovor asistenta' }
+    { icon: <TipsAndUpdatesIcon style={{ color: suggestQuestions === true ? 'red' : 'inherit' }}/>, name: suggestQuestions === true ? 'Isključi predloge pitanja' : 'Predlozi pitanja/odgovora', onClick: handleSuggestQuestions },
+    { icon: <VolumeUpIcon style={{ color: audioResponse === true ? 'red' : 'inherit' }}/>, name: audioResponse === true ? 'Isključi audio odgovor asistenta' : 'Slušaj odgovor asistenta', onClick: handleAudioResponseClick },
 
   ];
 
