@@ -74,7 +74,7 @@ def initialize_session(request, messages: Dict[str, List[Dict[str, str]]], syste
     if not session_id:
         raise HTTPException(status_code=400, detail="Session ID not provided")
     if session_id not in messages:
-        messages[session_id] = [{"role": "system", "content": system_prompt()}]
+        messages[session_id] = [{"role": "system", "content": system_prompt}]
     return session_id
 def read_pdf(file):
     reader = PyPDF2.PdfReader(file)
