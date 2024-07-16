@@ -12,7 +12,23 @@ def get_hybrid_query_processor():
 def positive_calendly():
     calendly_url = "https://outlook.office365.com/book/Chatbot@positive.rs/"
     return calendly_url
-   
+
+def get_structured_decision_from_model(user_query):
+    client = get_openai_client()
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        temperature=0,
+        response_format={"type": "json_object"},
+        messages=[
+        {"role": "system", "content": system_query()},
+        {"role": "user", "content": f"Please provide the response in JSON format: {user_query}"}
+    ],
+    )
+    json_string = response.choices[0].message.content
+    # Parse the JSON string into a Python dictionary
+    data_dict = json.loads(json_string)
+    # Access the 'tool' value
+    return data_dict['tool'] if 'tool' in data_dict else list(data_dict.values())[0]
 
 def rag_tool_answer(prompt):
     context = ""
