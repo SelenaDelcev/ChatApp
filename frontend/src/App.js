@@ -1,37 +1,43 @@
+//The main imports
 import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
 import axios from 'axios';
+//Import Buttons and Additions
+import { v4 as uuidv4 } from 'uuid';
 import SpeedDial from '@mui/material/SpeedDial';
 import SpeedDialIcon from '@mui/material/SpeedDialIcon';
 import SpeedDialAction from '@mui/material/SpeedDialAction';
 import Button from '@mui/material/Button';
 import Alert from '@mui/material/Alert';
+import Tooltip from '@mui/material/Tooltip';
+//Import Icons
 import SendIcon from '@mui/icons-material/Send';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AttachFileSharpIcon from '@mui/icons-material/AttachFileSharp';
 import SaveAltSharpIcon from '@mui/icons-material/SaveAltSharp';
-import Tooltip from '@mui/material/Tooltip';
 import TipsAndUpdatesIcon from '@mui/icons-material/TipsAndUpdates';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import KeyboardVoiceIcon from '@mui/icons-material/KeyboardVoice';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
-import { v4 as uuidv4 } from 'uuid';
 
 const App = () => {
-  const [messages, setMessages] = useState([]);
-  const [userMessage, setUserMessage] = useState('');
+  //State Variables
+  const [messages, setMessages] = useState([]); //Message in message container
+  const [userMessage, setUserMessage] = useState(''); //Message in input field
+  const messagesEndRef = useRef(null); //ScrollBar
+  const [sessionId, setSessionId] = useState(''); //SessionId for Users
+  const [files, setFiles] = useState([]); //The array in which the added files are placed
+  const [tooltipText, setTooltipText] = useState({}); //Tooltip text field
+  const [suggestQuestions, setSuggestQuestions] = useState(false); //Flag for suggest questions
+  const [userSuggestQuestions, setUserSuggestQuestions] = useState([]);
+  const [isAssistantResponding, setIsAssistantResponding] = useState(false); //Flag for audio response
+  //Audio in/out variables
   const mediaRecorderRef = useRef(null);
   const [isRecording, setIsRecording] = useState(false);
-  const messagesEndRef = useRef(null);
-  const [sessionId, setSessionId] = useState('');
-  const [files, setFiles] = useState([]);
-  const [tooltipText, setTooltipText] = useState({});
-  const [suggestQuestions, setSuggestQuestions] = useState(false);
-  const [userSuggestQuestions, setUserSuggestQuestions] = useState([]);
-  const [isAssistantResponding, setIsAssistantResponding] = useState(false);
   const [audioResponse, setAudioResponse] = useState(false);
   const audioRef = useRef(null);
 
+  //Generating sessionId
   useEffect(() => {
     const storedSessionId = sessionStorage.getItem('sessionId');
     if (storedSessionId) {
@@ -43,6 +49,7 @@ const App = () => {
     }
   }, []);
 
+  //Scroll to the last message
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -51,6 +58,7 @@ const App = () => {
     scrollToBottom();
   }, [messages]);
 
+  //Sending an audio message from the user to the backend for transcription
   const handleAudioUpload = async (blob) => {
     const formData = new FormData();
     formData.append('file', blob, 'audio.webm');
@@ -65,7 +73,7 @@ const App = () => {
       });
   
       const { transcript } = response.data;
-      setUserMessage(transcript);
+      setUserMessage(transcript); //Set transcript text in input field
       setIsRecording(false);
     } catch (error) {
       console.error('Error uploading audio file:', error);
@@ -107,7 +115,6 @@ const App = () => {
         mediaRecorderRef.current.start();
         setIsRecording(true);
   
-        // Detekcija aktivnosti mikrofona
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
         const source = audioContext.createMediaStreamSource(stream);
         const analyser = audioContext.createAnalyser();

@@ -1,15 +1,15 @@
-import io
-import os
 from fastapi import FastAPI, HTTPException, Request, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
-import openai
-import logging
-import re
 from typing import Dict, List, Optional
 from openai import OpenAI, OpenAIError, RateLimitError, APIConnectionError, APIError
 from util_func import get_openai_client, rag_tool_answer, system_prompt
+import openai
+import logging
+import re
+import io
+import os
 import PyPDF2
 import docx
 import json
@@ -18,9 +18,11 @@ import base64
 
 # Initialize the FastAPI app
 app = FastAPI()
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
@@ -36,24 +38,23 @@ class Message(BaseModel):
     content: str
 messages: Dict[str, List[Dict[str, str]]] = {}
 
-
-# NOVO >> da zajedno sa porukom pošaljemo i info da li treba da generisemo predložena pitanja
 class ChatRequest(BaseModel):
     message: Message
     suggest_questions: Optional[bool] = False
     play_audio_response: Optional[bool] = False
 
-# NOVO >> obican openai poziv
+# Function for generating suggested questions.
 def generate_suggested_questions(sq_system, sq_user): 
     client = get_openai_client()
     response = client.chat.completions.create(
         model="gpt-4o",
         messages=[sq_system, sq_user],
     )
-    odgovor = response.choices[0].message.content
+    questionsList = response.choices[0].message.content
     # Filter out empty strings
-    return [question for question in odgovor.split('\n') if question.strip()]
+    return [question for question in questionsList.split('\n') if question.strip()]
 
+# Function for generating an audio response.
 def generate_audio_response(full_response):
     client = get_openai_client()
     spoken_response = client.audio.speech.create(
@@ -67,8 +68,7 @@ def generate_audio_response(full_response):
     audio_base64 = base64.b64encode(buffer.read()).decode()
     return audio_base64
 
-
-
+# Function for initializing user session.
 def initialize_session(request, messages: Dict[str, List[Dict[str, str]]], system_prompt):
     session_id = request.headers.get("Session-ID")
     if not session_id:
@@ -76,12 +76,16 @@ def initialize_session(request, messages: Dict[str, List[Dict[str, str]]], syste
     if session_id not in messages:
         messages[session_id] = [{"role": "system", "content": system_prompt()}]
     return session_id
+
+# Function for reading .pdf files after upload.
 def read_pdf(file):
     reader = PyPDF2.PdfReader(file)
     text = ""
     for page in reader.pages:
         text += page.extract_text()
     return text
+
+# Function for reading .docx files after upload.
 def read_docx(file):
     doc = docx.Document(file)
     text = ""
@@ -89,8 +93,7 @@ def read_docx(file):
         text += paragraph.text + "\n"
     return text
 
-
-# NOVO >> chat_request paket umesto samo message
+# The endpoint is called from the frontend when the user sends a message. The message is accepted, prepared in this endpoint, and then stored in the messages variable.
 @app.post('/chat')
 async def chat_with_ai(
     request: Request,
@@ -100,9 +103,11 @@ async def chat_with_ai(
     suggest_questions = chat_request.suggest_questions
 
     session_id = initialize_session(request, messages, system_prompt)
-    logger.info(f"Received message: {message.content}")
+
+    # Use RAG tool for context
     context = rag_tool_answer(message.content)
-    logger.info(f"Context from RAG: {context}")
+
+    # If the response from the RAG tool is a meeting link, return calendly_url
     if context == "https://outlook.office365.com/book/Chatbot@positive.rs/":
         return {"calendly_url": context}
         
@@ -110,7 +115,7 @@ async def chat_with_ai(
         
     # Save the original user message
     messages[session_id].append({"role": "user", "content": message.content})
-    logger.info(f"Messages: {messages[session_id]}")
+
     # Add the prepared message content with context to the OpenAI messages
     ({"role": "user", "content": prepared_message_content})
 
@@ -137,7 +142,7 @@ async def chat_with_ai(
 
     return response_data
 
-
+# Endpoint used to send OpenAI messages and generate streamed messages.
 @app.get('/chat/stream')
 async def stream(session_id: str):
     if not session_id:
@@ -170,14 +175,17 @@ async def stream(session_id: str):
                     await asyncio.sleep(0.1)
             final_formatted_content = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', assistant_message_content)
             final_formatted_content = re.sub(r'\[(.*?)\]\((.*?)\)', r'<a href="\2" target="_blank">\1</a>', final_formatted_content)
-            logger.info(f"Assistant response: {final_formatted_content}")
+
+            # Remove tags to generate text for audio response
             plain_text_content = re.sub(r'\*\*(.*?)\*\*', r'\1', assistant_message_content)
             plain_text_content = re.sub(r'\[(.*?)\]\((.*?)\)', r'\1', plain_text_content)
             
             audio_response = generate_audio_response(plain_text_content)
+
             final_json_data = json.dumps({'content': final_formatted_content, 'audio': audio_response})
             yield f"data: {final_json_data}\n\n"
             messages[session_id].append({"role": "assistant", "content": final_formatted_content})
+
         except RateLimitError as e:
             if 'insufficient_quota' in str(e):
                 logger.error("Potrošili ste sve tokene, kontaktirajte Positive za dalja uputstva")
@@ -197,8 +205,10 @@ async def stream(session_id: str):
         except Exception as e:
             logger.error(f"Internal server error: {str(e)}")
             yield f"data: {json.dumps({'detail': f'Internal server error: {str(e)}'})}\n\n"
+            
     return StreamingResponse(event_generator(), media_type="text/event-stream")
 
+# Generate a text description for the image.
 async def process_image(image_content: bytes, mime_type: str):
     # Encode the image content to base64
     image_base64 = base64.b64encode(image_content).decode('utf-8')
@@ -228,6 +238,7 @@ async def process_image(image_content: bytes, mime_type: str):
     description = response.choices[0].message.content
     return description
 
+# The function is called when checking what type of file is uploaded and sends file/s to a specific function.
 @app.post('/upload')
 async def upload_file(
     request: Request,
@@ -239,8 +250,7 @@ async def upload_file(
         all_text_content = ""
         for file in files:
             file_content = await file.read()
-            # Logovanje posle čitanja fajla
-            logger.info(f"File content after read: {len(file_content)} bytes")
+
             text_content = ""
             if file.content_type == 'application/pdf':
                 text_content = read_pdf(file.file)
@@ -265,7 +275,8 @@ async def upload_file(
     except Exception as e:
         logger.error(f"File upload error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"File upload error: {str(e)}")
-    
+
+# The function is called when a voice message is recorded, the text is transcribed, and returned to the front end.   
 @app.post("/transcribe")
 async def transcribe_audio(file: UploadFile = File(...), session_id: str = Form(...)):
     try:
