@@ -149,7 +149,10 @@ const App = () => {
   };
 
   const isMobileDevice = () => {
-    return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if(window.innerWidth <= 800) {
+      return true
+    }
+    return false;
   };
 
   const getEventSource = () => {
