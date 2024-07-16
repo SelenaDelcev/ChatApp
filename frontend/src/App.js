@@ -36,6 +36,7 @@ const App = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [audioResponse, setAudioResponse] = useState(false);
   const audioRef = useRef(null);
+  const [audioBase64, setAudioBase64] = useState(null);
 
   //Generating sessionId
   useEffect(() => {
@@ -139,11 +140,16 @@ const App = () => {
   };
 
   const handleAudioResponse = (audioBase64) => {
-    if(audioResponse) {
-      const audio = new Audio(`data:audio/wav;base64,${audioBase64}`);
-      audioRef.current = audio
-      audio.play();
+    if (audioResponse) {
+        const audio = new Audio(`data:audio/wav;base64,${audioBase64}`);
+        audioRef.current = audio;
+        audio.autoplay = true;
+        audio.play();
     }
+  };
+
+  const isMobileDevice = () => {
+    return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
   };
 
   const getEventSource = () => {
@@ -166,6 +172,7 @@ const App = () => {
       }
 
       if (data.audio) {
+        setAudioBase64(data.audio);
         handleAudioResponse(data.audio);
       }
 
@@ -483,8 +490,16 @@ const App = () => {
                   placement="top"
                   arrow
                 >
-                  <div onClick={() => handleCopyToClipboard(message.content, index)}>
-                    <p dangerouslySetInnerHTML={getMessageContent(message)} />
+                  <div>
+                    <div onClick={() => handleCopyToClipboard(message.content)}>
+                        <p dangerouslySetInnerHTML={getMessageContent(message)} />
+                    </div>
+                    {message.role === 'assistant' && audioResponse && isMobileDevice() && (
+                        <audio controls>
+                            <source src={`data:audio/wav;base64,${audioBase64}`} type="audio/wav" />
+                            Your browser does not support the audio element.
+                        </audio>
+                    )}
                   </div>
                 </Tooltip>
               )}
