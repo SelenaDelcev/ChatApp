@@ -1,5 +1,5 @@
 //The main imports
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
 import axios from 'axios';
 //Import Buttons and Additions
@@ -139,15 +139,14 @@ const App = () => {
     }
   };
 
-  const handleAudioResponse = useCallback((audioBase64) => {
+  const handleAudioResponse = (audioBase64) => {
     if (audioResponse) {
       setAudioBase64(audioBase64);
       const audio = new Audio(`data:audio/wav;base64,${audioBase64}`);
       audioRef.current = audio;
-      audio.autoplay = true;
       audio.play();
     }
-  }, [audioResponse]);
+  }
 
   const getEventSource = () => {
     setIsAssistantResponding(true);
@@ -488,11 +487,11 @@ const App = () => {
                   arrow
                 >
                   <div>
-                    <div onClick={() => handleCopyToClipboard(message.content)}>
+                    <div onClick={() => handleCopyToClipboard(message.content, index)}>
                         <p dangerouslySetInnerHTML={getMessageContent(message)} />
                     </div>
                     {message.role === 'assistant' && audioResponse && audioBase64 && (
-                        <audio controls>
+                        <audio controls autoPlay>
                             <source src={`data:audio/wav;base64,${audioBase64}`} type="audio/wav" />
                             Your browser does not support the audio element.
                         </audio>
