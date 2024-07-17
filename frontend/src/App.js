@@ -148,13 +148,6 @@ const App = () => {
     }
   };
 
-  const isMobileDevice = () => {
-    if(window.innerWidth <= 800) {
-      return true
-    }
-    return false;
-  };
-
   const getEventSource = () => {
     setIsAssistantResponding(true);
     const eventSource = new EventSource(`https://chatappdemobackend.azurewebsites.net/chat/stream?session_id=${sessionId}`, {
@@ -498,7 +491,7 @@ const App = () => {
                     <div onClick={() => handleCopyToClipboard(message.content)}>
                         <p dangerouslySetInnerHTML={getMessageContent(message)} />
                     </div>
-                    {message.role === 'assistant' && audioResponse && isMobileDevice() && (
+                    {message.role === 'assistant' && audioResponse && (
                         <audio controls>
                             <source src={`data:audio/wav;base64,${audioBase64}`} type="audio/wav" />
                             Your browser does not support the audio element.
