@@ -175,6 +175,7 @@ const App = () => {
       }
 
       if (data.audio) {
+        console.log("Audio data received:", data.audio);
         setAudioBase64(data.audio);
         handleAudioResponse(data.audio);
       }
