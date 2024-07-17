@@ -1,5 +1,5 @@
 //The main imports
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import './App.css';
 import axios from 'axios';
 //Import Buttons and Additions
@@ -58,12 +58,6 @@ const App = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
-
-  useEffect(() => {
-    if (audioResponse && audioBase64) {
-      handleAudioResponse(audioBase64);
-    }
-  }, [audioResponse, audioBase64]);
 
   //Sending an audio message from the user to the backend for transcription
   const handleAudioUpload = async (blob) => {
@@ -145,14 +139,20 @@ const App = () => {
     }
   };
 
-  const handleAudioResponse = (audioBase64) => {
+  const handleAudioResponse = useCallback((audioBase64) => {
     if (audioResponse) {
         const audio = new Audio(`data:audio/wav;base64,${audioBase64}`);
         audioRef.current = audio;
         audio.autoplay = true;
         audio.play();
     }
-  };
+  }, [audioResponse]);
+
+  useEffect(() => {
+    if (audioResponse && audioBase64) {
+      handleAudioResponse(audioBase64);
+    }
+  }, [audioResponse, audioBase64, handleAudioResponse]);
 
   const getEventSource = () => {
     setIsAssistantResponding(true);
