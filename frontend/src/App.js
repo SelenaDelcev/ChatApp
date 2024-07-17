@@ -144,7 +144,6 @@ const App = () => {
       setAudioBase64(audioBase64);
       const audio = new Audio(`data:audio/wav;base64,${audioBase64}`);
       audioRef.current = audio;
-      audio.play();
     }
   }
 
@@ -490,7 +489,7 @@ const App = () => {
                     <div onClick={() => handleCopyToClipboard(message.content, index)}>
                         <p dangerouslySetInnerHTML={getMessageContent(message)} />
                     </div>
-                    {message.role === 'assistant' && audioResponse && audioBase64 && (
+                    {message.role === 'assistant' && audioResponse && audioBase64 && index === messages.length - 1 && !isAssistantResponding && (
                         <audio controls autoPlay>
                             <source src={`data:audio/wav;base64,${audioBase64}`} type="audio/wav" />
                             Your browser does not support the audio element.
@@ -526,6 +525,7 @@ const App = () => {
                   placeholder="Kako vam mogu pomoći?"
                   value={userMessage}
                   onChange={(e) => setUserMessage(e.target.value)}
+                  disabled={isAssistantResponding}
                 />
                 {userMessage.trim() ? (
                   <Button type="submit" className="send-button">
@@ -536,6 +536,7 @@ const App = () => {
                     <Button
                       className={`send-button ${isRecording ? 'recording' : ''}`}
                       onClick={handleVoiceClick}
+                      disabled={isAssistantResponding}
                     >
                       <KeyboardVoiceIcon />
                     </Button>
