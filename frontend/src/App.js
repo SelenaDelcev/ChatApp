@@ -141,18 +141,13 @@ const App = () => {
 
   const handleAudioResponse = useCallback((audioBase64) => {
     if (audioResponse) {
-        const audio = new Audio(`data:audio/wav;base64,${audioBase64}`);
-        audioRef.current = audio;
-        audio.autoplay = true;
-        audio.play();
+      setAudioBase64(audioBase64);
+      const audio = new Audio(`data:audio/wav;base64,${audioBase64}`);
+      audioRef.current = audio;
+      audio.autoplay = true;
+      audio.play();
     }
   }, [audioResponse]);
-
-  useEffect(() => {
-    if (audioResponse && audioBase64) {
-      handleAudioResponse(audioBase64);
-    }
-  }, [audioResponse, audioBase64, handleAudioResponse]);
 
   const getEventSource = () => {
     setIsAssistantResponding(true);
@@ -175,7 +170,6 @@ const App = () => {
 
       if (data.audio) {
         console.log("Audio data received:", data.audio);
-        setAudioBase64(data.audio);
         handleAudioResponse(data.audio);
       }
 
@@ -497,7 +491,7 @@ const App = () => {
                     <div onClick={() => handleCopyToClipboard(message.content)}>
                         <p dangerouslySetInnerHTML={getMessageContent(message)} />
                     </div>
-                    {message.role === 'assistant' && audioResponse && (
+                    {message.role === 'assistant' && audioResponse && audioBase64 && (
                         <audio controls>
                             <source src={`data:audio/wav;base64,${audioBase64}`} type="audio/wav" />
                             Your browser does not support the audio element.
