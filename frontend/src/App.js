@@ -378,6 +378,8 @@ const App = () => {
     files.forEach(file => formData.append('files', file));
     formData.append('message', newMessage.content);
 
+    setMessages(prevMessages => [...prevMessages, newMessage]);
+
     try {
       const response = await axios.post('https://chatappdemobackend.azurewebsites.net/upload', formData, {
         headers: {
