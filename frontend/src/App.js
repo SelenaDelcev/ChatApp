@@ -197,6 +197,7 @@ const App = () => {
     sessionStorage.setItem('sessionId', newSessionId);
     setSessionId(newSessionId);
     setFiles([]);
+    setUserSuggestQuestions([]);
   };
 
   const handleSuggestQuestions = () => {

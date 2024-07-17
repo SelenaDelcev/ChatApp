@@ -177,8 +177,7 @@ async def stream(session_id: str):
             final_formatted_content = re.sub(r'\[(.*?)\]\((.*?)\)', r'<a href="\2" target="_blank">\1</a>', final_formatted_content)
 
             # Remove tags to generate text for audio response
-            plain_text_content = re.sub(r'\*\*(.*?)\*\*', r'\1', assistant_message_content)
-            plain_text_content = re.sub(r'\[(.*?)\]\((.*?)\)', r'\1', plain_text_content)
+            plain_text_content = re.sub(r'<.*?>', '', final_formatted_content)
             
             audio_response = generate_audio_response(plain_text_content)
 
