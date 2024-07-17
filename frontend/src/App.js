@@ -59,6 +59,12 @@ const App = () => {
     scrollToBottom();
   }, [messages]);
 
+  useEffect(() => {
+    if (audioResponse && audioBase64) {
+      handleAudioResponse(audioBase64);
+    }
+  }, [audioResponse, audioBase64]);
+
   //Sending an audio message from the user to the backend for transcription
   const handleAudioUpload = async (blob) => {
     const formData = new FormData();
