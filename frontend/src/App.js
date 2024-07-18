@@ -198,6 +198,7 @@ const App = () => {
     setSessionId(newSessionId);
     setFiles([]);
     setUserSuggestQuestions([]);
+    setAudioBase64(null);
   };
 
   const handleSuggestQuestions = () => {
@@ -208,6 +209,9 @@ const App = () => {
     if (audioRef.current) {
         audioRef.current.pause(); 
         audioRef.current = null;
+    }
+    if (audioResponse === false) {
+      setAudioBase64(null);
     }
     setAudioResponse(!audioResponse);
 };
