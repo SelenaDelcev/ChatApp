@@ -62,7 +62,7 @@ const App = () => {
   //Sending an audio message from the user to the backend for transcription
   const handleAudioUpload = async (blob) => {
     const formData = new FormData();
-    formData.append('file', blob, 'audio.mp3');
+    formData.append('file', blob, 'audio.mp4');
     formData.append('session_id', sessionId);
     console.log("Form data:", formData)
   
@@ -87,7 +87,7 @@ const App = () => {
       mediaRecorderRef.current.stop();
     } else {
       navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
-        mediaRecorderRef.current = new MediaRecorder(stream);
+        mediaRecorderRef.current = new MediaRecorder(stream, { mimeType: 'audio/mp4' });
         let silenceTimeout;
   
         const resetSilenceTimeout = () => {
