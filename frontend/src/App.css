@@ -19,6 +19,26 @@
   overflow: hidden;
 }
 
+/* Hide scrollbar for entire chat container */
+.chat-container::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
+}
+
+.chat-container {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+/* Hide scrollbar for messages div */
+.messages::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
+}
+
+.messages {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
 .messages {
   flex: 1; 
   padding: 10px;
