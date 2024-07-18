@@ -30,11 +30,11 @@ const App = () => {
   const [tooltipText, setTooltipText] = useState({}); //Tooltip text field
   const [suggestQuestions, setSuggestQuestions] = useState(false); //Flag for suggest questions
   const [userSuggestQuestions, setUserSuggestQuestions] = useState([]);
-  const [isAssistantResponding, setIsAssistantResponding] = useState(false); //Flag for audio response
+  const [isAssistantResponding, setIsAssistantResponding] = useState(false); 
   //Audio in/out variables
   const mediaRecorderRef = useRef(null);
   const [isRecording, setIsRecording] = useState(false);
-  const [audioResponse, setAudioResponse] = useState(false);
+  const [audioResponse, setAudioResponse] = useState(false); //Flag for audio response
   const audioRef = useRef(null);
   const [audioBase64, setAudioBase64] = useState(null);
 
@@ -62,7 +62,7 @@ const App = () => {
   //Sending an audio message from the user to the backend for transcription
   const handleAudioUpload = async (blob) => {
     const formData = new FormData();
-    formData.append('file', blob, 'audio.webm');
+    formData.append('file', blob, 'audio.mp3');
     formData.append('session_id', sessionId);
     console.log("Form data:", formData)
   
