@@ -55,6 +55,7 @@
   margin-bottom: 5px;
   max-width: 400px;
   width: fit-content;
+  margin: 15px 0;
 }
 
 .message.user {
@@ -63,6 +64,7 @@
   background: linear-gradient(145deg, #ff9a9d, #ff9a9d);
   background-attachment: fixed;
   position: relative;
+  padding: 0.1px 9px;
 }
 
 .message.user:before {
