@@ -74,7 +74,7 @@ const App = () => {
   //Sending an audio message from the user to the backend for transcription
   const handleAudioUpload = async (blob) => {
     const formData = new FormData();
-    formData.append('file', blob, 'audio.webm');
+    formData.append('file', blob, 'audio.mp4');
     formData.append('session_id', sessionId);
     console.log("Form data:", formData);
   
@@ -104,7 +104,7 @@ const App = () => {
       navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
         const recorder = RecordRTC(stream, {
           type: 'audio',
-          mimeType: 'audio/webm'
+          mimeType: 'audio/mp4'
         });
         recorderRef.current = recorder;
 
