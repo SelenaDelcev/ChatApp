@@ -10,6 +10,7 @@ import SpeedDialAction from '@mui/material/SpeedDialAction';
 import Button from '@mui/material/Button';
 import Alert from '@mui/material/Alert';
 import Tooltip from '@mui/material/Tooltip';
+import RecordRTC from 'recordrtc';
 //Import Icons
 import SendIcon from '@mui/icons-material/Send';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -247,7 +248,8 @@ const App = () => {
       try { 
         const response = await axios.post('https://chatappdemobackend.azurewebsites.net/chat', {
           message: newMessage,
-          suggest_questions: suggestQuestions // send the flag to the backend
+          suggest_questions: suggestQuestions, // send the flag to the backend
+          language: language // send the flag to the backend
         }, {
           headers: {
               'Content-Type': 'application/json',
