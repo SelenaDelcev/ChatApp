@@ -1,4 +1,3 @@
-//The main imports
 import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
 import axios from 'axios';
@@ -33,7 +32,7 @@ const App = () => {
   const [userSuggestQuestions, setUserSuggestQuestions] = useState([]);
   const [isAssistantResponding, setIsAssistantResponding] = useState(false); 
   //Audio in/out variables
-  const mediaRecorderRef = useRef(null);
+  const recorderRef = useRef(null);
   const [isRecording, setIsRecording] = useState(false);
   const [audioResponse, setAudioResponse] = useState(false); //Flag for audio response
   const audioRef = useRef(null);
@@ -75,9 +74,9 @@ const App = () => {
   //Sending an audio message from the user to the backend for transcription
   const handleAudioUpload = async (blob) => {
     const formData = new FormData();
-    formData.append('file', blob, 'audio.mp4');
+    formData.append('file', blob, 'audio.webm');
     formData.append('session_id', sessionId);
-    console.log("Form data:", formData)
+    console.log("Form data:", formData);
   
     try {
       const response = await axios.post('https://chatappdemobackend.azurewebsites.net/transcribe', formData, {
@@ -93,49 +92,43 @@ const App = () => {
       console.error('Error uploading audio file:', error);
       setIsRecording(false);
     }
-  }
+  };
 
   const handleVoiceClick = () => {
     if (isRecording) {
-      mediaRecorderRef.current.stop();
+      recorderRef.current.stopRecording(() => {
+        const blob = recorderRef.current.getBlob();
+        handleAudioUpload(blob);
+      });
     } else {
       navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
-        mediaRecorderRef.current = new MediaRecorder(stream, { mimeType: 'audio/mp4' });
+        const recorder = RecordRTC(stream, {
+          type: 'audio',
+          mimeType: 'audio/webm'
+        });
+        recorderRef.current = recorder;
+
+        recorder.startRecording();
+        setIsRecording(true);
+
         let silenceTimeout;
-  
         const resetSilenceTimeout = () => {
           clearTimeout(silenceTimeout);
           silenceTimeout = setTimeout(() => {
-            mediaRecorderRef.current.stop();
+            recorderRef.current.stopRecording(() => {
+              const blob = recorderRef.current.getBlob();
+              handleAudioUpload(blob);
+            });
           }, 5000);
         };
-  
-        mediaRecorderRef.current.ondataavailable = (event) => {
-          const blob = event.data;
-          console.log("Blob:", blob);
-          handleAudioUpload(blob);
-        };
-  
-        mediaRecorderRef.current.onstart = () => {
-          console.log('Recording started');
-          resetSilenceTimeout();
-        };
-  
-        mediaRecorderRef.current.onstop = () => {
-          console.log('Recording stopped');
-          clearTimeout(silenceTimeout);
-        };
-  
-        mediaRecorderRef.current.start();
-        setIsRecording(true);
-  
+
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
         const source = audioContext.createMediaStreamSource(stream);
         const analyser = audioContext.createAnalyser();
         source.connect(analyser);
         analyser.fftSize = 2048;
         const dataArray = new Uint8Array(analyser.fftSize);
-  
+
         const detectSilence = () => {
           analyser.getByteTimeDomainData(dataArray);
           const isSilent = dataArray.every(value => value === 128);
@@ -146,12 +139,12 @@ const App = () => {
             requestAnimationFrame(detectSilence);
           }
         };
-  
+
         detectSilence();
       })
       .catch((error) => {
         setIsRecording(false);
-    });
+      });
     }
   };
 
@@ -161,7 +154,7 @@ const App = () => {
       const audio = new Audio(`data:audio/wav;base64,${audioBase64}`);
       audioRef.current = audio;
     }
-  }
+  };
 
   const getEventSource = () => {
     setIsAssistantResponding(true);
@@ -204,7 +197,7 @@ const App = () => {
       eventSource.close();
       setIsAssistantResponding(false);
     };
-  }
+  };
 
   const handleClearChat = () => {
     setMessages([]);
@@ -230,7 +223,7 @@ const App = () => {
       setAudioBase64(null);
     }
     setAudioResponse(!audioResponse);
-};
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -310,7 +303,8 @@ const App = () => {
         const response = await axios.post('https://chatappdemobackend.azurewebsites.net/chat', {
           message: newMessage,
           suggest_questions: suggestQuestions, // send the flag to the backend
-          play_audio_response: audioResponse // send the flag to the backend
+          play_audio_response: audioResponse, // send the flag to the backend
+          language: language // send the flag to the backend
         }, {
           headers: {
               'Content-Type': 'application/json',
