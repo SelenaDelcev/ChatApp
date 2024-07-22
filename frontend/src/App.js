@@ -37,6 +37,8 @@ const App = () => {
   const [audioResponse, setAudioResponse] = useState(false); //Flag for audio response
   const audioRef = useRef(null);
   const [audioBase64, setAudioBase64] = useState(null);
+  // Language state
+  const [language, setLanguage] = useState('sr'); // Default language is Serbian
 
   //Generating sessionId
   useEffect(() => {
@@ -47,6 +49,16 @@ const App = () => {
       const newSessionId = uuidv4();
       sessionStorage.setItem('sessionId', newSessionId);
       setSessionId(newSessionId);
+    }
+  }, []);
+
+  // Check URL to set language
+  useEffect(() => {
+    const path = window.location.pathname;
+    if (path.endsWith('/en')) {
+      setLanguage('en');
+    } else {
+      setLanguage('sr');
     }
   }, []);
 
@@ -135,7 +147,10 @@ const App = () => {
         };
   
         detectSilence();
-      });
+      })
+      .catch((error) => {
+        setIsRecording(false);
+    });
     }
   };
 
@@ -172,7 +187,7 @@ const App = () => {
       }
 
       // Filtriraj sadržaj da ne uključuje predložena pitanja
-      const filteredContent = content.replace(/Predložena pitanja:.*(?:\n|$)/g, '');
+      const filteredContent = (language === 'en' ? content.replace(/Suggested questions:.*(?:\n|$)/g, '') : content.replace(/Predložena pitanja:.*(?:\n|$)/g, ''));
 
       updateLastMessage({ role: 'assistant', content: filteredContent });
 
@@ -425,7 +440,7 @@ const App = () => {
     setTimeout(() => {
       setTooltipText((prev) => ({
         ...prev,
-        [index]: 'Klikni da kopiraš tekst'
+        [index]: (language === 'en' ? 'Copy to clipboard' : 'Klikni da kopiraš tekst')
       }));
     }, 3000);
   };
@@ -438,7 +453,7 @@ const App = () => {
   };
 
   const actions = [
-    { icon: <DeleteIcon />, name: 'Obriši', onClick: handleClearChat },
+    { icon: <DeleteIcon />, name: (language === 'en' ? 'Delete' : 'Obriši'), onClick: handleClearChat },
     {
       icon: (
         <div style={{ position: 'relative' }}>
@@ -464,12 +479,12 @@ const App = () => {
           )}
         </div>
       ),
-      name: files.length > 0 ? files.map(file => file.name).join('\n') : 'Dodaj prilog',
+      name: files.length > 0 ? files.map(file => file.name).join('\n') : (language === 'en' ? 'Attach files' : 'Dodaj priloge'),
       onClick: () => document.getElementById('fileInput').click()
   },
-    { icon: <SaveAltSharpIcon />, name: 'Sačuvaj', onClick: handleSaveChat },
-    { icon: <TipsAndUpdatesIcon style={{ color: suggestQuestions === true ? 'red' : 'inherit' }}/>, name: suggestQuestions === true ? 'Isključi predloge pitanja' : 'Predlozi pitanja/odgovora', onClick: handleSuggestQuestions },
-    { icon: <VolumeUpIcon style={{ color: audioResponse === true ? 'red' : 'inherit' }}/>, name: audioResponse === true ? 'Isključi audio odgovor asistenta' : 'Slušaj odgovor asistenta', onClick: handleAudioResponseClick },
+    { icon: <SaveAltSharpIcon />, name: (language === 'en' ? 'Save' : 'Sačuvaj'), onClick: handleSaveChat },
+    { icon: <TipsAndUpdatesIcon style={{ color: suggestQuestions === true ? 'red' : 'inherit' }}/>, name: suggestQuestions === true ? (language === 'en' ? 'Turn off question suggestions' : 'Isključi predloge pitanja') : (language === 'en' ? 'Turn on question suggestions' : 'Predlozi pitanja/odgovora'), onClick: handleSuggestQuestions },
+    { icon: <VolumeUpIcon style={{ color: audioResponse === true ? 'red' : 'inherit' }}/>, name: audioResponse === true ? (language === 'en' ? 'Turn off assistant audio response' : 'Isključi audio odgovor asistenta') : (language === 'en' ? 'Turn on assistant audio response' : 'Slušaj odgovor asistenta'), onClick: handleAudioResponseClick },
 
   ];
 
@@ -488,7 +503,7 @@ const App = () => {
                 <Alert variant="outlined" severity="error" style={{ color: '#black' }}>{message.content}</Alert>
               ) : (
                 <Tooltip
-                  title={tooltipText[index] || 'Klikni da kopiraš tekst'}
+                  title={tooltipText[index] || (language === 'en' ? 'Copy to clipboard' : 'Klikni da kopiraš tekst')}
                   placement="top"
                   arrow
                 >
@@ -529,7 +544,7 @@ const App = () => {
               <div className="input-container">
                 <input
                   type="text"
-                  placeholder="Kako vam mogu pomoći?"
+                  placeholder={language === 'en' ? 'How can I help you?' : 'Kako vam mogu pomoći?'}
                   value={userMessage}
                   onChange={(e) => setUserMessage(e.target.value)}
                   disabled={isAssistantResponding}
@@ -539,7 +554,7 @@ const App = () => {
                     <SendIcon />
                   </Button>
                 ) : (
-                  <Tooltip title="Kliknite da započnete snimanje">
+                  <Tooltip title={language === 'en' ? 'Click to start recording': "Kliknite da započnete snimanje"}>
                     <Button
                       className={`send-button ${isRecording ? 'recording' : ''}`}
                       onClick={handleVoiceClick}
