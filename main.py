@@ -104,11 +104,14 @@ async def chat_with_ai(
     suggest_questions = chat_request.suggest_questions
     language = chat_request.language
 
+    print(f"Language: {language}")
+
     session_id = initialize_session(request, messages, system_prompt)
 
     if session_id not in messages:
         messages[session_id] = [{"role": "system", "content": system_prompt}]
-    messages[session_id].append({"role": "system", "language": language})
+    messages[session_id].append({"role": "system", "content": f"Use only the {'English' if language == 'en' else 'Serbian'} language. {system_prompt}"})
+
     # Use RAG tool for context
     context = rag_tool_answer(message.content)
 
@@ -154,31 +157,6 @@ async def stream(session_id: str):
         raise HTTPException(status_code=400, detail="Session ID not provided")
     if session_id not in messages:
         raise HTTPException(status_code=400, detail="No messages found for session")
-    
-
-    language = next((msg['language'] for msg in messages[session_id] if msg.get('language')), 'sr')
-    error_responses = {
-        'rate_limit': {
-            'en': "You have exhausted all tokens, please contact Positive for further instructions",
-            'sr': "Potrošili ste sve tokene, kontaktirajte Positive za dalja uputstva"
-        },
-        'api_connection': {
-            'en': "Unable to connect to the OpenAI API: {e}, please try again later.",
-            'sr': "Ne mogu da se povežem sa OpenAI API-jem: {e} pokušajte malo kasnije."
-        },
-        'api_error': {
-            'en': "API error: {e}, please try again later.",
-            'sr': "Greška u API-ju: {e} pokušajte malo kasnije."
-        },
-        'openai_error': {
-            'en': "OpenAI API error: {e}",
-            'sr': "OpenAI API greška: {e}"
-        },
-        'internal_error': {
-            'en': "Internal server error: {e}",
-            'sr': "Interna greška servera: {e}"
-        }
-    }
 
     client = get_openai_client()
     openai_messages = [{"role": msg["role"], "content": msg["content"]} for msg in messages[session_id]]
@@ -216,25 +194,21 @@ async def stream(session_id: str):
             messages[session_id].append({"role": "assistant", "content": final_formatted_content})
 
         except RateLimitError as e:
-            response_message = error_responses['rate_limit'][language]
-            logger.error(response_message)
-            yield f"data: {json.dumps({'detail': response_message})}\n\n"
+            if 'insufficient_quota' in str(e):
+                logger.error("Potrošili ste sve tokene, kontaktirajte Positive za dalja uputstva")
+                yield f"data: {json.dumps({'detail': 'Potrošili ste sve tokene, kontaktirajte Positive za dalja uputstva'})}\n\n"
+            else:
+                logger.error(f"Rate limit error: {str(e)}")
+                yield f"data: {json.dumps({'detail': f'Rate limit error: {str(e)}'})}\n\n"
         except APIConnectionError as e:
-            response_message = error_responses['api_connection'][language].format(e=e)
-            logger.error(response_message)
-            yield f"data: {json.dumps({'detail': response_message})}\n\n"
+            logger.error(f"Ne mogu da se povežem sa OpenAI API-jem: {e}")
+            yield f"data: {json.dumps({'detail': f'Ne mogu da se povežem sa OpenAI API-jem: {e} pokušajte malo kasnije.'})}\n\n"
         except APIError as e:
-            response_message = error_responses['api_error'][language].format(e=e)
-            logger.error(response_message)
-            yield f"data: {json.dumps({'detail': response_message})}\n\n"
-        except openai.OpenAIError as e:
-            response_message = error_responses['openai_error'][language].format(e=e)
-            logger.error(response_message)
-            yield f"data: {json.dumps({'detail': response_message})}\n\n"
+            logger.error(f"Greška u API-ju: {e}")
+            yield f"data: {json.dumps({'detail': f'Greška u API-ju: {e} pokušajte malo kasnije.'})}\n\n"
         except Exception as e:
-            response_message = error_responses['internal_error'][language].format(e=e)
-            logger.error(response_message)
-            yield f"data: {json.dumps({'detail': response_message})}\n\n"
+            logger.error(f"Internal server error: {str(e)}")
+            yield f"data: {json.dumps({'detail': f'Internal server error: {str(e)}'})}\n\n"
             
     return StreamingResponse(event_generator(), media_type="text/event-stream")
 

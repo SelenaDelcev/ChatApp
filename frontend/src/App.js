@@ -9,7 +9,6 @@ import SpeedDialAction from '@mui/material/SpeedDialAction';
 import Button from '@mui/material/Button';
 import Alert from '@mui/material/Alert';
 import Tooltip from '@mui/material/Tooltip';
-import RecordRTC from 'recordrtc';
 //Import Icons
 import SendIcon from '@mui/icons-material/Send';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -32,7 +31,7 @@ const App = () => {
   const [userSuggestQuestions, setUserSuggestQuestions] = useState([]);
   const [isAssistantResponding, setIsAssistantResponding] = useState(false); 
   //Audio in/out variables
-  const recorderRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
   const [isRecording, setIsRecording] = useState(false);
   const [audioResponse, setAudioResponse] = useState(false); //Flag for audio response
   const audioRef = useRef(null);
@@ -96,39 +95,45 @@ const App = () => {
 
   const handleVoiceClick = () => {
     if (isRecording) {
-      recorderRef.current.stopRecording(() => {
-        const blob = recorderRef.current.getBlob();
-        handleAudioUpload(blob);
-      });
+      mediaRecorderRef.current.stop();
     } else {
       navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
-        const recorder = RecordRTC(stream, {
-          type: 'audio',
-          mimeType: 'audio/mp4'
-        });
-        recorderRef.current = recorder;
-
-        recorder.startRecording();
-        setIsRecording(true);
-
+        mediaRecorderRef.current = new MediaRecorder(stream, { mimeType: 'audio/mp4' });
         let silenceTimeout;
+  
         const resetSilenceTimeout = () => {
           clearTimeout(silenceTimeout);
           silenceTimeout = setTimeout(() => {
-            recorderRef.current.stopRecording(() => {
-              const blob = recorderRef.current.getBlob();
-              handleAudioUpload(blob);
-            });
+            mediaRecorderRef.current.stop();
           }, 5000);
         };
-
+  
+        mediaRecorderRef.current.ondataavailable = (event) => {
+          const blob = event.data;
+          console.log("Blob:", blob);
+          handleAudioUpload(blob);
+        };
+  
+        mediaRecorderRef.current.onstart = () => {
+          console.log('Recording started');
+          resetSilenceTimeout();
+        };
+  
+        mediaRecorderRef.current.onstop = () => {
+          console.log('Recording stopped');
+          clearTimeout(silenceTimeout);
+        };
+  
+        mediaRecorderRef.current.start();
+        setIsRecording(true);
+  
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
         const source = audioContext.createMediaStreamSource(stream);
         const analyser = audioContext.createAnalyser();
         source.connect(analyser);
         analyser.fftSize = 2048;
         const dataArray = new Uint8Array(analyser.fftSize);
-
+  
         const detectSilence = () => {
           analyser.getByteTimeDomainData(dataArray);
           const isSilent = dataArray.every(value => value === 128);
@@ -241,7 +246,7 @@ const App = () => {
       try { 
         const response = await axios.post('https://chatappdemobackend.azurewebsites.net/chat', {
           message: newMessage,
-          suggest_questions: suggestQuestions, // send the flag to the backend
+          suggest_questions: suggestQuestions,
           language: language // send the flag to the backend
         }, {
           headers: {
