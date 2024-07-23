@@ -267,7 +267,7 @@ const App = () => {
           getEventSource();
         }
 
-        // Now, request suggested questions only if assistant has finished responding
+        // Request suggested questions only if assistant has finished responding
         if (!isAssistantResponding) {
           handleSuggestedQuestionClick(newMessage);
         }
