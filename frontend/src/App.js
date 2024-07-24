@@ -53,15 +53,30 @@ const App = () => {
 
   // Check URL to set language
   useEffect(() => {
-    const path = window.location.href;
-    console.log(path)
-    const isEnglish = path.includes('/en/') || path.endsWith('/en');
-    console.log('Is English:', isEnglish);
-    if (isEnglish) {
-      setLanguage('en');
-    } else {
-      setLanguage('sr');
-    }
+    // A function to receive messages from the main page
+    const handleMessage = (event) => {
+      // Verify that the message is coming from the correct source
+      if (event.origin !== 'https://test.georgemposi.com') return;
+
+      if (event.data.type === 'main-url') {
+        const path = event.data.url;
+        console.log('URL from main page:', path);
+        const isEnglish = path.includes('/en/') || path.endsWith('/en');
+        console.log('Is English:', isEnglish);
+        if (isEnglish) {
+          setLanguage('en');
+        } else {
+          setLanguage('sr');
+        }
+      }
+    };
+
+    // Added listener
+    window.addEventListener('message', handleMessage);
+    
+    return () => {
+      window.removeEventListener('message', handleMessage);
+    };
   }, []);
 
   //Scroll to the last message
