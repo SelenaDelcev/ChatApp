@@ -98,44 +98,58 @@ const App = () => {
   const handleVoiceClick = () => {
     if (isRecording) {
       mediaRecorderRef.current.stop();
+      console.log("Iskljuceno snimanje")
     } else {
+      console.log("Ukljuceno snimanje")
       navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
-        mediaRecorderRef.current = new MediaRecorder(stream, { mimeType: 'audio/mp4' });
+        mediaRecorderRef.current = new MediaRecorder(stream, { mimeType: 'audio/wav' });
+        console.log("Media Recorder Ref", mediaRecorderRef)
         let silenceTimeout;
-  
+
         const resetSilenceTimeout = () => {
           clearTimeout(silenceTimeout);
           silenceTimeout = setTimeout(() => {
             mediaRecorderRef.current.stop();
           }, 5000);
         };
-  
+
         mediaRecorderRef.current.ondataavailable = (event) => {
           const blob = event.data;
           console.log("Blob:", blob);
+
+          // Save the wav file
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.style.display = 'none';
+          a.href = url;
+          a.download = 'audio.wav';
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+
           handleAudioUpload(blob);
         };
-  
+
         mediaRecorderRef.current.onstart = () => {
           console.log('Recording started');
           resetSilenceTimeout();
         };
-  
+
         mediaRecorderRef.current.onstop = () => {
           console.log('Recording stopped');
           clearTimeout(silenceTimeout);
         };
-  
+
         mediaRecorderRef.current.start();
         setIsRecording(true);
-  
+
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
         const source = audioContext.createMediaStreamSource(stream);
         const analyser = audioContext.createAnalyser();
         source.connect(analyser);
         analyser.fftSize = 2048;
         const dataArray = new Uint8Array(analyser.fftSize);
-  
+
         const detectSilence = () => {
           analyser.getByteTimeDomainData(dataArray);
           const isSilent = dataArray.every(value => value === 128);
