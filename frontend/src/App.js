@@ -54,8 +54,9 @@ const App = () => {
   // Check URL to set language
   useEffect(() => {
     const path = window.location.pathname;
-    const regex = /\/en(\/|$)/; 
-    if (regex.test(path)) {
+    const isEnglish = path.includes('/en/') || path.endsWith('/en');
+    console.log('Is English:', isEnglish);
+    if (isEnglish) {
       setLanguage('en');
     } else {
       setLanguage('sr');
