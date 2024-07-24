@@ -285,7 +285,7 @@ async def upload_file(
 async def transcribe_audio(file: UploadFile = File(...), session_id: str = Form(...)):
     try:
         client = get_openai_client()
-        file_location = f"temp_{session_id}.wav"
+        file_location = f"temp_{session_id}.mp3"
         with open(file_location, "wb") as f:
             f.write(await file.read())
 

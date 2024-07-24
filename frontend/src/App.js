@@ -53,7 +53,8 @@ const App = () => {
 
   // Check URL to set language
   useEffect(() => {
-    const path = window.location.pathname;
+    const path = window.location.href;
+    console.log(path)
     const isEnglish = path.includes('/en/') || path.endsWith('/en');
     console.log('Is English:', isEnglish);
     if (isEnglish) {
@@ -102,7 +103,7 @@ const App = () => {
     } else {
       console.log("Ukljuceno snimanje")
       navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
-        mediaRecorderRef.current = new MediaRecorder(stream, { mimeType: 'audio/wav' });
+        mediaRecorderRef.current = new MediaRecorder(stream, { mimeType: 'audio/mp3' });
         console.log("Media Recorder Ref", mediaRecorderRef)
         let silenceTimeout;
 
@@ -117,12 +118,12 @@ const App = () => {
           const blob = event.data;
           console.log("Blob:", blob);
 
-          // Save the wav file
+          // Save the mp3 file
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.style.display = 'none';
           a.href = url;
-          a.download = 'audio.wav';
+          a.download = 'audio.mp3';
           document.body.appendChild(a);
           a.click();
           window.URL.revokeObjectURL(url);
@@ -172,7 +173,7 @@ const App = () => {
   const handleAudioResponse = (audioBase64) => {
     if (audioResponse) {
       setAudioBase64(audioBase64);
-      const audio = new Audio(`data:audio/wav;base64,${audioBase64}`);
+      const audio = new Audio(`data:audio/mp3;base64,${audioBase64}`);
       audioRef.current = audio;
     }
   };
@@ -530,7 +531,7 @@ const App = () => {
                     </div>
                     {message.role === 'assistant' && audioResponse && audioBase64 && index === messages.length - 1 && !isAssistantResponding && (
                         <audio controls autoPlay>
-                            <source src={`data:audio/wav;base64,${audioBase64}`} type="audio/wav" />
+                            <source src={`data:audio/mp3;base64,${audioBase64}`} type="audio/mp3" />
                             Your browser does not support the audio element.
                         </audio>
                     )}
