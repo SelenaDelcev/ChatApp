@@ -118,7 +118,7 @@ const App = () => {
     } else {
       console.log("Ukljuceno snimanje")
       navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
-        mediaRecorderRef.current = new MediaRecorder(stream, { mimeType: 'audio/mp3' });
+        mediaRecorderRef.current = new MediaRecorder(stream, { mimeType: 'audio/mp4' });
         console.log("Media Recorder Ref", mediaRecorderRef)
         let silenceTimeout;
 
@@ -133,12 +133,12 @@ const App = () => {
           const blob = event.data;
           console.log("Blob:", blob);
 
-          // Save the mp3 file
+          // Save the mp4 file
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.style.display = 'none';
           a.href = url;
-          a.download = 'audio.mp3';
+          a.download = 'audio.mp4';
           document.body.appendChild(a);
           a.click();
           window.URL.revokeObjectURL(url);
@@ -188,7 +188,7 @@ const App = () => {
   const handleAudioResponse = (audioBase64) => {
     if (audioResponse) {
       setAudioBase64(audioBase64);
-      const audio = new Audio(`data:audio/mp3;base64,${audioBase64}`);
+      const audio = new Audio(`data:audio/mp4;base64,${audioBase64}`);
       audioRef.current = audio;
     }
   };
@@ -546,7 +546,7 @@ const App = () => {
                     </div>
                     {message.role === 'assistant' && audioResponse && audioBase64 && index === messages.length - 1 && !isAssistantResponding && (
                         <audio controls autoPlay>
-                            <source src={`data:audio/mp3;base64,${audioBase64}`} type="audio/mp3" />
+                            <source src={`data:audio/mp4;base64,${audioBase64}`} type="audio/mp4" />
                             Your browser does not support the audio element.
                         </audio>
                     )}
