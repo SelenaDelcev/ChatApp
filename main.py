@@ -113,7 +113,7 @@ async def chat_with_ai(
 
     if session_id not in messages:
         messages[session_id] = [{"role": "system", "content": system_prompt}]
-    messages[session_id].append({"role": "system", "content": f"Use only the {'English' if language == 'en' else 'Serbian'} language. {system_prompt}"})
+    messages[session_id].append({"role": "system", "content": system_prompt})
 
     # Use RAG tool for context
     context = rag_tool_answer(message.content)
