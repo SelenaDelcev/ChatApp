@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from typing import Dict, List, Optional
 from openai import OpenAI, OpenAIError, RateLimitError, APIConnectionError, APIError
 from util_func import get_openai_client, rag_tool_answer, system_prompt
+from pydub import AudioSegment
 import openai
 import logging
 import re
@@ -282,24 +283,43 @@ async def upload_file(
     except Exception as e:
         logger.error(f"File upload error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"File upload error: {str(e)}")
+    
+def convert_to_mp3(file_path, output_path):
+    # Load the audio file
+    audio = AudioSegment.from_file(file_path)
+    # Set parameters: mono, 16000Hz
+    audio = audio.set_channels(1).set_frame_rate(16000)
+    # Export as mp3
+    audio.export(output_path, format="mp3", bitrate="128k")
 
 # The function is called when a voice message is recorded, the text is transcribed, and returned to the front end.   
 @app.post("/transcribe")
 async def transcribe_audio(file: UploadFile = File(...), session_id: str = Form(...)):
     try:
         client = get_openai_client()
-        file_location = f"temp_{session_id}.mp4"
-        with open(file_location, "wb") as f:
+        mp4_file_location = f"temp_{session_id}.mp4"
+        mp3_file_location = f"temp_{session_id}.mp3"
+
+        # Save the uploaded MP4 file
+        with open(mp4_file_location, "wb") as f:
             f.write(await file.read())
 
-        with open(file_location, "rb") as audio_file:
+        # Convert MP4 to MP3
+        convert_to_mp3(mp4_file_location, mp3_file_location)
+
+        # Read and transcribe the MP3 file
+        with open(mp3_file_location, "rb") as audio_file:
             response = client.audio.transcriptions.create(
                 model="whisper-1",
                 file=audio_file,
                 language="sr"
             )
 
-        os.remove(file_location)
+        # Clean up temporary files
+        os.remove(mp4_file_location)
+        os.remove(mp3_file_location)
+
+        print(f"Transcript: {response.text}")
 
         return {"transcript": response.text}
     except OpenAIError as e:
