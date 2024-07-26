@@ -25,7 +25,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 app_name = "KremBot"
 user_name = "positive"
-thread_name = f"Thread_{str(uuid.uuid4())}"
+thread_name = f"str(uuid.uuid4())"
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
