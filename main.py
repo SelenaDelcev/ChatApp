@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from typing import Dict, List, Optional
 from openai import OpenAI, OpenAIError, RateLimitError, APIConnectionError, APIError
 from util_func import get_openai_client, rag_tool_answer, system_prompt
+from pydub import AudioSegment
 import openai
 import logging
 import re
@@ -283,23 +284,36 @@ async def upload_file(
         logger.error(f"File upload error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"File upload error: {str(e)}")
 
+def convert_to_mp3(file_path, output_path):
+        # Load the audio file
+        audio = AudioSegment.from_file(file_path)
+        # Set parameters: mono, 16000Hz
+        audio = audio.set_channels(1).set_frame_rate(16000)
+        # Export as mp3
+        audio.export(output_path, format="mp3", bitrate="128k")
+
 # The function is called when a voice message is recorded, the text is transcribed, and returned to the front end.   
 @app.post("/transcribe")
 async def transcribe_audio(file: UploadFile = File(...), session_id: str = Form(...)):
     try:
         client = get_openai_client()
-        file_location = f"temp_{session_id}.mp4"
-        with open(file_location, "wb") as f:
+        mp4filePath = f"temp_{session_id}.mp4"
+        with open(mp4filePath, "wb") as f:
             f.write(await file.read())
 
-        with open(file_location, "rb") as audio_file:
+        mp3filePath = f"temp_{session_id}.mp3"
+        mp3file = convert_to_mp3(mp4filePath, mp3filePath)
+        logger.info(f"Mp3 file: {mp3file}")
+
+        with open(mp3file, "rb") as audio_file:
             response = client.audio.transcriptions.create(
                 model="whisper-1",
                 file=audio_file,
                 language="sr"
             )
 
-        os.remove(file_location)
+        os.remove(mp4filePath)
+        os.remove(mp3filePath)
 
         return {"transcript": response.text}
     except OpenAIError as e:
