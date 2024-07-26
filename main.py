@@ -25,8 +25,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 app_name = "KremBot"
 user_name = "positive"
-thread_name = f"Thread_{str(uuid.uuid4())}"
-print(f"Thread name on start: {thread_name}")
+thread_name = f"{uuid.uuid4()}"
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
@@ -119,7 +118,9 @@ async def chat_with_ai(
 
     session_id = initialize_session(request, messages, system_prompt)
     print(f"Thread name in post request before sql_record: {thread_name}")
-    if thread_name not in get_thread_ids():
+    if thread_name in get_thread_ids():
+        print(f"Thread name in get_thread_ids")
+        thread_name = f"{uuid.uuid4()}"
         with ConversationDatabase() as db:
             db.add_sql_record(app_name, user_name, thread_name, {"role": "system", "content": system_prompt})
 
