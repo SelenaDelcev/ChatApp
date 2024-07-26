@@ -291,6 +291,7 @@ def convert_to_mp3(file_path, output_path):
         audio = audio.set_channels(1).set_frame_rate(16000)
         # Export as mp3
         audio.export(output_path, format="mp3", bitrate="128k")
+        return output_path
 
 # The function is called when a voice message is recorded, the text is transcribed, and returned to the front end.   
 @app.post("/transcribe")
@@ -303,7 +304,6 @@ async def transcribe_audio(file: UploadFile = File(...), session_id: str = Form(
 
         mp3filePath = f"temp_{session_id}.mp3"
         mp3file = convert_to_mp3(mp4filePath, mp3filePath)
-        logger.info(f"Mp3 file: {mp3file}")
 
         with open(mp3file, "rb") as audio_file:
             response = client.audio.transcriptions.create(
