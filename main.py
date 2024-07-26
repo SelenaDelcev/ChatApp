@@ -6,7 +6,7 @@ from typing import Dict, List, Optional
 from openai import OpenAI, OpenAIError, RateLimitError, APIConnectionError, APIError
 from util_func import get_openai_client, rag_tool_answer, system_prompt
 from pydub import AudioSegment
-import openai
+from myfunc.mssql import ConversationDatabase
 import logging
 import re
 import io
@@ -16,14 +16,17 @@ import docx
 import json
 import asyncio
 import base64
-
+import uuid
 # Initialize the FastAPI app
 app = FastAPI()
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
+app_name = "KremBot"
+user_name = "positive"
+global thread_name
+thread_name = f"{uuid.uuid4()}"
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
@@ -98,6 +101,10 @@ def read_docx(file):
         text += paragraph.text + "\n"
     return text
 
+def get_thread_ids():
+    with ConversationDatabase() as db:
+        return db.list_threads(app_name, user_name)
+            
 # The endpoint is called from the frontend when the user sends a message. The message is accepted, prepared in this endpoint, and then stored in the messages variable.
 @app.post('/chat')
 async def chat_with_ai(
@@ -111,6 +118,10 @@ async def chat_with_ai(
     print(f"Language: {language}")
 
     session_id = initialize_session(request, messages, system_prompt)
+    if thread_name in get_thread_ids():
+        thread_name = f"{uuid.uuid4()}"
+        with ConversationDatabase() as db:
+            db.add_sql_record(app_name, user_name, thread_name, {"role": "system", "content": system_prompt})
 
     if session_id not in messages:
         messages[session_id] = [{"role": "system", "content": system_prompt}]
@@ -196,6 +207,13 @@ async def stream(session_id: str):
             final_json_data = json.dumps({'content': final_formatted_content, 'audio': audio_response})
             yield f"data: {final_json_data}\n\n"
             messages[session_id].append({"role": "assistant", "content": final_formatted_content})
+            with ConversationDatabase() as db:
+                db.update_or_insert_sql_record(
+                    app_name,
+                    user_name,
+                    thread_name,
+                    messages[session_id]
+                )
 
         except RateLimitError as e:
             if 'insufficient_quota' in str(e):
