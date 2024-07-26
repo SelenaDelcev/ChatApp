@@ -117,9 +117,8 @@ async def chat_with_ai(
     print(f"Language: {language}")
 
     session_id = initialize_session(request, messages, system_prompt)
-    if thread_name in get_thread_ids():
+    if thread_name not in get_thread_ids():
         with ConversationDatabase() as db:
-            thread_name = f"{uuid.uuid4()}"
             db.add_sql_record(app_name, user_name, thread_name, {"role": "system", "content": system_prompt})
 
     if session_id not in messages:
