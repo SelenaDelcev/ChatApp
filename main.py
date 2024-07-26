@@ -25,8 +25,8 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 app_name = "KremBot"
 user_name = "positive"
-global thread_name
-thread_name = f"{uuid.uuid4()}"
+thread_name = f"Thread_{str(uuid.uuid4())}"
+print(f"Thread name on start: {thread_name}")
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
@@ -118,11 +118,12 @@ async def chat_with_ai(
     print(f"Language: {language}")
 
     session_id = initialize_session(request, messages, system_prompt)
-    if thread_name in get_thread_ids():
-        thread_name = f"{uuid.uuid4()}"
+    print(f"Thread name in post request before sql_record: {thread_name}")
+    if thread_name not in get_thread_ids():
         with ConversationDatabase() as db:
             db.add_sql_record(app_name, user_name, thread_name, {"role": "system", "content": system_prompt})
 
+    print(f"Thread name in post request after sql_record: {thread_name}")
     if session_id not in messages:
         messages[session_id] = [{"role": "system", "content": system_prompt}]
     messages[session_id].append({"role": "system", "content": system_prompt})
@@ -207,6 +208,7 @@ async def stream(session_id: str):
             final_json_data = json.dumps({'content': final_formatted_content, 'audio': audio_response})
             yield f"data: {final_json_data}\n\n"
             messages[session_id].append({"role": "assistant", "content": final_formatted_content})
+            print(f"Thread name ConversationDatabase: {thread_name}")
             with ConversationDatabase() as db:
                 db.update_or_insert_sql_record(
                     app_name,
