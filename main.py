@@ -122,13 +122,13 @@ async def chat_with_ai(
 
     if session_id not in messages:
         messages[session_id] = [{"role": "system", "content": system_prompt}]
-    messages[session_id].append({"role": "system", "content": system_prompt})
+    # messages[session_id].append({"role": "system", "content": system_prompt})
 
     print(f"Thread name in post request before sql_record: {thread_name}")
-    if thread_name in get_thread_ids():
+    if thread_name not in get_thread_ids():
         print(f"Thread name in get_thread_ids")
         with ConversationDatabase() as db:
-            db.add_sql_record(app_name, user_name, thread_name, {"role": "system", "content": messages[session_id]})
+            db.add_sql_record(app_name, user_name, thread_name, {"role": "system", "content": system_prompt})
     # Use RAG tool for context
     context = rag_tool_answer(message.content)
 
