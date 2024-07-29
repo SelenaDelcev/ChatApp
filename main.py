@@ -17,6 +17,9 @@ import json
 import asyncio
 import base64
 import uuid
+
+global thread_name
+thread_name = f"{uuid.uuid4()}"
 # Initialize the FastAPI app
 app = FastAPI()
 
@@ -36,9 +39,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-global thread_name
-thread_name = f"{uuid.uuid4()}"
 
 # Data model for incoming messages
 class Message(BaseModel):
@@ -180,7 +180,7 @@ async def stream(session_id: str):
             play_audio_response = item.get("play_audio_response", False)
 
     client = get_openai_client()
-    openai_messages = [{"role": msg["role"], "content": msg["content"]} for msg in messages[session_id]]
+    openai_messages = [{"role": msg["role"], "content": msg["content"]} for msg in messages[session_id] if msg["role"] != "meta"]
     async def event_generator():
         try:
             assistant_message_content = ""
