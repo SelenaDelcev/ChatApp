@@ -29,6 +29,7 @@ const App = () => {
   const [tooltipText, setTooltipText] = useState({}); //Tooltip text field
   const [suggestQuestions, setSuggestQuestions] = useState(false); //Flag for suggest questions
   const [userSuggestQuestions, setUserSuggestQuestions] = useState([]);
+  const [isAssistantResponding, setIsAssistantResponding] = useState(false); 
   //Audio in/out variables
   const mediaRecorderRef = useRef(null);
   const [isRecording, setIsRecording] = useState(false);
@@ -193,6 +194,7 @@ const App = () => {
   };
 
   const getEventSource = () => {
+    setIsAssistantResponding(true);
     const eventSource = new EventSource(`https://chatappdemobackend.azurewebsites.net/chat/stream?session_id=${sessionId}`, {
       withCredentials: true
     });
@@ -223,12 +225,14 @@ const App = () => {
       if (!content.endsWith('▌')) {
         eventSource.close();
         updateLastMessage({ role: 'assistant', content: filteredContent.replace('▌', '') });
+        setIsAssistantResponding(false);
       }
     };
 
     eventSource.onerror = function(event) {
       console.error("EventSource failed.", event);
       eventSource.close();
+      setIsAssistantResponding(false);
     };
   };
 
@@ -275,6 +279,7 @@ const App = () => {
         const response = await axios.post('https://chatappdemobackend.azurewebsites.net/chat', {
           message: newMessage,
           suggest_questions: suggestQuestions,
+          play_audio_response: audioResponse,
           language: language // send the flag to the backend
         }, {
           headers: {
@@ -293,6 +298,11 @@ const App = () => {
           ]);
         } else {
           getEventSource();
+        }
+
+        // Request suggested questions only if assistant has finished responding
+        if (!isAssistantResponding) {
+          handleSuggestedQuestionClick(newMessage);
         }
 
         if (data.suggested_questions) {
@@ -536,7 +546,7 @@ const App = () => {
                     <div onClick={() => handleCopyToClipboard(message.content, index)}>
                         <p dangerouslySetInnerHTML={getMessageContent(message)} />
                     </div>
-                    {message.role === 'assistant' && audioResponse && audioBase64 && index === messages.length - 1 && (
+                    {message.role === 'assistant' && audioResponse && audioBase64 && index === messages.length - 1 && !isAssistantResponding && (
                         <audio controls autoPlay>
                             <source src={`data:audio/mp4;base64,${audioBase64}`} type="audio/mp4" />
                             Your browser does not support the audio element.
@@ -550,7 +560,7 @@ const App = () => {
           <div ref={messagesEndRef} />
         </div>
         <div className="input-row-container">
-          {userSuggestQuestions.length > 0 && (
+          {!isAssistantResponding && userSuggestQuestions.length > 0 && (
             <div className="suggested-questions">
               {userSuggestQuestions.map((question, index) => (
                 <Button
@@ -572,6 +582,7 @@ const App = () => {
                   placeholder={language === 'en' ? 'How can I help you?' : 'Kako vam mogu pomoći?'}
                   value={userMessage}
                   onChange={(e) => setUserMessage(e.target.value)}
+                  disabled={isAssistantResponding}
                 />
                 {userMessage.trim() ? (
                   <Button type="submit" className="send-button">
@@ -582,6 +593,7 @@ const App = () => {
                     <Button
                       className={`send-button ${isRecording ? 'recording' : ''}`}
                       onClick={handleVoiceClick}
+                      disabled={isAssistantResponding}
                     >
                       <KeyboardVoiceIcon />
                     </Button>

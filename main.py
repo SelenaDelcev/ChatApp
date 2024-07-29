@@ -115,6 +115,7 @@ async def chat_with_ai(
     global thread_name
     message = chat_request.message
     suggest_questions = chat_request.suggest_questions
+    play_audio_response = chat_request.play_audio_response
     language = chat_request.language
 
     session_id = initialize_session(request, messages, system_prompt)
@@ -122,7 +123,9 @@ async def chat_with_ai(
     if len(messages[session_id]) == 1:
         thread_name = f"{uuid.uuid4()}"
     
-    print(f"Thread name je: {thread_name}")
+    session_data = messages.get(session_id, [])
+    session_data.append({"role": "meta", "play_audio_response": play_audio_response})
+    messages[session_id] = session_data
 
     # Use RAG tool for context
     context = rag_tool_answer(message.content)
@@ -169,6 +172,12 @@ async def stream(session_id: str):
         raise HTTPException(status_code=400, detail="Session ID not provided")
     if session_id not in messages:
         raise HTTPException(status_code=400, detail="No messages found for session")
+    
+    session_data = messages.get(session_id, [])
+    play_audio_response = False
+    for item in session_data:
+        if item.get("role") == "meta":
+            play_audio_response = item.get("play_audio_response", False)
 
     client = get_openai_client()
     openai_messages = [{"role": msg["role"], "content": msg["content"]} for msg in messages[session_id]]
@@ -192,19 +201,18 @@ async def stream(session_id: str):
                     logger.info(f"Streaming content: {streaming_content}")
                     json_data = json.dumps({'content': streaming_content})
                     yield f"data: {json_data}\n\n"
-                    await asyncio.sleep(0.1)
             final_formatted_content = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', assistant_message_content)
             final_formatted_content = re.sub(r'\[(.*?)\]\((.*?)\)', r'<a href="\2" target="_blank">\1</a>', final_formatted_content)
 
-            # Remove tags to generate text for audio response
-            plain_text_content = re.sub(r'<.*?>', '', final_formatted_content)
-            
-            audio_response = generate_audio_response(plain_text_content)
-
-            final_json_data = json.dumps({'content': final_formatted_content, 'audio': audio_response})
+            if play_audio_response:
+                plain_text_content = re.sub(r'<.*?>', '', final_formatted_content)
+                audio_response = generate_audio_response(plain_text_content)
+                final_json_data = json.dumps({'content': final_formatted_content, 'audio': audio_response})
+            else:
+                final_json_data = json.dumps({'content': final_formatted_content})
             yield f"data: {final_json_data}\n\n"
             messages[session_id].append({"role": "assistant", "content": final_formatted_content})
-            print(f"Thread name ConversationDatabase: {thread_name}")
+
             with ConversationDatabase() as db:
                 db.update_or_insert_sql_record(
                     app_name,
