@@ -37,6 +37,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+global thread_name
+thread_name = f"{uuid.uuid4()}"
+
 # Data model for incoming messages
 class Message(BaseModel):
     role: str
@@ -109,9 +112,6 @@ async def chat_with_ai(
     request: Request,
     chat_request: ChatRequest,
 ):
-    global thread_name
-    thread_name = f"{uuid.uuid4()}"
-    print(f"Thread name", {thread_name})
     message = chat_request.message
     suggest_questions = chat_request.suggest_questions
     language = chat_request.language
@@ -123,6 +123,9 @@ async def chat_with_ai(
     if session_id not in messages:
         messages[session_id] = [{"role": "system", "content": system_prompt}]
     messages[session_id].append({"role": "system", "content": system_prompt})
+
+    print(f"Messages: {messages[session_id]}")
+    print(f"Len Messages: {len(messages[session_id])}")
 
     # Use RAG tool for context
     context = rag_tool_answer(message.content)
