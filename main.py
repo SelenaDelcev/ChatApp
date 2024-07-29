@@ -116,14 +116,7 @@ async def chat_with_ai(
     suggest_questions = chat_request.suggest_questions
     language = chat_request.language
 
-    print(f"Language: {language}")
-
     session_id = initialize_session(request, messages, system_prompt)
-
-    if session_id not in messages:
-        messages[session_id] = [{"role": "system", "content": system_prompt}]
-    else:
-        messages[session_id].append({"role": "system", "content": system_prompt})
 
     print(f"Messages: {messages[session_id]}")
     print(f"Len Messages: {len(messages[session_id])}")
