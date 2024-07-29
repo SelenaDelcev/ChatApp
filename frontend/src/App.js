@@ -401,7 +401,7 @@ const App = () => {
   };
 
   const handleSaveChat = () => {
-    const chatContent = messages.map(msg => `${msg.role}: ${sanitizeText(msg.content)}`).join('\n');
+    const chatContent = messages.map(msg => `${msg.role}: ${sanitizeText(msg.content.content)}`).join('\n');
     const blob = new Blob([chatContent], { type: 'text/plain' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -459,7 +459,8 @@ const App = () => {
   };
 
   const handleCopyToClipboard = (messageContent, index) => {
-    const sanitizedText = sanitizeText(messageContent);
+    const contentToSanitize = typeof messageContent === 'object' && messageContent !== null ? messageContent.content : messageContent;
+    const sanitizedText = sanitizeText(contentToSanitize);
     const textArea = document.createElement('textarea');
     textArea.value = sanitizedText;
     document.body.appendChild(textArea);
