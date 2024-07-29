@@ -112,6 +112,7 @@ async def chat_with_ai(
     request: Request,
     chat_request: ChatRequest,
 ):
+    global thread_name
     message = chat_request.message
     suggest_questions = chat_request.suggest_questions
     language = chat_request.language
