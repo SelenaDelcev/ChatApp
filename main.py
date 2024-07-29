@@ -118,8 +118,10 @@ async def chat_with_ai(
 
     session_id = initialize_session(request, messages, system_prompt)
 
-    print(f"Messages: {messages[session_id]}")
-    print(f"Len Messages: {len(messages[session_id])}")
+    if len(messages[session_id]) == 1:
+        thread_name = f"{uuid.uuid4()}"
+    
+    print(f"Thread name je: {thread_name}")
 
     # Use RAG tool for context
     context = rag_tool_answer(message.content)
