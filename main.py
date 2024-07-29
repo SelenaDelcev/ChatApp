@@ -311,8 +311,6 @@ async def upload_file(
 def convert_to_mp3(file_path, output_path):
         # Load the audio file
         audio = AudioSegment.from_file(file_path)
-        # Set parameters: mono, 16000Hz
-        audio = audio.set_channels(1).set_frame_rate(16000)
         # Export as mp3
         audio.export(output_path, format="mp3", bitrate="128k")
         return output_path
@@ -322,12 +320,12 @@ def convert_to_mp3(file_path, output_path):
 async def transcribe_audio(file: UploadFile = File(...), session_id: str = Form(...)):
     try:
         client = get_openai_client()
-        mp4filePath = f"temp_{session_id}.mp4"
-        with open(mp4filePath, "wb") as f:
+        wavfilePath = f"temp_{session_id}.wav"
+        with open(wavfilePath, "wb") as f:
             f.write(await file.read())
 
         mp3filePath = f"temp_{session_id}.mp3"
-        mp3file = convert_to_mp3(mp4filePath, mp3filePath)
+        mp3file = convert_to_mp3(wavfilePath, mp3filePath)
 
         with open(mp3file, "rb") as audio_file:
             response = client.audio.transcriptions.create(
@@ -336,7 +334,7 @@ async def transcribe_audio(file: UploadFile = File(...), session_id: str = Form(
                 language="sr"
             )
 
-        os.remove(mp4filePath)
+        os.remove(wavfilePath)
         os.remove(mp3filePath)
 
         return {"transcript": response.text}

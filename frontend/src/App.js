@@ -91,7 +91,7 @@ const App = () => {
   //Sending an audio message from the user to the backend for transcription
   const handleAudioUpload = async (blob) => {
     const formData = new FormData();
-    formData.append('file', blob, 'audio.mp4');
+    formData.append('file', blob, 'audio.wav');
     formData.append('session_id', sessionId);
     console.log("Form data:", formData);
   
@@ -118,7 +118,7 @@ const App = () => {
     } else {
       console.log("Ukljuceno snimanje")
       navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
-        mediaRecorderRef.current = new MediaRecorder(stream, { mimeType: 'audio/mp4' });
+        mediaRecorderRef.current = new MediaRecorder(stream, { mimeType: 'audio/wav' });
         console.log("Media Recorder Ref", mediaRecorderRef)
         let silenceTimeout;
 
@@ -133,12 +133,12 @@ const App = () => {
           const blob = event.data;
           console.log("Blob:", blob);
 
-          // Save the mp4 file
+          // Save the wav file
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.style.display = 'none';
           a.href = url;
-          a.download = 'audio.mp4';
+          a.download = 'audio.wav';
           document.body.appendChild(a);
           a.click();
           window.URL.revokeObjectURL(url);
@@ -188,7 +188,7 @@ const App = () => {
   const handleAudioResponse = (audioBase64) => {
     if (audioResponse) {
       setAudioBase64(audioBase64);
-      const audio = new Audio(`data:audio/mp4;base64,${audioBase64}`);
+      const audio = new Audio(`data:audio/wav;base64,${audioBase64}`);
       audioRef.current = audio;
     }
   };
@@ -548,7 +548,7 @@ const App = () => {
                     </div>
                     {message.role === 'assistant' && audioResponse && audioBase64 && index === messages.length - 1 && !isAssistantResponding && (
                         <audio controls autoPlay>
-                            <source src={`data:audio/mp4;base64,${audioBase64}`} type="audio/mp4" />
+                            <source src={`data:audio/wav;base64,${audioBase64}`} type="audio/wav" />
                             Your browser does not support the audio element.
                         </audio>
                     )}
