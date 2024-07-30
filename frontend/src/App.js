@@ -38,6 +38,8 @@ const App = () => {
   const [audioBase64, setAudioBase64] = useState(null);
   // Language state
   const [language, setLanguage] = useState('sr'); // Default language is Serbian
+  // Log
+  const [logDataArray, setLogDataArray] = useState([]);
 
   //Generating sessionId
   useEffect(() => {
@@ -50,6 +52,12 @@ const App = () => {
       setSessionId(newSessionId);
     }
   }, []);
+
+  useEffect(() => {
+    if(logDataArray.length === 9) {
+      saveLogData(logDataArray)
+    }
+  }, [logDataArray]);
 
   // Check URL to set language
   useEffect(() => {
@@ -88,12 +96,37 @@ const App = () => {
     scrollToBottom();
   }, [messages]);
 
+  // Function to add log entry
+  const addLogEntry = (entry) => {
+    setLogDataArray(prevLogData => [...prevLogData, entry]);
+    console.log(logDataArray)
+  };
+
+  // Function to save log data to a text file
+  const saveLogData = (logDataArray) => {
+    const logData = logDataArray.join('\n');
+    const logBlob = new Blob([logData], { type: 'text/plain' });
+    const logUrl = URL.createObjectURL(logBlob);
+    const logAnchor = document.createElement('a');
+    logAnchor.style.display = 'none';
+    logAnchor.href = logUrl;
+    logAnchor.download = 'Log Frontend.txt';
+    document.body.appendChild(logAnchor);
+    logAnchor.click();
+    window.URL.revokeObjectURL(logUrl);
+    document.body.removeChild(logAnchor);
+  };
+
   //Sending an audio message from the user to the backend for transcription
   const handleAudioUpload = async (blob) => {
+    console.log('Blob:', blob)
+    addLogEntry('Blob size: ' + blob.size); // Add log entry
+    addLogEntry('Blob type: ' + blob.type);
     const formData = new FormData();
     formData.append('file', blob, 'audio.mp4');
+    console.log('Form data after append audio.mp4:', formData)
+    addLogEntry('Form data after append audio.mp4: ' + formData); // Add log entry
     formData.append('session_id', sessionId);
-    console.log("Form data:", formData);
   
     try {
       const response = await axios.post('https://chatappdemobackend.azurewebsites.net/transcribe', formData, {
@@ -102,6 +135,8 @@ const App = () => {
         }
       });
   
+      console.log('Response:',response)
+      addLogEntry('Response: ' + JSON.stringify(response)); // Add log entry
       const { transcript } = response.data;
       setUserMessage(transcript); //Set transcript text in input field
       setIsRecording(false);
@@ -114,12 +149,15 @@ const App = () => {
   const handleVoiceClick = () => {
     if (isRecording) {
       mediaRecorderRef.current.stop();
-      console.log("Iskljuceno snimanje")
+      console.log("Iskljuceno snimanje");
+      addLogEntry("Iskljuceno snimanje"); // Add log entry
     } else {
-      console.log("Ukljuceno snimanje")
+      console.log("Ukljuceno snimanje");
+      addLogEntry("Ukljuceno snimanje"); // Add log entry
       navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
         mediaRecorderRef.current = new MediaRecorder(stream, { mimeType: 'audio/mp4' });
-        console.log("Media Recorder Ref", mediaRecorderRef)
+        console.log("Media Recorder Ref", mediaRecorderRef);
+        addLogEntry("Media Recorder Ref: " + mediaRecorderRef); // Add log entry
         let silenceTimeout;
 
         const resetSilenceTimeout = () => {
@@ -132,6 +170,7 @@ const App = () => {
         mediaRecorderRef.current.ondataavailable = (event) => {
           const blob = event.data;
           console.log("Blob:", blob);
+          addLogEntry("Blob: " + blob); // Add log entry
 
           // Save the mp4 file
           const url = URL.createObjectURL(blob);
@@ -148,11 +187,13 @@ const App = () => {
 
         mediaRecorderRef.current.onstart = () => {
           console.log('Recording started');
+          addLogEntry('Recording started'); // Add log entry
           resetSilenceTimeout();
         };
 
         mediaRecorderRef.current.onstop = () => {
           console.log('Recording stopped');
+          addLogEntry('Recording stopped'); // Add log entry
           clearTimeout(silenceTimeout);
         };
 

@@ -309,10 +309,14 @@ async def upload_file(
         raise HTTPException(status_code=500, detail=f"File upload error: {str(e)}")
 
 def convert_to_mp3(file_path, output_path):
+        logging.info(f"In convert_to_mp3 func")
         # Load the audio file
         audio = AudioSegment.from_file(file_path)
+        logging.info(f"Audio {audio}")
         # Export as mp3
         audio.export(output_path, format="mp3", bitrate="128k")
+        logging.info(f"Audio export {audio}")
+        logging.info(f"Output path {output_path}")
         return output_path
 
 # The function is called when a voice message is recorded, the text is transcribed, and returned to the front end.   
@@ -324,19 +328,25 @@ async def transcribe_audio(file: UploadFile = File(...), session_id: str = Form(
         with open(mp4filePath, "wb") as f:
             f.write(await file.read())
 
+        logging.info(f"Saved mp4 file to {mp4filePath}")
+
         mp3filePath = f"temp_{session_id}.mp3"
         mp3file = convert_to_mp3(mp4filePath, mp3filePath)
+        logging.info(f"mp3 file {mp3file}")
 
         with open(mp3file, "rb") as audio_file:
+            logging.info(f"ready to send whisper {audio_file}")
             response = client.audio.transcriptions.create(
                 model="whisper-1",
                 file=audio_file,
                 language="sr"
             )
+        logging.info(f"Response {response}")
 
         os.remove(mp4filePath)
         os.remove(mp3filePath)
 
+        logging.info(f"Transcript {response.text}")
         return {"transcript": response.text}
     except OpenAIError as e:
         print(f"OpenAI Error: {e}")
