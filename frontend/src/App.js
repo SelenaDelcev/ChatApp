@@ -1,47 +1,44 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import './App.css';
 import axios from 'axios';
-//Import Buttons and Additions
 import { v4 as uuidv4 } from 'uuid';
-import SpeedDial from '@mui/material/SpeedDial';
-import SpeedDialIcon from '@mui/material/SpeedDialIcon';
-import SpeedDialAction from '@mui/material/SpeedDialAction';
-import Button from '@mui/material/Button';
-import Alert from '@mui/material/Alert';
-import Tooltip from '@mui/material/Tooltip';
-//Import Icons
-import SendIcon from '@mui/icons-material/Send';
-import DeleteIcon from '@mui/icons-material/Delete';
-import AttachFileSharpIcon from '@mui/icons-material/AttachFileSharp';
-import SaveAltSharpIcon from '@mui/icons-material/SaveAltSharp';
-import TipsAndUpdatesIcon from '@mui/icons-material/TipsAndUpdates';
-import VolumeUpIcon from '@mui/icons-material/VolumeUp';
-import KeyboardVoiceIcon from '@mui/icons-material/KeyboardVoice';
-import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
+import {
+  SpeedDial,
+  SpeedDialIcon,
+  SpeedDialAction,
+  Button,
+  Alert,
+  Tooltip
+} from '@mui/material';
+import {
+  Send as SendIcon,
+  Delete as DeleteIcon,
+  AttachFileSharp as AttachFileSharpIcon,
+  SaveAltSharp as SaveAltSharpIcon,
+  TipsAndUpdates as TipsAndUpdatesIcon,
+  VolumeUp as VolumeUpIcon,
+  KeyboardVoice as KeyboardVoiceIcon,
+  CancelOutlined as CancelOutlinedIcon
+} from '@mui/icons-material';
 
 const App = () => {
-  //State Variables
-  const [messages, setMessages] = useState([]); //Message in message container
-  const [userMessage, setUserMessage] = useState(''); //Message in input field
-  const messagesEndRef = useRef(null); //ScrollBar
-  const [sessionId, setSessionId] = useState(''); //SessionId for Users
-  const [files, setFiles] = useState([]); //The array in which the added files are placed
-  const [tooltipText, setTooltipText] = useState({}); //Tooltip text field
-  const [suggestQuestions, setSuggestQuestions] = useState(false); //Flag for suggest questions
+  const [messages, setMessages] = useState([]);
+  const [userMessage, setUserMessage] = useState('');
+  const messagesEndRef = useRef(null);
+  const [sessionId, setSessionId] = useState('');
+  const [files, setFiles] = useState([]);
+  const [tooltipText, setTooltipText] = useState({});
+  const [suggestQuestions, setSuggestQuestions] = useState(false);
   const [userSuggestQuestions, setUserSuggestQuestions] = useState([]);
-  const [isAssistantResponding, setIsAssistantResponding] = useState(false); 
-  //Audio in/out variables
+  const [isAssistantResponding, setIsAssistantResponding] = useState(false);
   const mediaRecorderRef = useRef(null);
   const [isRecording, setIsRecording] = useState(false);
-  const [audioResponse, setAudioResponse] = useState(false); //Flag for audio response
+  const [audioResponse, setAudioResponse] = useState(false);
   const audioRef = useRef(null);
   const [audioBase64, setAudioBase64] = useState(null);
-  // Language state
-  const [language, setLanguage] = useState('sr'); // Default language is Serbian
-  // Log
+  const [language, setLanguage] = useState('sr');
   const [logDataArray, setLogDataArray] = useState([]);
 
-  //Generating sessionId
   useEffect(() => {
     const storedSessionId = sessionStorage.getItem('sessionId');
     if (storedSessionId) {
@@ -54,55 +51,41 @@ const App = () => {
   }, []);
 
   useEffect(() => {
-    if(logDataArray.length === 9) {
-      saveLogData(logDataArray)
+    if (logDataArray.length === 9) {
+      saveLogData(logDataArray);
     }
   }, [logDataArray]);
 
-  // Check URL to set language
   useEffect(() => {
-    // A function to receive messages from the main page
     const handleMessage = (event) => {
-      // Verify that the message is coming from the correct source
       if (event.origin !== 'https://test.georgemposi.com') return;
 
       if (event.data.type === 'main-url') {
         const path = event.data.url;
-        console.log('URL from main page:', path);
         const isEnglish = path.includes('/en/') || path.endsWith('/en');
-        console.log('Is English:', isEnglish);
-        if (isEnglish) {
-          setLanguage('en');
-        } else {
-          setLanguage('sr');
-        }
+        setLanguage(isEnglish ? 'en' : 'sr');
       }
     };
 
-    // Added listener
     window.addEventListener('message', handleMessage);
-    
+
     return () => {
       window.removeEventListener('message', handleMessage);
     };
   }, []);
 
-  //Scroll to the last message
-  const scrollToBottom = () => {
+  const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+  }, []);
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, scrollToBottom]);
 
-  // Function to add log entry
   const addLogEntry = (entry) => {
     setLogDataArray(prevLogData => [...prevLogData, entry]);
-    console.log(logDataArray)
   };
 
-  // Function to save log data to a text file
   const saveLogData = (logDataArray) => {
     const logData = logDataArray.join('\n');
     const logBlob = new Blob([logData], { type: 'text/plain' });
@@ -117,28 +100,22 @@ const App = () => {
     document.body.removeChild(logAnchor);
   };
 
-  //Sending an audio message from the user to the backend for transcription
   const handleAudioUpload = async (blob) => {
-    console.log('Blob:', blob)
-    addLogEntry('Blob size: ' + blob.size); // Add log entry
-    addLogEntry('Blob type: ' + blob.type);
+    addLogEntry(`Blob size: ${blob.size}`);
+    addLogEntry(`Blob type: ${blob.type}`);
     const formData = new FormData();
     formData.append('file', blob, 'audio.mp4');
-    console.log('Form data after append audio.mp4:', formData)
-    addLogEntry('Form data after append audio.mp4: ' + formData); // Add log entry
+    addLogEntry(`Form data after append audio.mp4: ${formData}`);
     formData.append('session_id', sessionId);
-  
+
     try {
       const response = await axios.post('https://chatappdemobackend.azurewebsites.net/transcribe', formData);
-  
-      console.log('Response:',response)
-      addLogEntry('Response: ' + JSON.stringify(response)); // Add log entry
+      addLogEntry(`Response: ${JSON.stringify(response)}`);
       const { transcript } = response.data;
-      setUserMessage(transcript); //Set transcript text in input field
+      setUserMessage(transcript);
       setIsRecording(false);
     } catch (error) {
-      addLogEntry('Error uploading audio file:' + error);
-      console.error('Error uploading audio file:', error);
+      addLogEntry(`Error uploading audio file: ${error}`);
       setIsRecording(false);
     }
   };
@@ -146,15 +123,11 @@ const App = () => {
   const handleVoiceClick = () => {
     if (isRecording) {
       mediaRecorderRef.current.stop();
-      console.log("Iskljuceno snimanje");
-      addLogEntry("Iskljuceno snimanje"); // Add log entry
+      addLogEntry("Recording stopped");
     } else {
-      console.log("Ukljuceno snimanje");
-      addLogEntry("Ukljuceno snimanje"); // Add log entry
+      addLogEntry("Recording started");
       navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
         mediaRecorderRef.current = new MediaRecorder(stream, { mimeType: 'audio/mp4' });
-        console.log("Media Recorder Ref", mediaRecorderRef);
-        addLogEntry("Media Recorder Ref: " + mediaRecorderRef); // Add log entry
         let silenceTimeout;
 
         const resetSilenceTimeout = () => {
@@ -166,10 +139,8 @@ const App = () => {
 
         mediaRecorderRef.current.ondataavailable = (event) => {
           const blob = event.data;
-          console.log("Blob:", blob);
-          addLogEntry("Blob: " + blob); // Add log entry
+          addLogEntry(`Blob: ${blob}`);
 
-          // Save the mp4 file
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.style.display = 'none';
@@ -183,14 +154,10 @@ const App = () => {
         };
 
         mediaRecorderRef.current.onstart = () => {
-          console.log('Recording started');
-          addLogEntry('Recording started'); // Add log entry
           resetSilenceTimeout();
         };
 
         mediaRecorderRef.current.onstop = () => {
-          console.log('Recording stopped');
-          addLogEntry('Recording stopped'); // Add log entry
           clearTimeout(silenceTimeout);
         };
 
@@ -216,8 +183,7 @@ const App = () => {
         };
 
         detectSilence();
-      })
-      .catch((error) => {
+      }).catch(() => {
         setIsRecording(false);
       });
     }
@@ -237,27 +203,19 @@ const App = () => {
       withCredentials: true
     });
 
-    eventSource.onopen = function() {
+    eventSource.onopen = () => {
       console.log("EventSource connection opened.");
-      setMessages(prevMessages => [...prevMessages, { role: 'assistant', content: '' }]);
     };
 
-    eventSource.onmessage = function(event) {
+    eventSource.onmessage = (event) => {
       const data = JSON.parse(event.data);
       const content = data.content;
 
-      if (data.suggested_questions) {
-        console.log(data.suggested_questions);
-      }
-
       if (data.audio) {
-        console.log("Audio data received:", data.audio);
         handleAudioResponse(data.audio);
       }
 
-      // Filtriraj sadržaj da ne uključuje predložena pitanja
       const filteredContent = (language === 'en' ? content.replace(/Suggested questions:.*(?:\n|$)/g, '') : content.replace(/Predložena pitanja:.*(?:\n|$)/g, ''));
-
       updateLastMessage({ role: 'assistant', content: filteredContent });
 
       if (!content.endsWith('▌')) {
@@ -267,7 +225,7 @@ const App = () => {
       }
     };
 
-    eventSource.onerror = function(event) {
+    eventSource.onerror = (event) => {
       console.error("EventSource failed.", event);
       eventSource.close();
       setIsAssistantResponding(false);
@@ -291,8 +249,8 @@ const App = () => {
 
   const handleAudioResponseClick = () => {
     if (audioRef.current) {
-        audioRef.current.pause(); 
-        audioRef.current = null;
+      audioRef.current.pause();
+      audioRef.current = null;
     }
     if (audioResponse === false) {
       setAudioBase64(null);
@@ -308,7 +266,9 @@ const App = () => {
       content: userMessage
     };
     
-    setUserMessage(''); // Clear the input field
+    setUserMessage('');
+
+    setMessages(prevMessages => [...prevMessages, newMessage]);
 
     if (files.length > 0) {
       await handleFileSubmit(newMessage);
@@ -318,11 +278,11 @@ const App = () => {
           message: newMessage,
           suggest_questions: suggestQuestions,
           play_audio_response: audioResponse,
-          language: language // send the flag to the backend
+          language: language
         }, {
           headers: {
-              'Content-Type': 'application/json',
-              'Session-ID': sessionId
+            'Content-Type': 'application/json',
+            'Session-ID': sessionId
           },
           withCredentials: true,
         });
@@ -330,7 +290,7 @@ const App = () => {
         const data = response.data;
 
         if (data && data.calendly_url) {
-          setMessages((prevMessages) => [
+          setMessages(prevMessages => [
             ...prevMessages,
             { role: 'assistant', content: data.calendly_url, type: 'calendly' },
           ]);
@@ -338,27 +298,13 @@ const App = () => {
           getEventSource();
         }
 
-        // Request suggested questions only if assistant has finished responding
-        if (!isAssistantResponding) {
-          handleSuggestedQuestionClick(newMessage);
-        }
-
         if (data.suggested_questions) {
-          setUserSuggestQuestions(data.suggested_questions.filter(q => q.trim() !== '')); // Update the state with the non-empty suggested questions
+          setUserSuggestQuestions(data.suggested_questions.filter(q => q.trim() !== ''));
         } else {
-          setUserSuggestQuestions([]); // Clear suggested questions if not present
+          setUserSuggestQuestions([]);
         }
       } catch (error) {
         console.error('Network or Server Error:', error);
-        if (error.response) {
-          console.error('Error Response Data:', error.response.data);
-          console.error('Error Response Status:', error.response.status);
-          console.error('Error Response Headers:', error.response.headers);
-        } else if (error.request) {
-          console.error('No response received:', error.request);
-        } else {
-          console.error('Error Message:', error.message);
-        }
       }
     }
   };
@@ -378,13 +324,13 @@ const App = () => {
       try { 
         const response = await axios.post('https://chatappdemobackend.azurewebsites.net/chat', {
           message: newMessage,
-          suggest_questions: suggestQuestions, // send the flag to the backend
-          play_audio_response: audioResponse, // send the flag to the backend
-          language: language // send the flag to the backend
+          suggest_questions: suggestQuestions,
+          play_audio_response: audioResponse,
+          language: language
         }, {
           headers: {
-              'Content-Type': 'application/json',
-              'Session-ID': sessionId
+            'Content-Type': 'application/json',
+            'Session-ID': sessionId
           },
           withCredentials: true,
         });
@@ -392,7 +338,7 @@ const App = () => {
         const data = response.data;
   
         if (data && data.calendly_url) {
-          setMessages((prevMessages) => [
+          setMessages(prevMessages => [
             ...prevMessages,
             { role: 'assistant', content: data.calendly_url, type: 'calendly' },
           ]);
@@ -401,21 +347,12 @@ const App = () => {
         }
   
         if (data.suggested_questions) {
-          setUserSuggestQuestions(data.suggested_questions.filter(q => q.trim() !== '')); // Update the state with the non-empty suggested questions
+          setUserSuggestQuestions(data.suggested_questions.filter(q => q.trim() !== ''));
         } else {
-          setUserSuggestQuestions([]); // Clear suggested questions if not present
+          setUserSuggestQuestions([]);
         }
       } catch (error) {
         console.error('Network or Server Error:', error);
-        if (error.response) {
-          console.error('Error Response Data:', error.response.data);
-          console.error('Error Response Status:', error.response.status);
-          console.error('Error Response Headers:', error.response.headers);
-        } else if (error.request) {
-          console.error('No response received:', error.request);
-        } else {
-          console.error('Error Message:', error.message);
-        }
       }
     }
   };
@@ -440,7 +377,7 @@ const App = () => {
   };
 
   const handleSaveChat = () => {
-    const chatContent = messages.map(msg => `${msg.role}: ${sanitizeText(msg.content.content)}`).join('\n');
+    const chatContent = messages.map(msg => `${msg.role}: ${sanitizeText(msg.content)}`).join('\n');
     const blob = new Blob([chatContent], { type: 'text/plain' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -457,7 +394,6 @@ const App = () => {
   const handleFileDelete = (index) => {
     setFiles(prevFiles => {
       const updatedFiles = prevFiles.filter((_, i) => i !== index);
-      console.log('Updated Files:', updatedFiles);
       return updatedFiles;
     });
   };
@@ -530,7 +466,7 @@ const App = () => {
     {
       icon: (
         <div style={{ position: 'relative' }}>
-        <AttachFileSharpIcon style={{ color: files.length > 0 ? 'red' : 'inherit' }} />
+          <AttachFileSharpIcon style={{ color: files.length > 0 ? 'red' : 'inherit' }} />
           {files.length > 0 && (
             files.map((file, index) => (
               <div key={index} style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
@@ -554,11 +490,10 @@ const App = () => {
       ),
       name: files.length > 0 ? files.map(file => file.name).join('\n') : (language === 'en' ? 'Attach files' : 'Dodaj priloge'),
       onClick: () => document.getElementById('fileInput').click()
-  },
+    },
     { icon: <SaveAltSharpIcon />, name: (language === 'en' ? 'Save' : 'Sačuvaj'), onClick: handleSaveChat },
-    { icon: <TipsAndUpdatesIcon style={{ color: suggestQuestions === true ? 'red' : 'inherit' }}/>, name: suggestQuestions === true ? (language === 'en' ? 'Turn off question suggestions' : 'Isključi predloge pitanja') : (language === 'en' ? 'Turn on question suggestions' : 'Predlozi pitanja/odgovora'), onClick: handleSuggestQuestions },
-    { icon: <VolumeUpIcon style={{ color: audioResponse === true ? 'red' : 'inherit' }}/>, name: audioResponse === true ? (language === 'en' ? 'Turn off assistant audio response' : 'Isključi audio odgovor asistenta') : (language === 'en' ? 'Turn on assistant audio response' : 'Slušaj odgovor asistenta'), onClick: handleAudioResponseClick },
-
+    { icon: <TipsAndUpdatesIcon style={{ color: suggestQuestions ? 'red' : 'inherit' }} />, name: suggestQuestions ? (language === 'en' ? 'Turn off question suggestions' : 'Isključi predloge pitanja') : (language === 'en' ? 'Turn on question suggestions' : 'Predlozi pitanja/odgovora'), onClick: handleSuggestQuestions },
+    { icon: <VolumeUpIcon style={{ color: audioResponse ? 'red' : 'inherit' }} />, name: audioResponse ? (language === 'en' ? 'Turn off assistant audio response' : 'Isključi audio odgovor asistenta') : (language === 'en' ? 'Turn on assistant audio response' : 'Slušaj odgovor asistenta'), onClick: handleAudioResponseClick },
   ];
 
   return (
@@ -582,13 +517,13 @@ const App = () => {
                 >
                   <div>
                     <div onClick={() => handleCopyToClipboard(message.content, index)}>
-                        <p dangerouslySetInnerHTML={getMessageContent(message)} />
+                      <p dangerouslySetInnerHTML={getMessageContent(message)} />
                     </div>
                     {message.role === 'assistant' && audioResponse && audioBase64 && index === messages.length - 1 && !isAssistantResponding && (
-                        <audio controls autoPlay>
-                            <source src={`data:audio/mp4;base64,${audioBase64}`} type="audio/mp4" />
-                            Your browser does not support the audio element.
-                        </audio>
+                      <audio controls autoPlay>
+                        <source src={`data:audio/mp4;base64,${audioBase64}`} type="audio/mp4" />
+                        Your browser does not support the audio element.
+                      </audio>
                     )}
                   </div>
                 </Tooltip>
@@ -620,18 +555,16 @@ const App = () => {
                   placeholder={language === 'en' ? 'How can I help you?' : 'Kako vam mogu pomoći?'}
                   value={userMessage}
                   onChange={(e) => setUserMessage(e.target.value)}
-                  disabled={isAssistantResponding}
                 />
                 {userMessage.trim() ? (
                   <Button type="submit" className="send-button">
                     <SendIcon />
                   </Button>
                 ) : (
-                  <Tooltip title={language === 'en' ? 'Click to start recording': "Kliknite da započnete snimanje"}>
+                  <Tooltip title={language === 'en' ? 'Click to start recording' : 'Kliknite da započnete snimanje'}>
                     <Button
                       className={`send-button ${isRecording ? 'recording' : ''}`}
                       onClick={handleVoiceClick}
-                      disabled={isAssistantResponding}
                     >
                       <KeyboardVoiceIcon />
                     </Button>
@@ -665,6 +598,6 @@ const App = () => {
       </div>
     </div>
   );
-}
+};
 
 export default App;

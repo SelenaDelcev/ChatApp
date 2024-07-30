@@ -14,7 +14,6 @@ import os
 import PyPDF2
 import docx
 import json
-import asyncio
 import base64
 import uuid
 
@@ -53,7 +52,7 @@ class ChatRequest(BaseModel):
     language: Optional[str] = "sr"
 
 # Function for generating suggested questions.
-def generate_suggested_questions(sq_system, sq_user): 
+async def generate_suggested_questions(sq_system, sq_user): 
     client = get_openai_client()
     response = client.chat.completions.create(
         model="gpt-4o",
@@ -64,7 +63,7 @@ def generate_suggested_questions(sq_system, sq_user):
     return [question for question in questionsList.split('\n') if question.strip()]
 
 # Function for generating an audio response.
-def generate_audio_response(full_response):
+async def generate_audio_response(full_response):
     client = get_openai_client()
     spoken_response = client.audio.speech.create(
         model="tts-1-hd",
@@ -89,17 +88,13 @@ def initialize_session(request, messages: Dict[str, List[Dict[str, str]]], syste
 # Function for reading .pdf files after upload.
 def read_pdf(file):
     reader = PyPDF2.PdfReader(file)
-    text = ""
-    for page in reader.pages:
-        text += page.extract_text()
+    text = "".join(page.extract_text() for page in reader.pages)
     return text
 
 # Function for reading .docx files after upload.
 def read_docx(file):
     doc = docx.Document(file)
-    text = ""
-    for paragraph in doc.paragraphs:
-        text += paragraph.text + "\n"
+    text = "\n".join(paragraph.text for paragraph in doc.paragraphs)
     return text
 
 def get_thread_ids():
@@ -160,7 +155,7 @@ async def chat_with_ai(
                         Original context:
                         {message.content}
                         """}
-        suggested_questions = generate_suggested_questions(sq_system, sq_user)
+        suggested_questions = await generate_suggested_questions(sq_system, sq_user)
         response_data["suggested_questions"] = suggested_questions
 
     return response_data
@@ -206,7 +201,7 @@ async def stream(session_id: str):
 
             if play_audio_response:
                 plain_text_content = re.sub(r'<.*?>', '', final_formatted_content)
-                audio_response = generate_audio_response(plain_text_content)
+                audio_response = await generate_audio_response(plain_text_content)
                 final_json_data = json.dumps({'content': final_formatted_content, 'audio': audio_response})
             else:
                 final_json_data = json.dumps({'content': final_formatted_content})
