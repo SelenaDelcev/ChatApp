@@ -129,11 +129,7 @@ const App = () => {
     formData.append('session_id', sessionId);
   
     try {
-      const response = await axios.post('https://chatappdemobackend.azurewebsites.net/transcribe', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        }
-      });
+      const response = await axios.post('https://chatappdemobackend.azurewebsites.net/transcribe', formData, {});
   
       console.log('Response:',response)
       addLogEntry('Response: ' + JSON.stringify(response)); // Add log entry
@@ -141,6 +137,7 @@ const App = () => {
       setUserMessage(transcript); //Set transcript text in input field
       setIsRecording(false);
     } catch (error) {
+      addLogEntry('Error uploading audio file:' + error);
       console.error('Error uploading audio file:', error);
       setIsRecording(false);
     }
