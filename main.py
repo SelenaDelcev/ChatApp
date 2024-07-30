@@ -191,6 +191,7 @@ async def stream(session_id: str):
                     # Text formatting
                     formatted_content = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', assistant_message_content)
                     formatted_content = re.sub(r'\[(.*?)\]\((.*?)\)', r'<a href="\2" target="_blank">\1</a>', formatted_content)
+                    formatted_content = re.sub(r'(\d+)\.', r'<br>\1.', formatted_content)
                     # Adding a typing character
                     streaming_content = formatted_content + '▌'
                     logger.info(f"Streaming content: {streaming_content}")
@@ -198,6 +199,7 @@ async def stream(session_id: str):
                     yield f"data: {json_data}\n\n"
             final_formatted_content = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', assistant_message_content)
             final_formatted_content = re.sub(r'\[(.*?)\]\((.*?)\)', r'<a href="\2" target="_blank">\1</a>', final_formatted_content)
+            final_formatted_content = re.sub(r'(\d+)\.', r'<br>\1.', final_formatted_content)
 
             if play_audio_response:
                 plain_text_content = re.sub(r'<.*?>', '', final_formatted_content)
