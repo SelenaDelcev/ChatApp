@@ -322,6 +322,8 @@ def convert_to_mp3(file_path, output_path):
 # The function is called when a voice message is recorded, the text is transcribed, and returned to the front end.   
 @app.post("/transcribe")
 async def transcribe_audio(file: UploadFile = File(...), session_id: str = Form(...)):
+    logging.info(f"Post transcribe works")
+    logging.info(f"Audio file {file}")
     try:
         client = get_openai_client()
         mp4filePath = f"temp_{session_id}.mp4"

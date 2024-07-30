@@ -129,6 +129,7 @@ const App = () => {
     formData.append('session_id', sessionId);
   
     try {
+      addLogEntry('Try block');
       const response = await axios.post('https://chatappdemobackend.azurewebsites.net/transcribe', formData);
   
       console.log('Response:',response)
