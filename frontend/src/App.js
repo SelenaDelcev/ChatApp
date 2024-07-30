@@ -129,7 +129,7 @@ const App = () => {
     formData.append('session_id', sessionId);
   
     try {
-      const response = await axios.post('https://chatappdemobackend.azurewebsites.net/transcribe', formData, {});
+      const response = await axios.post('https://chatappdemobackend.azurewebsites.net/transcribe', formData);
   
       console.log('Response:',response)
       addLogEntry('Response: ' + JSON.stringify(response)); // Add log entry
