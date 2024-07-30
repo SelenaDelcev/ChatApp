@@ -201,7 +201,6 @@ async def stream(session_id: str):
                     logger.info(f"Streaming content: {streaming_content}")
                     json_data = json.dumps({'content': streaming_content})
                     yield f"data: {json_data}\n\n"
-                    await asyncio.sleep(0.001)
             final_formatted_content = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', assistant_message_content)
             final_formatted_content = re.sub(r'\[(.*?)\]\((.*?)\)', r'<a href="\2" target="_blank">\1</a>', final_formatted_content)
 
