@@ -117,20 +117,15 @@ const App = () => {
     document.body.removeChild(logAnchor);
   };
 
-  const blobToFile = (blob, filename) => {
-    return new File([blob], filename, { type: blob.type, lastModified: Date.now() });
-  };
-  
+  //Sending an audio message from the user to the backend for transcription
   const handleAudioUpload = async (blob) => {
-    console.log('Blob:', blob);
-    addLogEntry('Blob size: ' + blob.size);
+    console.log('Blob:', blob)
+    addLogEntry('Blob size: ' + blob.size); // Add log entry
     addLogEntry('Blob type: ' + blob.type);
-  
-    const file = blobToFile(blob, 'audio.mp4');
     const formData = new FormData();
-    formData.append('file', file);
-    console.log('Form data after append audio.mp4:', formData);
-    addLogEntry('Form data after append audio.mp4: ' + formData);
+    formData.append('file', blob, 'audio.mp4');
+    console.log('Form data after append audio.mp4:', formData)
+    addLogEntry('Form data after append audio.mp4: ' + formData); // Add log entry
     formData.append('session_id', sessionId);
   
     try {
