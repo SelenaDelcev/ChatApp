@@ -116,8 +116,7 @@ const App = () => {
       setUserMessage(transcript);
       setIsRecording(false);
     } catch (error) {
-      console.log(error)
-      addLogEntry(`Error response: ${error.response.detail}`);
+      addLogEntry(`Error response: ${error.response}`);
       setIsRecording(false);
     }
   };
