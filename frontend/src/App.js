@@ -52,7 +52,7 @@ const App = () => {
   }, []);
 
   useEffect(() => {
-    if (logDataArray.length === 9) {
+    if (logDataArray.length === 6) {
       saveLogData(logDataArray);
     }
   }, [logDataArray]);
