@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400&display=swap');
 
 .App {
   font-family: 'Roboto', Arial, sans-serif;
@@ -13,9 +13,10 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  border: 1px solid #343541;
+  height: 100%;
+  border: 1px solid #3d3d3d;
   border-radius: 5px;
-  background-color: #343541;
+  background-color: #3d3d3d;
   overflow: hidden;
 }
 
@@ -44,7 +45,7 @@
   padding: 10px;
   overflow-y: auto;
   flex-direction: column;
-  border-bottom: 1px solid #343541;
+  border-bottom: 1px solid #3d3d3d;
   padding-bottom: 8px;
 }
 
@@ -55,16 +56,31 @@
   margin-bottom: 5px;
   max-width: 400px;
   width: fit-content;
-  margin: 15px 0;
+}
+
+.message-container {
+  display: flex;
+  align-items: flex-end;
+  margin-bottom: 10px;
+  position: relative;
+  line-height: 1.5;
+  font-weight: 300;
+  letter-spacing: 1px;
+}
+
+.assistant-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 10px;
 }
 
 .message.user {
-  color: #343541;
+  color: #ffff;
   margin-left: auto;
-  background: linear-gradient(145deg, #ff9a9d, #ff9a9d);
+  background: linear-gradient(145deg, #f33b4a, #f33b4b);
   background-attachment: fixed;
   position: relative;
-  padding: 0.1px 9px;
 }
 
 .message.user:before {
@@ -75,7 +91,7 @@
   right: -8px;
   height: 20px;
   width: 20px;
-  background: linear-gradient(145deg, #ff9a9d, #ff9a9d);
+  background: linear-gradient(145deg, #f33b4b, #f33b4b);
   background-attachment: fixed;
   border-bottom-left-radius: 15px;
 }
@@ -88,14 +104,14 @@
   right: -10px;
   width: 10px;
   height: 20px;
-  background: linear-gradient(-90deg, #343541, #343541);
+  background: linear-gradient(-90deg, #3d3d3d, #3d3d3d);
   border-bottom-left-radius: 10px;
 }
 
 .message.assistant {
-  color: #343541;
+  color: #ffff;
   margin-right: auto;
-  background: #eee;
+  background: #2a2a2a;
   background-attachment: fixed;
   position: relative;
 }
@@ -108,7 +124,7 @@
   left: -9px;
   height: 20px;
   width: 20px;
-  background: #eee;
+  background: #2a2a2a;
   background-attachment: fixed;
   border-bottom-right-radius: 15px;
 }
@@ -121,7 +137,7 @@
   left: -10px;
   width: 10px;
   height: 20px;
-  background: linear-gradient(-90deg, #343541, #343541);
+  background: linear-gradient(-90deg, #3d3d3d, #3d3d3d);
   border-bottom-right-radius: 10px;
 }
 
@@ -129,7 +145,7 @@
   display: flex;
   align-items: center;
   padding: 15px;
-  background-color: #343541; 
+  background-color: #3d3d3d; 
   border-radius: 20px;
   width: 95%;
   box-sizing: border-box;
@@ -159,7 +175,7 @@
   align-items: center;
   border-radius: 20px;
   overflow: hidden;
-  background-color: #454654;
+  background-color: #505050;
   margin-right: 10px;
 }
 
@@ -167,7 +183,7 @@
   flex: 1;
   padding: 10px;
   border: none;
-  background-color: #454654;
+  background-color: #505050;
   color: white;
   font-family: 'Roboto', Arial, sans-serif;
 }
@@ -180,7 +196,7 @@
   -moz-border-radius:50%;
   -webkit-border-radius:50%;
   border-radius: 50%; 
-  background-color: #454654;
+  background-color: #505050;
   color: #b3b3b3;
   display: flex;
   align-items: center;
@@ -188,12 +204,12 @@
 }
 
 .message-input .send-button.recording {
-  background-color: #454654;
+  background-color: #505050;
   color: #ed3c47ed;
 }
 
 .message-input .send-button:hover {
-  background-color: #454654;
+  background-color: #505050;
   color: white;
 }
 
@@ -207,7 +223,7 @@ input[type="text"]:focus {
 
 button:enabled {
   cursor: pointer; 
-  background-color: #454654;
+  background-color: #505050;
   color: white;
 }
 
@@ -216,12 +232,12 @@ button:enabled:hover {
 }
 
 button:disabled {
-  background-color: #454654;
+  background-color: #505050;
   color: #b3b3b3; 
 }
 
 button:disabled:hover {
-  background-color: #454654;
+  background-color: #505050;
   color: #b3b3b3;
 }
 
@@ -241,7 +257,7 @@ button:disabled:hover {
   height: 45px;
   margin: 0;
   padding: 0; 
-  background-color: #454654;
+  background-color: #505050;
   border-radius: 50%;
   box-shadow: none; 
   display: flex;
@@ -251,12 +267,12 @@ button:disabled:hover {
 }
 
 .speed-dial .MuiSpeedDial-fab:hover {
-  background-color: #000000;
+  background-color: #2a2a2a;
   color: white;
 }
 
 .speed-dial .MuiSpeedDialAction-fab:hover {
-  background-color: #000000;
+  background-color: #2a2a2a;
   color: white;
 }
 

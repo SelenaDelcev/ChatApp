@@ -8,7 +8,8 @@ import {
   SpeedDialAction,
   Button,
   Alert,
-  Tooltip
+  Tooltip,
+  Avatar
 } from '@mui/material';
 import {
   Send as SendIcon,
@@ -499,33 +500,44 @@ const App = () => {
       <div className="chat-container">
         <div className="messages">
           {messages.map((message, index) => (
-            <div key={index} className={`message ${message.role}`}>
-              {message.type === 'calendly' ? (
-                <iframe
-                  src={message.content}
-                  title="Calendly Scheduling"
-                ></iframe>
-              ) : message.type === 'error' ? (
-                <Alert variant="outlined" severity="error" style={{ color: '#black' }}>{message.content}</Alert>
-              ) : (
-                <Tooltip
-                  title={tooltipText[index] || (language === 'en' ? 'Copy to clipboard' : 'Klikni da kopiraš tekst')}
-                  placement="top"
-                  arrow
-                >
-                  <div>
-                    <div onClick={() => handleCopyToClipboard(message.content, index)}>
-                      <p dangerouslySetInnerHTML={getMessageContent(message)} />
-                    </div>
-                    {message.role === 'assistant' && audioResponse && audioBase64 && index === messages.length - 1 && !isAssistantResponding && (
-                      <audio controls autoPlay>
-                        <source src={`data:audio/mp4;base64,${audioBase64}`} type="audio/mp4" />
-                        Your browser does not support the audio element.
-                      </audio>
-                    )}
-                  </div>
-                </Tooltip>
+            <div key={index} className="message-container">
+              {message.role === 'assistant' && (
+                <div className="assistant-avatar">
+                  <Avatar
+                    alt="3Pi"
+                    src="/avatar.jpg"
+                    sx={{ width: 25, height: 25 }}
+                  />
+                </div>
               )}
+              <div className={`message ${message.role}`}>
+                {message.type === 'calendly' ? (
+                  <iframe
+                    src={message.content}
+                    title="Calendly Scheduling"
+                  ></iframe>
+                ) : message.type === 'error' ? (
+                  <Alert variant="outlined" severity="error" style={{ color: 'red' }}>{message.content}</Alert>
+                ) : (
+                  <Tooltip
+                    title={tooltipText[index] || (language === 'en' ? 'Copy to clipboard' : 'Klikni da kopiraš tekst')}
+                    placement="top"
+                    arrow
+                  >
+                    <div>
+                      <div onClick={() => handleCopyToClipboard(message.content, index)}>
+                        <p dangerouslySetInnerHTML={getMessageContent(message)} />
+                      </div>
+                      {message.role === 'assistant' && audioResponse && audioBase64 && index === messages.length - 1 && !isAssistantResponding && (
+                        <audio controls autoPlay>
+                          <source src={`data:audio/mp4;base64,${audioBase64}`} type="audio/mp4" />
+                          Your browser does not support the audio element.
+                        </audio>
+                      )}
+                    </div>
+                  </Tooltip>
+                )}
+              </div>
             </div>
           ))}
           <div ref={messagesEndRef} />
