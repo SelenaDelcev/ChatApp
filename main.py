@@ -30,7 +30,10 @@ user_name = "positive"
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "https://nice-forest-0cdf73d0f.5.azurestaticapps.net",
+        "http://localhost:3000"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
