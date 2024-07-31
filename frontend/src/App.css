@@ -283,6 +283,53 @@ button:disabled:hover {
   justify-content: center;
 }
 
+.typing-indicator {
+  color: #ffff;
+  margin-right: auto;
+  background: none;
+  background-attachment: fixed;
+  position: relative;
+  padding: 5px 1px;
+  margin-top: 5px;
+  margin-bottom: -10px;
+  max-width: 400px;
+  width: fit-content;
+  display: flex;
+  align-items: center;
+}
+
+.typing-indicator .dot-1, 
+.typing-indicator .dot-2, 
+.typing-indicator .dot-3 {
+  font-size: 24px; 
+  font-weight: bold; 
+  margin: 0 2px;
+  animation: blink 2s infinite both; 
+}
+
+.typing-indicator .dot-2 {
+  animation-delay: 0.4s;
+}
+
+.typing-indicator .dot-3 {
+  animation-delay: 0.8s;
+}
+
+@keyframes blink {
+  0% {
+    opacity: 0.2;
+    transform: translateY(0);
+  }
+  20% {
+    opacity: 1;
+    transform: translateY(-5px);
+  }
+  100% {
+    opacity: 0.2;
+    transform: translateY(0); 
+  }
+}
+
 /* Responsive styles */
 @media (max-width: 600px) {
   .App {

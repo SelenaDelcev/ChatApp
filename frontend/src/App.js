@@ -39,6 +39,7 @@ const App = () => {
   const [audioBase64, setAudioBase64] = useState(null);
   const [language, setLanguage] = useState('sr');
   const [logDataArray, setLogDataArray] = useState([]);
+  const [showTypingIndicator, setShowTypingIndicator] = useState(false);
 
   useEffect(() => {
     const storedSessionId = sessionStorage.getItem('sessionId');
@@ -269,6 +270,7 @@ const App = () => {
     setUserMessage('');
 
     setMessages(prevMessages => [...prevMessages, newMessage]);
+    setShowTypingIndicator(true);
 
     if (files.length > 0) {
       await handleFileSubmit(newMessage);
@@ -358,14 +360,16 @@ const App = () => {
   };
 
   const updateLastMessage = (newMessage) => {
+    setShowTypingIndicator(false);
     setMessages(prevMessages => {
       const lastIndex = prevMessages.length - 1;
-
+  
       if (prevMessages[lastIndex] && prevMessages[lastIndex].role === 'assistant') {
         const updatedMessages = [...prevMessages];
         updatedMessages[lastIndex] = newMessage;
         return updatedMessages;
       }
+  
       return [...prevMessages, newMessage];
     });
   };
@@ -539,6 +543,20 @@ const App = () => {
               </div>
             </div>
           ))}
+          {showTypingIndicator && (
+          <div className="message-container">
+            <div className="assistant-avatar">
+              <Avatar
+                alt="3Pi"
+                src="/avatar.jpg"
+                sx={{ width: 25, height: 25 }}
+              />
+            </div>
+            <div className="typing-indicator">
+              <span className="dot-1">.</span><span className="dot-2">.</span><span className="dot-3">.</span>
+            </div>
+          </div>
+          )}
           <div ref={messagesEndRef} />
         </div>
         <div className="input-row-container">
