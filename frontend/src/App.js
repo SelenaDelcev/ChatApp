@@ -141,7 +141,6 @@ const App = () => {
 
         mediaRecorderRef.current.ondataavailable = (event) => {
           const blob = event.data;
-          addLogEntry(`Blob: ${blob}`);
 
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
