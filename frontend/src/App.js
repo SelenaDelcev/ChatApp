@@ -52,7 +52,7 @@ const App = () => {
   }, []);
 
   useEffect(() => {
-    if (logDataArray.length === 8) {
+    if (logDataArray.length === 6) {
       saveLogData(logDataArray);
     }
   }, [logDataArray]);
@@ -116,10 +116,7 @@ const App = () => {
       setUserMessage(transcript);
       setIsRecording(false);
     } catch (error) {
-      addLogEntry(`Error response detail: ${error.response.detail}`);
-      addLogEntry(`Error response: ${error.response}`);
-      addLogEntry(`Error response data: ${error.response.data}`);
-      addLogEntry(`Error response headers: ${error.response.headers}`);
+      addLogEntry(`Error response: ${error.response.data}`);
       setIsRecording(false);
     }
   };
