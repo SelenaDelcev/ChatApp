@@ -7,6 +7,7 @@ from openai import OpenAI, OpenAIError, RateLimitError, APIConnectionError, APIE
 from util_func import get_openai_client, rag_tool_answer, system_prompt
 from pydub import AudioSegment
 from myfunc.mssql import ConversationDatabase
+import asyncio
 import logging
 import re
 import io
@@ -197,6 +198,7 @@ async def stream(session_id: str):
                     logger.info(f"Streaming content: {streaming_content}")
                     json_data = json.dumps({'content': streaming_content})
                     yield f"data: {json_data}\n\n"
+                    await asyncio.sleep(0.05)
             final_formatted_content = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', assistant_message_content)
             final_formatted_content = re.sub(r'\[(.*?)\]\((.*?)\)', r'<a href="\2" target="_blank">\1</a>', final_formatted_content)
             final_formatted_content = re.sub(r'(\d+)\.', r'<br>\1.', final_formatted_content)
