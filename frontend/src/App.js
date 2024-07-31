@@ -116,7 +116,7 @@ const App = () => {
       setUserMessage(transcript);
       setIsRecording(false);
     } catch (error) {
-      addLogEntry(`Error uploading audio file: ${error}`);
+      addLogEntry(`Error uploading audio file: ${error.message}`);
       setIsRecording(false);
     }
   };
