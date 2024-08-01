@@ -20,6 +20,13 @@ import uuid
 
 global thread_name
 thread_name = f"{uuid.uuid4()}"
+
+global suggested_questions
+suggested_questions = False
+
+global three_questions
+three_questions = {}
+
 # Initialize the FastAPI app
 app = FastAPI()
 
@@ -141,23 +148,8 @@ async def chat_with_ai(
     response_data = {"detail": "Message received"}
     
     if suggest_questions:
-        sq_system = {
-            "role": "system",
-            "content": f"Use only the {'English' if language == 'en' else 'Serbian'} language"
-        }
-        sq_user = {
-            "role": "user",
-            "content": f"""You are an AI language model assistant for a company's chatbot. Your task is to generate 3 different possible continuation sentences that a user might say based on the given context. These continuations should be in the form of questions or statements that naturally follow from the conversation.
-
-                        Your goal is to help guide the user through the Q&A process by predicting their next possible inputs. Ensure these continuations are from the user's perspective and relevant to the context provided.
-
-                        Provide these sentences separated by newlines, without numbering.
-
-                        Original context:
-                        {message.content}
-                        """}
-        suggested_questions = await generate_suggested_questions(sq_system, sq_user)
-        response_data["suggested_questions"] = suggested_questions
+        global suggested_questions
+        suggested_questions = True
 
     return response_data
 
@@ -202,6 +194,22 @@ async def stream(session_id: str):
             final_formatted_content = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', assistant_message_content)
             final_formatted_content = re.sub(r'\[(.*?)\]\((.*?)\)', r'<a href="\2" target="_blank" class="custom-link">\1</a>', final_formatted_content)
             final_formatted_content = re.sub(r'(\d+)\.', r'<br>\1.', final_formatted_content)
+            global suggested_questions
+            sq_system = {
+                "role": "system",
+                "content": f"""You are an AI language model assistant for a company's chatbot. Your task is to generate 3 different possible continuation sentences that a user might say based on the given context. These continuations should be in the form of questions or statements that naturally follow from the conversation.
+
+                            Your goal is to help guide the user through the Q&A process by predicting their next possible inputs. Ensure these continuations are from the user's perspective and relevant to the context provided.
+
+                            Provide these sentences separated by newlines, without numbering. Respond in the same language as the original context.
+                            """
+            }
+            sq_user = {
+                "role": "user",
+                "content": f"Original context:{final_formatted_content}"}
+            suggested_questions = await generate_suggested_questions(sq_system, sq_user)
+            global three_questions
+            three_questions = suggested_questions
 
             if play_audio_response:
                 plain_text_content = re.sub(r'<.*?>', '', final_formatted_content)
@@ -238,6 +246,14 @@ async def stream(session_id: str):
             yield f"data: {json.dumps({'detail': f'Internal server error: {str(e)}'})}\n\n"
             
     return StreamingResponse(event_generator(), media_type="text/event-stream")
+
+@app.get('/suggest-questions')
+async def get_suggested_questions():
+    global three_questions
+    if not three_questions:
+        return {"suggested_questions": []}
+
+    return {"suggested_questions": three_questions}
 
 # Generate a text description for the image.
 async def process_image(image_content: bytes, mime_type: str):

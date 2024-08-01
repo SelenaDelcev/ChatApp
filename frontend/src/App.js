@@ -38,7 +38,6 @@ const App = () => {
   const audioRef = useRef(null);
   const [audioBase64, setAudioBase64] = useState(null);
   const [language, setLanguage] = useState('sr');
-  const [logDataArray, setLogDataArray] = useState([]);
   const [showTypingIndicator, setShowTypingIndicator] = useState(false);
 
   useEffect(() => {
@@ -51,12 +50,6 @@ const App = () => {
       setSessionId(newSessionId);
     }
   }, []);
-
-  useEffect(() => {
-    if (logDataArray.length === 6) {
-      saveLogData(logDataArray);
-    }
-  }, [logDataArray]);
 
   useEffect(() => {
     const handleMessage = (event) => {
@@ -84,40 +77,18 @@ const App = () => {
     scrollToBottom();
   }, [messages, scrollToBottom]);
 
-  const addLogEntry = (entry) => {
-    setLogDataArray(prevLogData => [...prevLogData, entry]);
-  };
-
-  const saveLogData = (logDataArray) => {
-    const logData = logDataArray.join('\n');
-    const logBlob = new Blob([logData], { type: 'text/plain' });
-    const logUrl = URL.createObjectURL(logBlob);
-    const logAnchor = document.createElement('a');
-    logAnchor.style.display = 'none';
-    logAnchor.href = logUrl;
-    logAnchor.download = 'Log Frontend.txt';
-    document.body.appendChild(logAnchor);
-    logAnchor.click();
-    window.URL.revokeObjectURL(logUrl);
-    document.body.removeChild(logAnchor);
-  };
-
   const handleAudioUpload = async (blob) => {
-    addLogEntry(`Blob size: ${blob.size}`);
-    addLogEntry(`Blob type: ${blob.type}`);
     const formData = new FormData();
     formData.append('file', blob, 'audio.mp4');
-    addLogEntry(`Form data after append audio.mp4: ${formData}`);
     formData.append('session_id', sessionId);
 
     try {
       const response = await axios.post('https://chatappdemobackend.azurewebsites.net/transcribe', formData);
-      addLogEntry(`Response: ${JSON.stringify(response)}`);
       const { transcript } = response.data;
       setUserMessage(transcript);
       setIsRecording(false);
     } catch (error) {
-      addLogEntry(`Error response: ${error.response}`);
+      console.log(error)
       setIsRecording(false);
     }
   };
@@ -125,9 +96,7 @@ const App = () => {
   const handleVoiceClick = () => {
     if (isRecording) {
       mediaRecorderRef.current.stop();
-      addLogEntry("Recording stopped");
     } else {
-      addLogEntry("Recording started");
       navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
         mediaRecorderRef.current = new MediaRecorder(stream, { mimeType: 'audio/mp4' });
         let silenceTimeout;
@@ -198,6 +167,21 @@ const App = () => {
     }
   };
 
+  const fetchSuggestedQuestions = async () => {
+    try {
+      const response = await axios.get('https://chatappdemobackend.azurewebsites.net/suggest-questions');
+      const data = response.data;
+      console.log("Data:", data)
+      if (data.suggested_questions) {
+        setUserSuggestQuestions(data.suggested_questions.filter(q => q.trim() !== ''));
+      } else {
+        setUserSuggestQuestions([]);
+      }
+    } catch (error) {
+      console.error('Error fetching suggested questions:', error);
+    }
+  };
+
   const getEventSource = () => {
     setIsAssistantResponding(true);
     const eventSource = new EventSource(`https://chatappdemobackend.azurewebsites.net/chat/stream?session_id=${sessionId}`, {
@@ -216,13 +200,13 @@ const App = () => {
         handleAudioResponse(data.audio);
       }
 
-      const filteredContent = (language === 'en' ? content.replace(/Suggested questions:.*(?:\n|$)/g, '') : content.replace(/Predložena pitanja:.*(?:\n|$)/g, ''));
-      updateLastMessage({ role: 'assistant', content: filteredContent });
+      updateLastMessage({ role: 'assistant', content: content });
 
       if (!content.endsWith('▌')) {
         eventSource.close();
-        updateLastMessage({ role: 'assistant', content: filteredContent.replace('▌', '') });
+        updateLastMessage({ role: 'assistant', content: content.replace('▌', '') });
         setIsAssistantResponding(false);
+        fetchSuggestedQuestions();
       }
     };
 
