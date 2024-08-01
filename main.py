@@ -185,6 +185,7 @@ async def stream(session_id: str):
                     formatted_content = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', assistant_message_content)
                     formatted_content = re.sub(r'\[(.*?)\]\((.*?)\)', r'<a href="\2" target="_blank" class="custom-link">\1</a>', formatted_content)
                     formatted_content = re.sub(r'(\d+)\.', r'<br>\1.', formatted_content)
+                    formatted_content = re.sub(r'[\-\*•]\s', r'<br>• ', formatted_content)
                     # Adding a typing character
                     streaming_content = formatted_content + '▌'
                     logger.info(f"Streaming content: {streaming_content}")
@@ -194,6 +195,7 @@ async def stream(session_id: str):
             final_formatted_content = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', assistant_message_content)
             final_formatted_content = re.sub(r'\[(.*?)\]\((.*?)\)', r'<a href="\2" target="_blank" class="custom-link">\1</a>', final_formatted_content)
             final_formatted_content = re.sub(r'(\d+)\.', r'<br>\1.', final_formatted_content)
+            final_formatted_content = re.sub(r'[\-\*•]\s', r'<br>• ', final_formatted_content) 
             global suggested_questions
             sq_system = {
                 "role": "system",
