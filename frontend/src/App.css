@@ -141,6 +141,10 @@
   border-bottom-right-radius: 10px;
 }
 
+.custom-link {
+  color: #f33b4b;
+}
+
 .input-row {
   display: flex;
   align-items: center;

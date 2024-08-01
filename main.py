@@ -191,7 +191,7 @@ async def stream(session_id: str):
                     assistant_message_content += content
                     # Text formatting
                     formatted_content = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', assistant_message_content)
-                    formatted_content = re.sub(r'\[(.*?)\]\((.*?)\)', r'<a href="\2" target="_blank">\1</a>', formatted_content)
+                    formatted_content = re.sub(r'\[(.*?)\]\((.*?)\)', r'<a href="\2" target="_blank" class="custom-link">\1</a>', formatted_content)
                     formatted_content = re.sub(r'(\d+)\.', r'<br>\1.', formatted_content)
                     # Adding a typing character
                     streaming_content = formatted_content + '▌'
@@ -200,7 +200,7 @@ async def stream(session_id: str):
                     yield f"data: {json_data}\n\n"
                     await asyncio.sleep(0.03)
             final_formatted_content = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', assistant_message_content)
-            final_formatted_content = re.sub(r'\[(.*?)\]\((.*?)\)', r'<a href="\2" target="_blank">\1</a>', final_formatted_content)
+            final_formatted_content = re.sub(r'\[(.*?)\]\((.*?)\)', r'<a href="\2" target="_blank" class="custom-link">\1</a>', final_formatted_content)
             final_formatted_content = re.sub(r'(\d+)\.', r'<br>\1.', final_formatted_content)
 
             if play_audio_response:
