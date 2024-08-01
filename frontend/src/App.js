@@ -541,9 +541,6 @@ const App = () => {
             </div>
           </div>
           )}
-          <div ref={messagesEndRef} />
-        </div>
-        <div className="input-row-container">
           {!isAssistantResponding && userSuggestQuestions.length > 0 && (
             <div className="suggested-questions">
               {userSuggestQuestions.map((question, index) => (
@@ -551,13 +548,16 @@ const App = () => {
                   key={index}
                   variant="outlined"
                   onClick={() => handleSuggestedQuestionClick(question)}
-                  style={{ marginBottom: '10px', borderColor: '#f33b4b' }}
+                  style={{ marginBottom: '10px', borderColor: '#ffff' }}
                 >
                   {question}
                 </Button>
               ))}
             </div>
           )}
+          <div ref={messagesEndRef} />
+        </div>
+        <div className="input-row-container">
           <div className="input-row">
             <form onSubmit={handleSubmit} className="message-input">
               <div className="input-container">
