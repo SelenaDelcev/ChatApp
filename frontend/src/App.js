@@ -551,7 +551,7 @@ const App = () => {
                   key={index}
                   variant="outlined"
                   onClick={() => handleSuggestedQuestionClick(question)}
-                  style={{ marginBottom: '10px' }}
+                  style={{ marginBottom: '10px', borderColor: '#f33b4b' }}
                 >
                   {question}
                 </Button>
