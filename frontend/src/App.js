@@ -79,7 +79,7 @@ const App = () => {
 
   const handleAudioUpload = async (blob) => {
     const formData = new FormData();
-    formData.append('file', blob, 'audio.mp4');
+    formData.append('blob', blob, 'audio.mp4');
     formData.append('session_id', sessionId);
 
     try {
