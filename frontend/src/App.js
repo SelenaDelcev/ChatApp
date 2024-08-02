@@ -206,7 +206,8 @@ const App = () => {
         eventSource.close();
         updateLastMessage({ role: 'assistant', content: content.replace('▌', '') });
         setIsAssistantResponding(false);
-        fetchSuggestedQuestions();
+        if(suggestQuestions) 
+          fetchSuggestedQuestions();
       }
     };
 
@@ -542,7 +543,7 @@ const App = () => {
             </div>
           </div>
           )}
-          {!isAssistantResponding && userSuggestQuestions.length > 0 && (
+          {!isAssistantResponding && userSuggestQuestions.length > 0 && suggestQuestions && (
             <div className="suggested-questions">
               {userSuggestQuestions.map((question, index) => (
                 <Button
