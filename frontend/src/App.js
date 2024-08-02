@@ -280,6 +280,7 @@ const App = () => {
             ...prevMessages,
             { role: 'assistant', content: data.calendly_url, type: 'calendly' },
           ]);
+          setShowTypingIndicator(false);
         } else {
           getEventSource();
         }
