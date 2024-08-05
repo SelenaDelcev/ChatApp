@@ -79,7 +79,7 @@ const App = () => {
 
   const handleAudioUpload = async (blob) => {
     const formData = new FormData();
-    formData.append('blob', blob, 'blob.aac');
+    formData.append('blob', blob, 'blob.mp4');
     formData.append('session_id', sessionId);
     // Proverite sadržaj FormData objekta koristeći string
     let formDataContent = '';
@@ -115,7 +115,7 @@ const App = () => {
       mediaRecorderRef.current.stop();
     } else {
       navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
-        mediaRecorderRef.current = new MediaRecorder(stream, { mimeType: 'audio/aac' });
+        mediaRecorderRef.current = new MediaRecorder(stream, { mimeType: 'audio/mp4' });
         let silenceTimeout;
         let chunks = [];
 
@@ -135,7 +135,7 @@ const App = () => {
         };
 
         mediaRecorderRef.current.onstop = () => {
-          const blob = new Blob(chunks, { type: 'audio/aac' });
+          const blob = new Blob(chunks, { type: 'audio/mp4' });
           if(blob.size === 0)
             setUserMessage("Blob je prazan")
           handleAudioUpload(blob);
@@ -174,7 +174,7 @@ const App = () => {
   const handleAudioResponse = (audioBase64) => {
     if (audioResponse) {
       setAudioBase64(audioBase64);
-      const audio = new Audio(`data:audio/aac;base64,${audioBase64}`);
+      const audio = new Audio(`data:audio/mp4;base64,${audioBase64}`);
       audioRef.current = audio;
     }
   };
@@ -531,7 +531,7 @@ const App = () => {
                       </div>
                       {message.role === 'assistant' && audioResponse && audioBase64 && index === messages.length - 1 && !isAssistantResponding && (
                         <audio controls autoPlay>
-                          <source src={`data:audio/aac;base64,${audioBase64}`} type="audio/aac" />
+                          <source src={`data:audio/mp4;base64,${audioBase64}`} type="audio/mp4" />
                           Your browser does not support the audio element.
                         </audio>
                       )}
