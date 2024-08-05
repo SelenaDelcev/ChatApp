@@ -275,6 +275,16 @@ button:disabled:hover {
   color: white;
 }
 
+.attached-files {
+  padding: 2px;
+}
+
+.attached-files img {
+  width: 15px;
+  height: 15px;
+  margin-right: 2px;
+}
+
 .typing-indicator {
   color: #ffff;
   margin-right: auto;
