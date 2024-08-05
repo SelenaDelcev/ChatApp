@@ -39,6 +39,7 @@ const App = () => {
   const [audioBase64, setAudioBase64] = useState(null);
   const [language, setLanguage] = useState('sr');
   const [showTypingIndicator, setShowTypingIndicator] = useState(false);
+  const [openSpeedDial, setOpenSpeedDial] = useState(false);
 
   useEffect(() => {
     const storedSessionId = sessionStorage.getItem('sessionId');
@@ -76,6 +77,15 @@ const App = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages, scrollToBottom]);
+
+  const handleToggle = () => {
+    setOpenSpeedDial(!openSpeedDial);
+  };
+
+  const handleActionClick = (actionOnClick) => (event) => {
+    event.stopPropagation();
+    actionOnClick();
+  };
 
   const handleAudioUpload = async (blob) => {
     const formData = new FormData();
@@ -587,13 +597,15 @@ const App = () => {
               ariaLabel="SpeedDial basic example"
               className="speed-dial"
               icon={<SpeedDialIcon />}
+              onClick={handleToggle}
+              open={openSpeedDial} 
             >
               {actions.map((action) => (
                 <SpeedDialAction
                   key={action.name}
                   icon={action.icon}
                   tooltipTitle={action.name}
-                  onClick={action.onClick}
+                  onClick={handleActionClick(action.onClick)}
                 />
               ))}
             </SpeedDial>

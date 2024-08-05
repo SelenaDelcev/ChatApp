@@ -245,11 +245,6 @@ button:disabled:hover {
   color: #b3b3b3;
 }
 
-.speed-dial-wrapper {
-  position: relative;
-  padding-bottom: 60px; 
-}
-
 .speed-dial {
   width: 45px;
   height: 45px;
@@ -278,13 +273,6 @@ button:disabled:hover {
 .speed-dial .MuiSpeedDialAction-fab:hover {
   background-color: #2a2a2a;
   color: white;
-}
-
-.speed-dial:hover .MuiSpeedDial-actions {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
 }
 
 .typing-indicator {
