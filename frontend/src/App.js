@@ -79,7 +79,7 @@ const App = () => {
 
   const handleAudioUpload = async (blob) => {
     const formData = new FormData();
-    formData.append('blob', blob, 'audio.mp4');
+    formData.append('file', blob, 'audio.webm');
     formData.append('session_id', sessionId);
 
     try {
@@ -98,8 +98,9 @@ const App = () => {
       mediaRecorderRef.current.stop();
     } else {
       navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
-        mediaRecorderRef.current = new MediaRecorder(stream, { mimeType: 'audio/mp4' });
+        mediaRecorderRef.current = new MediaRecorder(stream, { mimeType: 'audio/webm' });
         let silenceTimeout;
+        let chunks = [];
 
         const resetSilenceTimeout = () => {
           clearTimeout(silenceTimeout);
@@ -109,18 +110,7 @@ const App = () => {
         };
 
         mediaRecorderRef.current.ondataavailable = (event) => {
-          const blob = event.data;
-
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.style.display = 'none';
-          a.href = url;
-          a.download = 'audio.mp4';
-          document.body.appendChild(a);
-          a.click();
-          window.URL.revokeObjectURL(url);
-
-          handleAudioUpload(blob);
+          chunks.push(event.data);
         };
 
         mediaRecorderRef.current.onstart = () => {
@@ -128,6 +118,9 @@ const App = () => {
         };
 
         mediaRecorderRef.current.onstop = () => {
+          const blob = new Blob(chunks, { type: 'audio/webm' });
+          handleAudioUpload(blob);
+          chunks = [];
           clearTimeout(silenceTimeout);
         };
 
@@ -162,7 +155,7 @@ const App = () => {
   const handleAudioResponse = (audioBase64) => {
     if (audioResponse) {
       setAudioBase64(audioBase64);
-      const audio = new Audio(`data:audio/mp4;base64,${audioBase64}`);
+      const audio = new Audio(`data:audio/webm;base64,${audioBase64}`);
       audioRef.current = audio;
     }
   };
@@ -519,7 +512,7 @@ const App = () => {
                       </div>
                       {message.role === 'assistant' && audioResponse && audioBase64 && index === messages.length - 1 && !isAssistantResponding && (
                         <audio controls autoPlay>
-                          <source src={`data:audio/mp4;base64,${audioBase64}`} type="audio/mp4" />
+                          <source src={`data:audio/webm;base64,${audioBase64}`} type="audio/webm" />
                           Your browser does not support the audio element.
                         </audio>
                       )}

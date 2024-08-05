@@ -338,30 +338,18 @@ def convert_to_mp3(file_path, output_path):
 
 # The function is called when a voice message is recorded, the text is transcribed, and returned to the front end.   
 @app.post("/transcribe")
-async def transcribe_audio(blob: UploadFile = File(...), session_id: str = Form(...)):
+async def transcribe_audio(file: UploadFile = File(...), session_id: str = Form(...)):
     try:
         client = get_openai_client()
-        mp4filePath = f"temp_{session_id}.mp4"
-        with open(mp4filePath, "wb") as f:
-            f.write(await blob.read())
-
-        logging.info(f"Saved mp4 file to {mp4filePath}")
-
-        mp3filePath = f"temp_{session_id}.mp3"
-        mp3file = convert_to_mp3(mp4filePath, mp3filePath)
-        logging.info(f"mp3 file {mp3file}")
-
-        with open(mp3file, "rb") as audio_file:
-            logging.info(f"ready to send whisper {audio_file}")
-            response = client.audio.transcriptions.create(
-                model="whisper-1",
-                file=audio_file,
-                language="sr"
-            )
+        mp3_file = convert_to_mp3(file)
+        
+        # Send mp3 file to OpenAI Whisper
+        response = client.audio.transcriptions.create(
+            model="whisper-1",
+            file=mp3_file,
+            language="sr"
+        )
         logging.info(f"Response {response}")
-
-        os.remove(mp4filePath)
-        os.remove(mp3filePath)
 
         logging.info(f"Transcript {response.text}")
         return {"transcript": response.text}
