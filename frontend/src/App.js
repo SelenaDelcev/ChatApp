@@ -9,7 +9,8 @@ import {
   Button,
   Alert,
   Tooltip,
-  Avatar
+  Avatar,
+  Chip
 } from '@mui/material';
 import {
   Send as SendIcon,
@@ -252,15 +253,36 @@ const App = () => {
     setAudioResponse(!audioResponse);
   };
 
+  const getFileTypeIcon = (file) => {
+    const fileExtension = file.name.split('.').pop().toLowerCase();
+  
+    switch (fileExtension) {
+      case 'pdf':
+        return <img src='/pdf-icon.png' alt="PDF" />;
+      case 'jpg':
+      case 'jpeg':
+      case 'png':
+      case 'gif':
+        return <img src='/gallery-icon.png' alt="File"/>;
+      case 'doc':
+      case 'docx':
+        return <img src='/doc-icon.png' alt="Document" />;
+      default:
+        return <img src='/default-icon.png' alt="File" />;
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     const newMessage = {
       role: 'user',
-      content: userMessage
+      content: userMessage,
+      files: files,
     };
     
     setUserMessage('');
+    setFiles([]);
 
     setMessages(prevMessages => [...prevMessages, newMessage]);
     setShowTypingIndicator(true);
@@ -484,7 +506,7 @@ const App = () => {
           )}
         </div>
       ),
-      name: files.length > 0 ? files.map(file => file.name).join('\n') : (language === 'en' ? 'Attach files' : 'Dodaj priloge'),
+      name: files.length > 0 ? files.map(file => <p>{file.name}</p>) : (language === 'en' ? 'Attach files' : 'Dodaj priloge'),
       onClick: () => document.getElementById('fileInput').click()
     },
     { icon: <SaveAltSharpIcon />, name: (language === 'en' ? 'Save' : 'Sačuvaj'), onClick: handleSaveChat },
@@ -525,6 +547,18 @@ const App = () => {
                       <div onClick={() => handleCopyToClipboard(message.content, index)}>
                         <p dangerouslySetInnerHTML={getMessageContent(message)} />
                       </div>
+                      {message.files && message.files.length > 0 && (
+                        <div className="attached-files" onClick={() => handleCopyToClipboard(message.content, index)}>
+                          {message.files.map((file, fileIndex) => (
+                            <Chip
+                              key={fileIndex}
+                              label={file.name}
+                              icon={getFileTypeIcon(file)}
+                              size="small"
+                            />
+                          ))}
+                        </div>
+                      )}
                       {message.role === 'assistant' && audioResponse && audioBase64 && index === messages.length - 1 && !isAssistantResponding && (
                         <audio controls autoPlay>
                           <source src={`data:audio/mp4;base64,${audioBase64}`} type="audio/mp4" />
