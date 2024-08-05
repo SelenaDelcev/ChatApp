@@ -330,7 +330,7 @@ def convert_to_mp3(file_path, output_path):
         # Load the audio file
         logger.info(f"File input: {file_path}")
         logger.info(f"File output: {output_path}")
-        audio = AudioSegment.from_file(file_path, format="webm")
+        audio = AudioSegment.from_file(file_path, format="aac")
         logger.info(f"Audio {audio}")
         # Export as mp3
         audio.export(output_path, format="mp3", bitrate="128k")
@@ -344,14 +344,14 @@ async def transcribe_audio(blob: UploadFile = File(...), session_id: str = Form(
     try:
         client = get_openai_client()
         logger.info(f"Fajl sa frontenda: {blob}")
-        webmfilePath = f"temp_{session_id}.webm"
-        with open(webmfilePath, "wb") as f:
+        aacfilePath = f"temp_{session_id}.aac"
+        with open(aacfilePath, "wb") as f:
             f.write(await blob.read())
 
-        logger.info(f"Saved webm file to {webmfilePath}")
+        logger.info(f"Saved aac file to {aacfilePath}")
 
         mp3filePath = f"temp_{session_id}.mp3"
-        mp3file = convert_to_mp3(webmfilePath, mp3filePath)
+        mp3file = convert_to_mp3(aacfilePath, mp3filePath)
         logger.info(f"mp3 file {mp3file}")
 
         with open(mp3file, "rb") as audio_file:
@@ -363,7 +363,7 @@ async def transcribe_audio(blob: UploadFile = File(...), session_id: str = Form(
             )
         logger.info(f"Response {response}")
 
-        os.remove(webmfilePath)
+        os.remove(aacfilePath)
         os.remove(mp3filePath)
 
         logging.info(f"Transcript {response.text}")

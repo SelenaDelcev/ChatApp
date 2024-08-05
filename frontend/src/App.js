@@ -79,8 +79,20 @@ const App = () => {
 
   const handleAudioUpload = async (blob) => {
     const formData = new FormData();
-    formData.append('blob', blob, 'blob.webm');
+    formData.append('blob', blob, 'blob.aac');
     formData.append('session_id', sessionId);
+    // Proverite sadržaj FormData objekta koristeći string
+    let formDataContent = '';
+    for (let pair of formData.entries()) {
+      formDataContent += `${pair[0]}: ${pair[1]}\n`;
+    }
+
+    if (formDataContent === '') {
+      setUserMessage("FormData je prazan");
+      return;
+    } else {
+      setUserMessage("FormData sadržaj:\n" + formDataContent);
+    }
 
     try {
       const response = await axios.post('https://chatappdemobackend.azurewebsites.net/transcribe', formData, {
@@ -103,7 +115,7 @@ const App = () => {
       mediaRecorderRef.current.stop();
     } else {
       navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
-        mediaRecorderRef.current = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+        mediaRecorderRef.current = new MediaRecorder(stream, { mimeType: 'audio/aac' });
         let silenceTimeout;
         let chunks = [];
 
@@ -123,7 +135,9 @@ const App = () => {
         };
 
         mediaRecorderRef.current.onstop = () => {
-          const blob = new Blob(chunks, { type: 'audio/webm' });
+          const blob = new Blob(chunks, { type: 'audio/aac' });
+          if(blob.size === 0)
+            setUserMessage("Blob je prazan")
           handleAudioUpload(blob);
           chunks = [];
           clearTimeout(silenceTimeout);
@@ -160,7 +174,7 @@ const App = () => {
   const handleAudioResponse = (audioBase64) => {
     if (audioResponse) {
       setAudioBase64(audioBase64);
-      const audio = new Audio(`data:audio/webm;base64,${audioBase64}`);
+      const audio = new Audio(`data:audio/aac;base64,${audioBase64}`);
       audioRef.current = audio;
     }
   };
@@ -517,7 +531,7 @@ const App = () => {
                       </div>
                       {message.role === 'assistant' && audioResponse && audioBase64 && index === messages.length - 1 && !isAssistantResponding && (
                         <audio controls autoPlay>
-                          <source src={`data:audio/webm;base64,${audioBase64}`} type="audio/webm" />
+                          <source src={`data:audio/aac;base64,${audioBase64}`} type="audio/aac" />
                           Your browser does not support the audio element.
                         </audio>
                       )}
