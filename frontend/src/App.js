@@ -81,18 +81,6 @@ const App = () => {
     const formData = new FormData();
     formData.append('blob', blob, 'blob.mp4');
     formData.append('session_id', sessionId);
-    // Proverite sadržaj FormData objekta koristeći string
-    let formDataContent = '';
-    for (let pair of formData.entries()) {
-      formDataContent += `${pair[0]}: ${pair[1]}\n`;
-    }
-
-    if (formDataContent === '') {
-      setUserMessage("FormData je prazan");
-      return;
-    } else {
-      setUserMessage("FormData sadržaj:\n" + formDataContent);
-    }
 
     try {
       const response = await axios.post('https://chatappdemobackend.azurewebsites.net/transcribe', formData, {
@@ -136,8 +124,6 @@ const App = () => {
 
         mediaRecorderRef.current.onstop = () => {
           const blob = new Blob(chunks, { type: 'audio/mp4' });
-          if(blob.size === 0)
-            setUserMessage("Blob je prazan")
           handleAudioUpload(blob);
           chunks = [];
           clearTimeout(silenceTimeout);
