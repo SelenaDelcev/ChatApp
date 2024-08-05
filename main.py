@@ -325,16 +325,18 @@ async def upload_file(
         logger.error(f"File upload error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"File upload error: {str(e)}")
 
-def convert_to_mp3(file_path, output_path):
-        logging.info(f"In convert_to_mp3 func")
-        # Load the audio file
-        audio = AudioSegment.from_file(file_path)
-        logging.info(f"Audio {audio}")
-        # Export as mp3
-        audio.export(output_path, format="mp3", bitrate="128k")
-        logging.info(f"Audio export {audio}")
-        logging.info(f"Output path {output_path}")
-        return output_path
+def convert_to_mp3(file: UploadFile):
+    # Read the file
+    audio = AudioSegment.from_file(file.file, format="webm")
+    logger.info("Audio loaded for conversion")
+    
+    # Convert to mp3 in memory
+    mp3_io = io.BytesIO()
+    audio.export(mp3_io, format="mp3", bitrate="128k")
+    logger.info("Audio converted to mp3 in memory")
+    
+    mp3_io.seek(0)
+    return mp3_io
 
 # The function is called when a voice message is recorded, the text is transcribed, and returned to the front end.   
 @app.post("/transcribe")
