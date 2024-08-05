@@ -340,13 +340,13 @@ def convert_to_mp3(file_path, output_path):
 
 # The function is called when a voice message is recorded, the text is transcribed, and returned to the front end.   
 @app.post("/transcribe")
-async def transcribe_audio(file: UploadFile = File(...), session_id: str = Form(...)):
+async def transcribe_audio(blob: UploadFile = File(...), session_id: str = Form(...)):
     try:
         client = get_openai_client()
-        logger.info(f"Fajl sa frontenda: {file}")
+        logger.info(f"Fajl sa frontenda: {blob}")
         webmfilePath = f"temp_{session_id}.webm"
         with open(webmfilePath, "wb") as f:
-            f.write(await file.read())
+            f.write(await blob.read())
 
         logger.info(f"Saved webm file to {webmfilePath}")
 
