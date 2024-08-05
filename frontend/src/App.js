@@ -79,7 +79,7 @@ const App = () => {
 
   const handleAudioUpload = async (blob) => {
     const formData = new FormData();
-    formData.append('blob', blob);
+    formData.append('blob', blob, 'blob.webm');
     formData.append('session_id', sessionId);
 
     try {
