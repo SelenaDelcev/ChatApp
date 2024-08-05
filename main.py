@@ -325,33 +325,46 @@ async def upload_file(
         logger.error(f"File upload error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"File upload error: {str(e)}")
 
-def convert_to_mp3(file: UploadFile):
-    # Read the file
-    audio = AudioSegment.from_file(file.file, format="webm")
-    logger.info("Audio loaded for conversion")
-    
-    # Convert to mp3 in memory
-    mp3_io = io.BytesIO()
-    audio.export(mp3_io, format="mp3", bitrate="128k")
-    logger.info("Audio converted to mp3 in memory")
-    
-    mp3_io.seek(0)
-    return mp3_io
+def convert_to_mp3(file_path, output_path):
+        logger.info(f"In convert_to_mp3 func")
+        # Load the audio file
+        logger.info(f"File input: {file_path}")
+        logger.info(f"File output: {output_path}")
+        audio = AudioSegment.from_file(file_path, format="webm")
+        logger.info(f"Audio {audio}")
+        # Export as mp3
+        audio.export(output_path, format="mp3", bitrate="128k")
+        logger.info(f"Audio export {audio}")
+        logger.info(f"Output path {output_path}")
+        return output_path
 
 # The function is called when a voice message is recorded, the text is transcribed, and returned to the front end.   
 @app.post("/transcribe")
 async def transcribe_audio(file: UploadFile = File(...), session_id: str = Form(...)):
     try:
         client = get_openai_client()
-        mp3_file = convert_to_mp3(file)
-        
-        # Send mp3 file to OpenAI Whisper
-        response = client.audio.transcriptions.create(
-            model="whisper-1",
-            file=mp3_file,
-            language="sr"
-        )
-        logging.info(f"Response {response}")
+        logger.info(f"Fajl sa frontenda: {file}")
+        webmfilePath = f"temp_{session_id}.webm"
+        with open(webmfilePath, "wb") as f:
+            f.write(await file.read())
+
+        logger.info(f"Saved webm file to {webmfilePath}")
+
+        mp3filePath = f"temp_{session_id}.mp3"
+        mp3file = convert_to_mp3(webmfilePath, mp3filePath)
+        logger.info(f"mp3 file {mp3file}")
+
+        with open(mp3file, "rb") as audio_file:
+            logger.info(f"ready to send whisper {audio_file}")
+            response = client.audio.transcriptions.create(
+                model="whisper-1",
+                file=audio_file,
+                language="sr"
+            )
+        logger.info(f"Response {response}")
+
+        os.remove(webmfilePath)
+        os.remove(mp3filePath)
 
         logging.info(f"Transcript {response.text}")
         return {"transcript": response.text}

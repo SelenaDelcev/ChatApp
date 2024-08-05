@@ -83,7 +83,12 @@ const App = () => {
     formData.append('session_id', sessionId);
 
     try {
-      const response = await axios.post('https://chatappdemobackend.azurewebsites.net/transcribe', formData);
+      const response = await axios.post('https://chatappdemobackend.azurewebsites.net/transcribe', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'Session-ID': sessionId
+        }
+      });
       const { transcript } = response.data;
       setUserMessage(transcript);
       setIsRecording(false);
