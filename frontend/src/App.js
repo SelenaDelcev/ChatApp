@@ -124,12 +124,7 @@ const App = () => {
 
         mediaRecorderRef.current.onstop = () => {
           const blob = new Blob(chunks, { type: 'audio/webm' });
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            const arrayBuffer = reader.result;
-            handleAudioUpload(arrayBuffer);
-          };
-          reader.readAsArrayBuffer(blob);
+          handleAudioUpload(blob);
           chunks = [];
           clearTimeout(silenceTimeout);
         };
