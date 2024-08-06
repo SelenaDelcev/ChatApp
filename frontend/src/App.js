@@ -450,6 +450,7 @@ const App = () => {
       ...prevMessages,
       { role: 'assistant', type: 'error', content: errorMessage }
     ]);
+    setShowTypingIndicator(false);
   };
 
   const handleCopyToClipboard = (messageContent, index) => {
