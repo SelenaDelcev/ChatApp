@@ -134,10 +134,11 @@ async def chat_with_ai(
     context = rag_tool_answer(message.content)
 
     if "sastanak sa nama" in context:
+        link = "https://outlook.office365.com/book/Chatbot@positive.rs/"
         if language == 'sr': 
             return {"calendly": context}
         else:
-            return {"calendly": "Of course, you can schedule a meeting with us at the following link: <a href='{calendly_url}' target='_blank' class='custom-link'>here</a>"}
+             return {"calendly": f"Of course, you can schedule a meeting with us at the following link: <a href='{link}' target='_blank' class='custom-link'>here</a>"}
         
     prepared_message_content = f"{context}\n\n{message.content}"
         
