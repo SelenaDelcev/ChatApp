@@ -55,7 +55,7 @@ const App = () => {
 
   useEffect(() => {
     const handleMessage = (event) => {
-      if (event.origin !== 'https://test.georgemposi.com') return;
+      if (event.origin !== 'https://positive.rs') return;
 
       if (event.data.type === 'main-url') {
         const path = event.data.url;
@@ -603,7 +603,7 @@ const App = () => {
               <div className="input-container">
                 <input
                   type="text"
-                  placeholder={language === 'en' ? 'How can I help you?' : 'Kako vam mogu pomoći?'}
+                  placeholder={language === 'en' ? 'How can I help you?' : 'Kako mogu da ti pomognem?'}
                   value={userMessage}
                   onChange={(e) => setUserMessage(e.target.value)}
                 />
