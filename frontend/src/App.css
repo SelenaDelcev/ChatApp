@@ -150,7 +150,8 @@
 .input-row {
   display: flex;
   align-items: center;
-  padding: 15px;
+  padding: 5px 10px;
+  margin-bottom: 5px;
   background-color: #505050; 
   border-radius: 20px;
   width: 95%;
