@@ -511,7 +511,7 @@ const App = () => {
       onClick: () => document.getElementById('fileInput').click()
     },
     { icon: <SaveAltSharpIcon />, name: (language === 'en' ? 'Save' : 'Sačuvaj'), onClick: handleSaveChat },
-    { icon: <TipsAndUpdatesIcon style={{ color: suggestQuestions ? 'red' : 'inherit' }} />, name: suggestQuestions ? (language === 'en' ? 'Turn off question suggestions' : 'Isključi predloge pitanja') : (language === 'en' ? 'Turn on question suggestions' : 'Predlozi pitanja/odgovora'), onClick: handleSuggestQuestions },
+    { icon: <TipsAndUpdatesIcon style={{ color: suggestQuestions ? 'red' : 'inherit' }} />, name: suggestQuestions ? (language === 'en' ? 'Turn off question suggestions' : 'Isključi predloge pitanja') : (language === 'en' ? 'Turn on question suggestions' : 'Predlozi pitanja'), onClick: handleSuggestQuestions },
     { icon: <VolumeUpIcon style={{ color: audioResponse ? 'red' : 'inherit' }} />, name: audioResponse ? (language === 'en' ? 'Turn off assistant audio response' : 'Isključi audio odgovor asistenta') : (language === 'en' ? 'Turn on assistant audio response' : 'Slušaj odgovor asistenta'), onClick: handleAudioResponseClick },
   ];
 
@@ -612,7 +612,9 @@ const App = () => {
                     <SendIcon />
                   </Button>
                 ) : (
-                  <Tooltip title={language === 'en' ? 'Click to start recording' : 'Kliknite da započnete snimanje'}>
+                  <Tooltip title={isRecording ? 
+                    (language === 'en' ? 'Click to stop recording' : 'Klikni da isključiš snimanje') : 
+                    (language === 'en' ? 'Click to start recording' : 'Klikni da započneš snimanje')}>
                     <Button
                       className={`send-button ${isRecording ? 'recording' : ''}`}
                       onClick={handleVoiceClick}
