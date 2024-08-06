@@ -355,11 +355,12 @@ const App = () => {
   
         const data = response.data;
   
-        if (data && data.calendly_url) {
+        if (data && data.calendly) {
           setMessages(prevMessages => [
-            ...prevMessages,
-            { role: 'assistant', content: data.calendly_url, type: 'calendly' },
+              ...prevMessages,
+              { role: 'assistant', content: data.calendly, type: 'text' },
           ]);
+          setShowTypingIndicator(false);
         } else {
           getEventSource();
         }

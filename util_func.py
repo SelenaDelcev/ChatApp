@@ -14,7 +14,7 @@ def get_hybrid_query_processor():
 
 def positive_calendly():
     calendly_url = "https://outlook.office365.com/book/Chatbot@positive.rs/"
-    return calendly_url
+    return f"Naravno, sastanak sa nama možete zakazati na sledećem linku: <a href='{calendly_url}' target='_blank'>ovde</a>"
 
 def get_structured_decision_from_model(user_query):
     client = get_openai_client()
