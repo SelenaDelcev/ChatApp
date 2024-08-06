@@ -306,10 +306,10 @@ const App = () => {
 
         const data = response.data;
 
-        if (data && data.calendly_url) {
+        if (data && data.calendly) {
           setMessages(prevMessages => [
             ...prevMessages,
-            { role: 'assistant', content: data.calendly_url, type: 'calendly' },
+            { role: 'assistant', content: data.calendly, type: 'text' },
           ]);
           setShowTypingIndicator(false);
         } else {
@@ -531,12 +531,7 @@ const App = () => {
                 </div>
               )}
               <div className={`message ${message.role}`}>
-                {message.type === 'calendly' ? (
-                  <iframe
-                    src={message.content}
-                    title="Calendly Scheduling"
-                  ></iframe>
-                ) : message.type === 'error' ? (
+                {message.type === 'error' ? (
                   <Alert variant="outlined" severity="error" style={{ color: 'red' }}>{message.content}</Alert>
                 ) : (
                   <Tooltip
