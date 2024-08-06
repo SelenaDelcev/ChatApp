@@ -137,7 +137,7 @@ async def chat_with_ai(
         if language == 'sr': 
             return {"calendly": context}
         else:
-            return {"calendly": "Of course, you can schedule a meeting with us at the following link: <a href='{calendly_url}' target='_blank'>here</a>"}
+            return {"calendly": "Of course, you can schedule a meeting with us at the following link: <a href='{calendly_url}' target='_blank' class='custom-link'>here</a>"}
         
     prepared_message_content = f"{context}\n\n{message.content}"
         
