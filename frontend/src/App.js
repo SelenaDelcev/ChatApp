@@ -55,8 +55,6 @@ const App = () => {
 
   useEffect(() => {
     const handleMessage = (event) => {
-      if (event.origin !== 'https://positive.rs') return;
-
       if (event.data.type === 'main-url') {
         const path = event.data.url;
         const isEnglish = path.includes('/en/') || path.endsWith('/en');
